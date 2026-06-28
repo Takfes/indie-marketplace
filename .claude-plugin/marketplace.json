@@ -1,0 +1,12 @@
+{
+  "name": "indie",
+  "description": "Personal AI skills marketplace",
+  "plugins": [
+    {
+      "name": "provision",
+      "description": "AI toolkit provisioning and meta-skills",
+      "version": "0.1.0",
+      "path": "plugins/provision"
+    }
+  ]
+}

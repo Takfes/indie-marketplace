@@ -33,7 +33,7 @@ ROOT = Path(__file__).parent
 SKILLS_DIR = ROOT / "skills"
 PLUGINS_DIR = ROOT / "plugins"
 BUNDLES_FILE = ROOT / "bundles.yaml"
-MARKETPLACE_FILE = ROOT / "marketplace.json"
+MARKETPLACE_FILE = ROOT / ".claude-plugin" / "marketplace.json"
 
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
@@ -227,6 +227,7 @@ def build_plugin(plugin: dict, fetch: bool, fetch_only: bool = False) -> None:
 # ---------------------------------------------------------------------------
 
 def write_marketplace(config: dict) -> None:
+    MARKETPLACE_FILE.parent.mkdir(exist_ok=True)
     mp = config["marketplace"]
     plugins = config.get("plugins", [])
 
