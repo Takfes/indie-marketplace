@@ -1,0 +1,47 @@
+# =============================================================================
+# bundles.yaml — indie marketplace configuration
+# =============================================================================
+# Single source of truth for what goes into each plugin.
+#
+# skill.source values:
+#   local     — skill lives in skills/<name>/ in this repo (you own it)
+#   community — fetched from a git repo at build time
+#               repo: git URL to clone
+#               path: subdirectory inside the repo (defaults to skill name)
+#
+# To add a skill:     add an entry under the plugin's skills list, run build.py
+# To add a plugin:    add a new block under plugins, run build.py
+# To refresh upstream community skills: run make refresh or make fresh-build
+# =============================================================================
+
+marketplace:
+  name: indie
+  description: Personal AI skills marketplace
+
+plugins:
+  # ---------------------------------------------------------------------------
+  # provision — AI toolkit meta-skills
+  # Skills for managing, creating, and distributing other skills and agents.
+  # ---------------------------------------------------------------------------
+  - name: provision
+    description: AI toolkit provisioning and meta-skills
+    version: "0.1.0"
+    color: "#1a1a1a"
+    skills:
+      # Custom skills (source of truth is skills/ in this repo)
+      - name: skill-bundler
+        source: local
+
+      - name: skill-downloader
+        source: local
+
+      # Community skills (git-cloned on make refresh / make fresh-build)
+      - name: skill-creator
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skill-creator"
+
+      - name: agent-development
+        source: community
+        repo: "https://github.com/anthropics/claude-code"
+        path: "Agent Development"
