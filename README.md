@@ -47,11 +47,11 @@ plugins/            ← built output (commit after build)
 Push this repo to GitHub. Add it as a marketplace in Claude Code:
 
 ```
-/plugin marketplace add https://github.com/<you>/indie-marketplace
+/plugin marketplace add Takfes/indie-marketplace
 ```
 
-Install a plugin:
+Install a plugin (the `@indie-marketplace` qualifier identifies which marketplace to use):
 
 ```
-/plugin install provision
+/plugin install provision@indie-marketplace
 ```
