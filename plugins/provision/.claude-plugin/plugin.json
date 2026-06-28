@@ -2,5 +2,8 @@
   "name": "provision",
   "description": "AI toolkit provisioning and meta-skills",
   "version": "0.1.0",
-  "color": "#1a1a1a"
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
 }

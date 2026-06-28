@@ -15,8 +15,11 @@
 # =============================================================================
 
 marketplace:
-  name: indie
+  name: indie-marketplace
   description: Personal AI skills marketplace
+  owner:
+    name: Takis Fessas
+    url: https://github.com/Takfes
 
 plugins:
   # ---------------------------------------------------------------------------

@@ -1,12 +1,17 @@
 {
-  "name": "indie",
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "indie-marketplace",
   "description": "Personal AI skills marketplace",
+  "owner": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  },
   "plugins": [
     {
       "name": "provision",
       "description": "AI toolkit provisioning and meta-skills",
       "version": "0.1.0",
-      "path": "plugins/provision"
+      "source": "./plugins/provision"
     }
   ]
 }

@@ -179,7 +179,7 @@ def fetch_community_skill(skill: dict, plugin_dir: Path, fetch: bool) -> None:
 # Plugin builder
 # ---------------------------------------------------------------------------
 
-def build_plugin(plugin: dict, fetch: bool, fetch_only: bool = False) -> None:
+def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = False) -> None:
     """
     Build a plugin directory from its skill definitions.
 
@@ -214,7 +214,7 @@ def build_plugin(plugin: dict, fetch: bool, fetch_only: bool = False) -> None:
         "name": name,
         "description": plugin.get("description", ""),
         "version": plugin.get("version", "0.1.0"),
-        "color": plugin.get("color", "#1a1a1a"),
+        "author": owner,
     }
     (claude_plugin_dir / "plugin.json").write_text(
         json.dumps(plugin_json, indent=2) + "\n", encoding="utf-8"
@@ -232,14 +232,16 @@ def write_marketplace(config: dict) -> None:
     plugins = config.get("plugins", [])
 
     manifest = {
+        "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
         "name": mp["name"],
         "description": mp.get("description", ""),
+        "owner": mp["owner"],
         "plugins": [
             {
                 "name": p["name"],
                 "description": p.get("description", ""),
                 "version": p.get("version", "0.1.0"),
-                "path": f"plugins/{p['name']}",
+                "source": f"./plugins/{p['name']}",
             }
             for p in plugins
         ],
@@ -296,8 +298,9 @@ def main() -> None:
 
     PLUGINS_DIR.mkdir(exist_ok=True)
 
+    owner = config["marketplace"].get("owner", {})
     for plugin in plugins:
-        build_plugin(plugin, fetch=args.fetch, fetch_only=args.fetch_only)
+        build_plugin(plugin, owner=owner, fetch=args.fetch, fetch_only=args.fetch_only)
 
     if not args.fetch_only:
         print(f"\n{BOLD}Writing marketplace manifest{RESET}")
