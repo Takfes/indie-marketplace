@@ -58,3 +58,40 @@ plugins:
         source: community
         repo: "https://github.com/anthropics/claude-code"
         path: "Agent Development"
+
+  # ---------------------------------------------------------------------------
+  # python — Python development skills
+  # ---------------------------------------------------------------------------
+  - name: python
+    description: Python development, packaging, testing, and refactoring skills
+    version: "0.1.0"
+    skills:
+      - name: python-packaging
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "python-packaging"
+
+      - name: python-performance-optimization
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "python-performance-optimization"
+
+      - name: python-refactor
+        source: community
+        repo: "https://github.com/acaprino/alfio-claude-plugins"
+        path: "python-refactor"
+
+      - name: python-simplifier
+        source: community
+        repo: "https://github.com/charlesmsiegel/tg"
+        path: "python-simplifier"
+
+      - name: python-testing-patterns
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "python-testing-patterns"
+
+      - name: uv-package-manager
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "uv-package-manager"

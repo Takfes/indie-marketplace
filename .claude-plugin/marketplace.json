@@ -12,6 +12,12 @@
       "description": "AI toolkit provisioning and meta-skills",
       "version": "0.1.0",
       "source": "./plugins/provision"
+    },
+    {
+      "name": "python",
+      "description": "Python development, packaging, testing, and refactoring skills",
+      "version": "0.1.0",
+      "source": "./plugins/python"
     }
   ]
 }

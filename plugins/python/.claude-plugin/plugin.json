@@ -1,0 +1,17 @@
+{
+  "name": "python",
+  "description": "Python development, packaging, testing, and refactoring skills",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  },
+  "skills": [
+    "python-packaging",
+    "python-performance-optimization",
+    "python-refactor",
+    "python-simplifier",
+    "python-testing-patterns",
+    "uv-package-manager"
+  ]
+}
