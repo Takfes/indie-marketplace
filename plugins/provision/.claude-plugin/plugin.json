@@ -5,12 +5,5 @@
   "author": {
     "name": "Takis Fessas",
     "url": "https://github.com/Takfes"
-  },
-  "skills": [
-    "skill-bundler",
-    "skill-downloader",
-    "skill-creator",
-    "find-skills",
-    "agent-development"
-  ]
+  }
 }

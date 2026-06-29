@@ -5,13 +5,5 @@
   "author": {
     "name": "Takis Fessas",
     "url": "https://github.com/Takfes"
-  },
-  "skills": [
-    "python-packaging",
-    "python-performance-optimization",
-    "python-refactor",
-    "python-simplifier",
-    "python-testing-patterns",
-    "uv-package-manager"
-  ]
+  }
 }

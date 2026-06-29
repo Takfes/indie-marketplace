@@ -212,13 +212,11 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     if fetch_only:
         return
 
-    skill_names = [s["name"] for s in plugin.get("skills", [])]
     plugin_json = {
         "name": name,
         "description": plugin.get("description", ""),
         "version": plugin.get("version", "0.1.0"),
         "author": owner,
-        "skills": skill_names,
     }
     (claude_plugin_dir / "plugin.json").write_text(
         json.dumps(plugin_json, indent=2) + "\n", encoding="utf-8"
