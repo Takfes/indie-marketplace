@@ -212,11 +212,13 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     if fetch_only:
         return
 
+    skill_names = [s["name"] for s in plugin.get("skills", [])]
     plugin_json = {
         "name": name,
         "description": plugin.get("description", ""),
         "version": plugin.get("version", "0.1.0"),
         "author": owner,
+        "skills": skill_names,
     }
     (claude_plugin_dir / "plugin.json").write_text(
         json.dumps(plugin_json, indent=2) + "\n", encoding="utf-8"
@@ -230,16 +232,6 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
 
 def _plugin_manifest_entry(p: dict) -> dict:
     """Build a single plugin entry for marketplace.json."""
-    if p.get("source") == "external":
-        return {
-            "name": p["name"],
-            "description": p.get("description", ""),
-            "version": p.get("version", "0.1.0"),
-            "source": {
-                "source": "url",
-                "url": p["url"],
-            },
-        }
     return {
         "name": p["name"],
         "description": p.get("description", ""),
@@ -314,10 +306,6 @@ def main() -> None:
 
     owner = config["marketplace"].get("owner", {})
     for plugin in plugins:
-        if plugin.get("source") == "external":
-            print(f"\n{BOLD}Skipping (external): {plugin['name']}{RESET}")
-            ok(f"{plugin['name']}  (external — {plugin.get('url', '')})")
-            continue
         build_plugin(plugin, owner=owner, fetch=args.fetch, fetch_only=args.fetch_only)
 
     if not args.fetch_only:

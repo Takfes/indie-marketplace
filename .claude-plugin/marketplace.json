@@ -8,15 +8,6 @@
   },
   "plugins": [
     {
-      "name": "superpowers",
-      "description": "Core skills library: TDD, debugging, collaboration patterns, and proven techniques",
-      "version": "6.0.3",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/obra/superpowers.git"
-      }
-    },
-    {
       "name": "provision",
       "description": "AI toolkit provisioning and meta-skills",
       "version": "0.1.0",

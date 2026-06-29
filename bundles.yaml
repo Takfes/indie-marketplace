@@ -28,16 +28,6 @@ marketplace:
 
 plugins:
   # ---------------------------------------------------------------------------
-  # External plugins — third-party repos referenced in marketplace.json only.
-  # Install via: /plugin install <name>@indie-marketplace
-  # ---------------------------------------------------------------------------
-  - name: superpowers
-    source: external
-    url: "https://github.com/obra/superpowers.git"
-    description: "Core skills library: TDD, debugging, collaboration patterns, and proven techniques"
-    version: "6.0.3"
-
-  # ---------------------------------------------------------------------------
   # provision — AI toolkit meta-skills
   # Skills for managing, creating, and distributing other skills and agents.
   # ---------------------------------------------------------------------------
@@ -53,11 +43,16 @@ plugins:
       - name: skill-downloader
         source: local
 
-      # Community skills (git-cloned on make refresh / make fresh-build)
+      # Community skills (git-cloned on make fetch / make fetch-build)
       - name: skill-creator
         source: community
         repo: "https://github.com/anthropics/skills"
         path: "skill-creator"
+
+      - name: find-skills
+        source: community
+        repo: "https://github.com/vercel-labs/skills"
+        path: "find-skills"
 
       - name: agent-development
         source: community
