@@ -3,15 +3,20 @@
 # =============================================================================
 # Single source of truth for what goes into each plugin.
 #
-# skill.source values:
+# plugin.source values:
+#   (omitted) — built locally from skills/ entries below
+#   external  — third-party plugin repo; referenced in marketplace.json only,
+#               never built locally. Fields: url, description, version.
+#
+# skill.source values (for locally-built plugins only):
 #   local     — skill lives in skills/<name>/ in this repo (you own it)
 #   community — fetched from a git repo at build time
 #               repo: git URL to clone
 #               path: subdirectory inside the repo (defaults to skill name)
 #
-# To add a skill:     add an entry under the plugin's skills list, run build.py
-# To add a plugin:    add a new block under plugins, run build.py
-# To refresh upstream community skills: run make refresh or make fresh-build
+# To add a skill:          add an entry under the plugin's skills list, run build.py
+# To add a local plugin:   add a new block under plugins (no source:), run build.py
+# To add external plugin:  add a block with source: external + url:, run build.py
 # =============================================================================
 
 marketplace:
@@ -22,6 +27,16 @@ marketplace:
     url: https://github.com/Takfes
 
 plugins:
+  # ---------------------------------------------------------------------------
+  # External plugins — third-party repos referenced in marketplace.json only.
+  # Install via: /plugin install <name>@indie-marketplace
+  # ---------------------------------------------------------------------------
+  - name: superpowers
+    source: external
+    url: "https://github.com/obra/superpowers.git"
+    description: "Core skills library: TDD, debugging, collaboration patterns, and proven techniques"
+    version: "6.0.3"
+
   # ---------------------------------------------------------------------------
   # provision — AI toolkit meta-skills
   # Skills for managing, creating, and distributing other skills and agents.
