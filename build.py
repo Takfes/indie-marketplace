@@ -193,16 +193,18 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     action = "Fetching community skills in" if fetch_only else "Building plugin"
     print(f"\n{BOLD}{action}: {name}{RESET}")
 
+    skills_dir = plugin_dir / "skills"
     plugin_dir.mkdir(parents=True, exist_ok=True)
     claude_plugin_dir.mkdir(exist_ok=True)
+    skills_dir.mkdir(exist_ok=True)
 
     for skill in plugin.get("skills", []):
         source = skill.get("source", "local")
         if source == "local":
             if not fetch_only:
-                build_local_skill(skill, plugin_dir)
+                build_local_skill(skill, skills_dir)
         elif source == "community":
-            fetch_community_skill(skill, plugin_dir, fetch=fetch or fetch_only)
+            fetch_community_skill(skill, skills_dir, fetch=fetch or fetch_only)
         else:
             err(f"{skill['name']} — unknown source type: {source}")
             sys.exit(1)
