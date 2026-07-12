@@ -7,6 +7,18 @@
       "description": "AI toolkit provisioning and meta-skills",
       "version": "0.1.0",
       "path": "plugins/provision"
+    },
+    {
+      "name": "python",
+      "description": "Python development, packaging, testing, and refactoring skills",
+      "version": "0.1.0",
+      "path": "plugins/python"
+    },
+    {
+      "name": "ideation",
+      "description": "Thinking, planning, and ideation skills — custom and community-sourced",
+      "version": "0.1.0",
+      "path": "plugins/ideation"
     }
   ]
 }

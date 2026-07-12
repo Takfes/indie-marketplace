@@ -18,6 +18,12 @@
       "description": "Python development, packaging, testing, and refactoring skills",
       "version": "0.1.0",
       "source": "./plugins/python"
+    },
+    {
+      "name": "ideation",
+      "description": "Thinking, planning, and ideation skills — custom and community-sourced",
+      "version": "0.1.0",
+      "source": "./plugins/ideation"
     }
   ]
 }
