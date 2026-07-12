@@ -1,0 +1,9 @@
+{
+  "name": "spec-dev",
+  "description": "Matt Pocock's engineering skills \u2014 spec-driven development, TDD, code review, architecture",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

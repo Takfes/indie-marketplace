@@ -12,7 +12,11 @@
 #   local     — skill lives in skills/<name>/ in this repo (you own it)
 #   community — fetched from a git repo at build time
 #               repo: git URL to clone
-#               path: subdirectory inside the repo (defaults to skill name)
+#               path: subdirectory inside the repo (defaults to skill name).
+#                     End path in "/*" (or use "*" alone for the repo root)
+#                     to fetch every skill directory found directly under
+#                     it as its own skill, instead of naming one explicitly.
+#                     `name` becomes just a log label for these entries.
 #
 # To add a skill:          add an entry under the plugin's skills list, run build.py
 # To add a local plugin:   add a new block under plugins (no source:), run build.py
@@ -145,3 +149,17 @@ plugins:
         source: community
         repo: "https://github.com/mattpocock/skills"
         path: "skills/productivity/handoff"
+
+  # ---------------------------------------------------------------------------
+  # spec-dev — Matt Pocock's engineering / spec-driven-development skills
+  # ---------------------------------------------------------------------------
+  - name: spec-dev
+    description: Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
+    version: "0.1.0"
+    skills:
+      # Wildcard group entry: fetches every skill directory found directly
+      # under skills/engineering/ in one clone (see bundles.yaml header).
+      - name: mattpocock-engineering
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/engineering/*"

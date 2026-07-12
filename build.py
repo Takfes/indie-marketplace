@@ -104,6 +104,73 @@ def _find_skill_in_clone(tmpdir: Path, name: str, path: str) -> Path | None:
     return None
 
 
+def fetch_community_skill_group(skill: dict, plugin_dir: Path) -> None:
+    """
+    Fetch every skill directory found directly under a wildcard `path`.
+
+    Triggered when bundles.yaml's `path` ends in `/*` (or is just `*` for
+    the repo root). Every immediate subdirectory under that path containing
+    a SKILL.md is copied into the plugin as its own skill, named after its
+    folder — one clone covers the whole group.
+
+    Unlike single-skill entries, group entries always re-clone: there is no
+    way to know what's inside the folder (and thus decide what's "cached")
+    without cloning first.
+    """
+    label = skill["name"]
+    repo = skill.get("repo", "").strip()
+    raw_path = skill.get("path", "").strip()
+    parent = raw_path.rstrip("/")[:-1].rstrip("/")  # strip trailing "*"
+
+    if not repo:
+        err(f"{label} — community skill missing `repo:` in bundles.yaml")
+        sys.exit(1)
+
+    print(f"  Cloning {repo} (group: {parent or '.'}) ...")
+    with tempfile.TemporaryDirectory() as tmpdir_str:
+        tmpdir = Path(tmpdir_str)
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", repo, str(tmpdir)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            err(f"{label} — git clone failed")
+            if result.stderr.strip():
+                err(f"  {result.stderr.strip()}")
+            sys.exit(1)
+
+        base = tmpdir / parent if parent else tmpdir
+        if not base.is_dir():
+            err(f"{label} — group path '{parent}' not found in {repo}")
+            sys.exit(1)
+
+        found = sorted(
+            d for d in base.iterdir() if d.is_dir() and (d / "SKILL.md").exists()
+        )
+        if not found:
+            err(f"{label} — no SKILL.md found directly under '{parent}' in {repo}")
+            sys.exit(1)
+
+        for src in found:
+            skill_name = src.name
+            dest = plugin_dir / skill_name
+            shutil.copytree(
+                src,
+                dest,
+                ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".git"),
+                dirs_exist_ok=True,
+            )
+            (dest / "SOURCE.md").write_text(
+                f"# Source\n\n"
+                f"- **Repo:** {repo}\n"
+                f"- **Path:** `{parent}/{skill_name}`\n"
+                f"- **Fetched:** {date.today()}\n",
+                encoding="utf-8",
+            )
+            ok(f"{skill_name}  (community, fetched via group '{label}')")
+
+
 def fetch_community_skill(skill: dict, plugin_dir: Path, fetch: bool) -> None:
     """
     Fetch a community skill by git-cloning its repo and copying the skill
@@ -111,12 +178,20 @@ def fetch_community_skill(skill: dict, plugin_dir: Path, fetch: bool) -> None:
 
     bundles.yaml fields:
       repo  — GitHub (or any git) URL to clone
-      path  — subdirectory inside the repo (defaults to skill name)
+      path  — subdirectory inside the repo (defaults to skill name).
+              End path in "/*" (or use "*" alone) to fetch every skill
+              directory found directly under it instead of a single skill —
+              see fetch_community_skill_group.
 
     No CLI tool dependency. No intermediate cache location. Files land exactly
     at plugins/<plugin>/<skill>/ — nothing in between.
     """
     name = skill["name"]
+    raw_path = skill.get("path", name).strip()
+    if raw_path.rstrip("/") == "*" or raw_path.rstrip("/").endswith("/*"):
+        fetch_community_skill_group(skill, plugin_dir)
+        return
+
     dest = plugin_dir / name
     already_cached = (dest / "SKILL.md").exists()
 
@@ -125,7 +200,7 @@ def fetch_community_skill(skill: dict, plugin_dir: Path, fetch: bool) -> None:
         return
 
     repo = skill.get("repo", "").strip()
-    path = skill.get("path", name).strip()
+    path = raw_path
 
     if not repo:
         err(f"{name} — community skill missing `repo:` in bundles.yaml")
