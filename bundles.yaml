@@ -47,17 +47,17 @@ plugins:
       - name: skill-creator
         source: community
         repo: "https://github.com/anthropics/skills"
-        path: "skill-creator"
+        path: "skills/skill-creator"
 
       - name: find-skills
         source: community
         repo: "https://github.com/vercel-labs/skills"
-        path: "find-skills"
+        path: "skills/find-skills"
 
       - name: agent-development
         source: community
         repo: "https://github.com/anthropics/claude-code"
-        path: "Agent Development"
+        path: "plugins/plugin-dev/skills/agent-development"
 
   # ---------------------------------------------------------------------------
   # python — Python development skills
@@ -69,29 +69,79 @@ plugins:
       - name: python-packaging
         source: community
         repo: "https://github.com/wshobson/agents"
-        path: "python-packaging"
+        path: "plugins/python-development/skills/python-packaging"
 
       - name: python-performance-optimization
         source: community
         repo: "https://github.com/wshobson/agents"
-        path: "python-performance-optimization"
+        path: "plugins/python-development/skills/python-performance-optimization"
 
       - name: python-refactor
         source: community
         repo: "https://github.com/acaprino/alfio-claude-plugins"
-        path: "python-refactor"
+        path: "plugins/python-development/skills/python-refactor"
 
       - name: python-simplifier
         source: community
         repo: "https://github.com/charlesmsiegel/tg"
-        path: "python-simplifier"
+        path: ".claude/skills/python-simplifier"
 
       - name: python-testing-patterns
         source: community
         repo: "https://github.com/wshobson/agents"
-        path: "python-testing-patterns"
+        path: "plugins/python-development/skills/python-testing-patterns"
 
       - name: uv-package-manager
         source: community
         repo: "https://github.com/wshobson/agents"
-        path: "uv-package-manager"
+        path: "plugins/python-development/skills/uv-package-manager"
+
+  # ---------------------------------------------------------------------------
+  # ideation — thinking, planning, and ideation skills
+  # A mix of custom skills and community-sourced skills for structured thinking,
+  # planning, and decision-making.
+  # ---------------------------------------------------------------------------
+  - name: ideation
+    description: Thinking, planning, and ideation skills — custom and community-sourced
+    version: "0.1.0"
+    skills:
+      # Custom skills (source of truth is skills/ in this repo)
+      - name: clarity
+        source: local
+
+      - name: devils-advocate
+        source: local
+
+      - name: plan-and-critique
+        source: local
+
+      # Community skills (git-cloned on make fetch / make fetch-build)
+      - name: llm-council
+        source: community
+        repo: "https://github.com/aiwithremy/claude-skills-llm-council"
+        path: "."
+
+      - name: prd
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/prd"
+
+      - name: claude-handoff
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/in-progress/claude-handoff"
+
+      - name: grill-me
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/productivity/grill-me"
+
+      - name: grilling
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/productivity/grilling"
+
+      - name: handoff
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/productivity/handoff"

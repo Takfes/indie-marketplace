@@ -21,7 +21,7 @@
     },
     {
       "name": "ideation",
-      "description": "Thinking, planning, and ideation skills — custom and community-sourced",
+      "description": "Thinking, planning, and ideation skills \u2014 custom and community-sourced",
       "version": "0.1.0",
       "source": "./plugins/ideation"
     }
