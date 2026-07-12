@@ -27,6 +27,7 @@ Available plugins:
 | `provision` | `/plugin install provision@indie-marketplace` |
 | `python` | `/plugin install python@indie-marketplace` |
 | `ideation` | `/plugin install ideation@indie-marketplace` |
+| `spec-dev` | `/plugin install spec-dev@indie-marketplace` |
 
 > Looking for skills that live outside this marketplace (superpowers, ponytail, etc.)? See [`EXTERNAL-PLUGINS.md`](EXTERNAL-PLUGINS.md).
 
@@ -37,6 +38,7 @@ Available plugins:
 - [provision](#plugin-provision) — meta-skills for managing, creating, and distributing skills and agents
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
 - [ideation](#plugin-ideation) — thinking, planning, and ideation skills
+- [spec-dev](#plugin-spec-dev) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
 
 <a id="plugin-provision"></a>
 <details>
@@ -82,6 +84,32 @@ Available plugins:
 | `grill-me` | community | A relentless interview to sharpen a plan or design |
 | `grilling` | community | Grill the user relentlessly about a plan or design |
 | `handoff` | community | Compact a conversation into a handoff document for another agent |
+
+</details>
+
+<a id="plugin-spec-dev"></a>
+<details>
+<summary><strong>spec-dev</strong> — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `ask-matt` | community | Router that recommends which skill or flow fits your situation |
+| `code-review` | community | Review changes since a commit/branch against coding standards and the original spec, in parallel |
+| `codebase-design` | community | Shared vocabulary for designing deep, testable modules |
+| `diagnosing-bugs` | community | Diagnosis loop for hard bugs and performance regressions |
+| `domain-modeling` | community | Build and sharpen a project's domain model and ADRs |
+| `grill-with-docs` | community | Relentless interview to sharpen a plan, generating ADRs and a glossary as you go |
+| `implement` | community | Implement a piece of work from a spec or set of tickets |
+| `improve-codebase-architecture` | community | Scan a codebase for deepening opportunities and present them as an HTML report |
+| `prototype` | community | Build a throwaway prototype to sanity-check a design question |
+| `research` | community | Investigate a question against primary sources and capture findings as a Markdown file |
+| `resolving-merge-conflicts` | community | Resolve an in-progress git merge/rebase conflict |
+| `setup-matt-pocock-skills` | community | One-time setup for issue tracker, triage labels, and domain doc layout |
+| `tdd` | community | Test-driven development — red/green/refactor and integration tests |
+| `to-spec` | community | Turn the current conversation into a spec published to the issue tracker |
+| `to-tickets` | community | Break a plan or spec into tracer-bullet tickets with blocking edges |
+| `triage` | community | Move issues and PRs through a categorise/verify/grill triage state machine |
+| `wayfinder` | community | Plan and track work too large for one session as a map of investigation tickets |
 
 </details>
 
