@@ -1,5 +1,5 @@
 # Source
 
 - **Repo:** https://github.com/vercel-labs/skills
-- **Path:** `find-skills`
-- **Fetched:** 2026-06-30
+- **Path:** `skills/find-skills`
+- **Fetched:** 2026-07-12

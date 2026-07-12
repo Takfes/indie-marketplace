@@ -1,5 +1,5 @@
 # Source
 
 - **Repo:** https://github.com/anthropics/skills
-- **Path:** `skill-creator`
-- **Fetched:** 2026-06-30
+- **Path:** `skills/skill-creator`
+- **Fetched:** 2026-07-12

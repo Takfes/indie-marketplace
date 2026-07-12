@@ -1,5 +1,5 @@
 # Source
 
 - **Repo:** https://github.com/wshobson/agents
-- **Path:** `python-testing-patterns`
-- **Fetched:** 2026-06-30
+- **Path:** `plugins/python-development/skills/python-testing-patterns`
+- **Fetched:** 2026-07-12

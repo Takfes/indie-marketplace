@@ -1,5 +1,5 @@
 # Source
 
 - **Repo:** https://github.com/charlesmsiegel/tg
-- **Path:** `python-simplifier`
-- **Fetched:** 2026-06-30
+- **Path:** `.claude/skills/python-simplifier`
+- **Fetched:** 2026-07-12

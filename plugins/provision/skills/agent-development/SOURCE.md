@@ -1,5 +1,5 @@
 # Source
 
 - **Repo:** https://github.com/anthropics/claude-code
-- **Path:** `Agent Development`
-- **Fetched:** 2026-06-30
+- **Path:** `plugins/plugin-dev/skills/agent-development`
+- **Fetched:** 2026-07-12

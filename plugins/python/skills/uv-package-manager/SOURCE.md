@@ -1,5 +1,5 @@
 # Source
 
 - **Repo:** https://github.com/wshobson/agents
-- **Path:** `uv-package-manager`
-- **Fetched:** 2026-06-30
+- **Path:** `plugins/python-development/skills/uv-package-manager`
+- **Fetched:** 2026-07-12
