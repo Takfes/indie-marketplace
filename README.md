@@ -29,6 +29,22 @@ Available plugins:
 | `steering` | `/plugin install steering@indie-marketplace` |
 | `spec-dev` | `/plugin install spec-dev@indie-marketplace` |
 
+### Other Agents
+
+The `.claude-plugin/` manifests in this repo are also directly compatible with Codex CLI and GitHub Copilot CLI — no separate build or manifest needed.
+
+**Codex CLI:**
+```
+codex plugin marketplace add Takfes/indie-marketplace
+codex plugin add provision@indie-marketplace
+```
+
+**GitHub Copilot CLI:**
+```
+copilot plugin marketplace add Takfes/indie-marketplace
+copilot plugin install provision@indie-marketplace
+```
+
 > Looking for skills that live outside this marketplace (superpowers, ponytail, etc.)? See [`EXTERNAL-PLUGINS.md`](EXTERNAL-PLUGINS.md).
 
 <a id="whats-included"></a>
