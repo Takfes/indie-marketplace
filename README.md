@@ -26,7 +26,7 @@ Available plugins:
 |---|---|
 | `provision` | `/plugin install provision@indie-marketplace` |
 | `python` | `/plugin install python@indie-marketplace` |
-| `ideation` | `/plugin install ideation@indie-marketplace` |
+| `steering` | `/plugin install steering@indie-marketplace` |
 | `spec-dev` | `/plugin install spec-dev@indie-marketplace` |
 
 > Looking for skills that live outside this marketplace (superpowers, ponytail, etc.)? See [`EXTERNAL-PLUGINS.md`](EXTERNAL-PLUGINS.md).
@@ -37,7 +37,7 @@ Available plugins:
 
 - [provision](#plugin-provision) — meta-skills for managing, creating, and distributing skills and agents
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
-- [ideation](#plugin-ideation) — thinking, planning, and ideation skills
+- [steering](#plugin-steering) — thinking, planning, and ideation skills
 - [spec-dev](#plugin-spec-dev) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
 
 <a id="plugin-provision"></a>
@@ -69,9 +69,9 @@ Available plugins:
 
 </details>
 
-<a id="plugin-ideation"></a>
+<a id="plugin-steering"></a>
 <details>
-<summary><strong>ideation</strong> — Thinking, planning, and ideation skills</summary>
+<summary><strong>steering</strong> — Thinking, planning, and ideation skills</summary>
 
 | Skill | Source | Description |
 |---|---|---|
@@ -84,6 +84,7 @@ Available plugins:
 | `grill-me` | community | A relentless interview to sharpen a plan or design |
 | `grilling` | community | Grill the user relentlessly about a plan or design |
 | `handoff` | community | Compact a conversation into a handoff document for another agent |
+| `loop-me` | community | Grill me about specs for the workflows I want to build, within this workspace |
 
 </details>
 

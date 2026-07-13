@@ -101,11 +101,11 @@ plugins:
         path: "plugins/python-development/skills/uv-package-manager"
 
   # ---------------------------------------------------------------------------
-  # ideation — thinking, planning, and ideation skills
+  # steering — thinking, planning, and ideation skills
   # A mix of custom skills and community-sourced skills for structured thinking,
   # planning, and decision-making.
   # ---------------------------------------------------------------------------
-  - name: ideation
+  - name: steering
     description: Thinking, planning, and ideation skills — custom and community-sourced
     version: "0.1.0"
     skills:
@@ -149,6 +149,11 @@ plugins:
         source: community
         repo: "https://github.com/mattpocock/skills"
         path: "skills/productivity/handoff"
+
+      - name: loop-me
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/in-progress/loop-me"
 
   # ---------------------------------------------------------------------------
   # spec-dev — Matt Pocock's engineering / spec-driven-development skills

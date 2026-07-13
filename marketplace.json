@@ -15,10 +15,10 @@
       "path": "plugins/python"
     },
     {
-      "name": "ideation",
+      "name": "steering",
       "description": "Thinking, planning, and ideation skills — custom and community-sourced",
       "version": "0.1.0",
-      "path": "plugins/ideation"
+      "path": "plugins/steering"
     }
   ]
 }
