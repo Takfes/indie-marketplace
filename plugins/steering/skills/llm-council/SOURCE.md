@@ -2,4 +2,4 @@
 
 - **Repo:** https://github.com/aiwithremy/claude-skills-llm-council
 - **Path:** `.`
-- **Fetched:** 2026-07-12
+- **Fetched:** 2026-07-13

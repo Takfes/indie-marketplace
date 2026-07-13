@@ -2,4 +2,4 @@
 
 - **Repo:** https://github.com/vercel-labs/skills
 - **Path:** `skills/find-skills`
-- **Fetched:** 2026-07-12
+- **Fetched:** 2026-07-13
