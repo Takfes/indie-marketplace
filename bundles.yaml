@@ -47,6 +47,9 @@ plugins:
       - name: skill-downloader
         source: local
 
+      - name: onboard-project
+        source: local
+
       # Community skills (git-cloned on make fetch / make fetch-build)
       - name: skill-creator
         source: community

@@ -64,6 +64,7 @@ copilot plugin install provision@indie-marketplace
 |---|---|---|
 | `skill-bundler` | local | Package skills into distributable zip archives for sharing or backup |
 | `skill-downloader` | local | Sparse-checkout a specific skill folder from a GitHub repo |
+| `onboard-project` | local | Fill in a project's Stack, Commands, and Documentation sections in workspace.md |
 | `skill-creator` | community | Create, edit, and evaluate new skills |
 | `find-skills` | community | Discover and install skills matching a described need |
 | `agent-development` | community | Guidance on building subagents for Claude Code |
