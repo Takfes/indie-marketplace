@@ -1,5 +1,5 @@
 {
-  "description": "Sound alert when Claude finishes and is waiting on you",
+  "description": "Sound alerts for session lifecycle events",
   "hooks": {
     "Stop": [
       {
@@ -8,6 +8,18 @@
           {
             "type": "command",
             "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/permission-alert.sh",
             "async": true
           }
         ]
