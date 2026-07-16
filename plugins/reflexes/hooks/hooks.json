@@ -1,0 +1,17 @@
+{
+  "description": "Sound alert when Claude finishes and is waiting on you",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/notify.sh",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
