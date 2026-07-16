@@ -2,4 +2,4 @@
 
 - **Repo:** https://github.com/mattpocock/skills
 - **Path:** `skills/engineering/to-tickets`
-- **Fetched:** 2026-07-13
+- **Fetched:** 2026-07-16
