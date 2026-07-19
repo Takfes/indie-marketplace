@@ -28,6 +28,7 @@ Available plugins:
 | `python` | `/plugin install python@indie-marketplace` |
 | `steering` | `/plugin install steering@indie-marketplace` |
 | `mattpocock` | `/plugin install mattpocock@indie-marketplace` |
+| `superpowers` | `/plugin install superpowers@indie-marketplace` |
 
 ### Other Agents
 
@@ -45,7 +46,7 @@ copilot plugin marketplace add Takfes/indie-marketplace
 copilot plugin install provision@indie-marketplace
 ```
 
-> Looking for skills that live outside this marketplace (superpowers, ponytail, etc.)? See [`EXTERNAL-PLUGINS.md`](EXTERNAL-PLUGINS.md).
+> Looking for skills that live outside this marketplace (ponytail, caveman, etc.)? See [`EXTERNAL-PLUGINS.md`](EXTERNAL-PLUGINS.md).
 
 <a id="whats-included"></a>
 
@@ -55,6 +56,7 @@ copilot plugin install provision@indie-marketplace
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
 - [steering](#plugin-steering) — thinking, planning, and ideation skills
 - [mattpocock](#plugin-mattpocock) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
+- [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
 
 <a id="plugin-provision"></a>
 <details>
@@ -128,6 +130,30 @@ copilot plugin install provision@indie-marketplace
 | `to-tickets` | community | Break a plan or spec into tracer-bullet tickets with blocking edges |
 | `triage` | community | Move issues and PRs through a categorise/verify/grill triage state machine |
 | `wayfinder` | community | Plan and track work too large for one session as a map of investigation tickets |
+
+</details>
+
+<a id="plugin-superpowers"></a>
+<details>
+<summary><strong>superpowers</strong> — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `brainstorming` | community | Explore intent, requirements, and design before creative or feature work |
+| `dispatching-parallel-agents` | community | Dispatch 2+ independent tasks to parallel subagents |
+| `executing-plans` | community | Execute a written implementation plan with review checkpoints |
+| `finishing-a-development-branch` | community | Decide how to integrate finished work — merge, PR, or cleanup |
+| `receiving-code-review` | community | Evaluate code review feedback with technical rigor before acting on it |
+| `requesting-code-review` | community | Request a code review before merging or completing a task |
+| `subagent-driven-development` | community | Execute an implementation plan's independent tasks via subagents |
+| `systematic-debugging` | community | Systematic root-cause diagnosis for bugs and unexpected behavior |
+| `test-driven-development` | community | Red/green/refactor — write the test before the implementation |
+| `using-git-worktrees` | community | Isolate feature work in its own git worktree |
+| `using-superpowers` | community | Session-start primer on discovering and invoking the right skill |
+| `verification-before-completion` | community | Verify work actually passes before claiming it's done |
+| `writing-plans` | community | Turn a spec into a written multi-step implementation plan |
+| `writing-skills` | community | Create, edit, and validate new skills before deployment |
+| `hooks/session-start` | community | SessionStart hook — injects the using-superpowers skill into every session/clear/compact |
 
 </details>
 

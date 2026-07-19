@@ -32,6 +32,12 @@
       "source": "./plugins/mattpocock"
     },
     {
+      "name": "superpowers",
+      "description": "obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook",
+      "version": "0.1.0",
+      "source": "./plugins/superpowers"
+    },
+    {
       "name": "reflexes",
       "description": "Event-driven hooks that react to Claude Code session lifecycle events",
       "version": "0.1.0",

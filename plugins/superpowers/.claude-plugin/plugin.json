@@ -1,0 +1,9 @@
+{
+  "name": "superpowers",
+  "description": "obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}
