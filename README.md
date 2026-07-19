@@ -30,6 +30,9 @@ Available plugins:
 | `mattpocock` | `/plugin install mattpocock@indie-marketplace` |
 | `office` | `/plugin install office@indie-marketplace` |
 | `frontend` | `/plugin install frontend@indie-marketplace` |
+| `database` | `/plugin install database@indie-marketplace` |
+| `devops` | `/plugin install devops@indie-marketplace` |
+| `gitctrl` | `/plugin install gitctrl@indie-marketplace` |
 | `superpowers` | `/plugin install superpowers@indie-marketplace` |
 
 ### Other Agents
@@ -60,6 +63,9 @@ copilot plugin install provision@indie-marketplace
 - [mattpocock](#plugin-mattpocock) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
 - [office](#plugin-office) — create and edit Office documents — docx, pdf, pptx, and xlsx
 - [frontend](#plugin-frontend) — frontend design and UI craft skills — design, iterate, and critique frontend interfaces
+- [database](#plugin-database) — SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
+- [devops](#plugin-devops) — DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
+- [gitctrl](#plugin-gitctrl) — git workflow and code review skills — cleanup, commit hygiene, and review excellence
 - [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
 
 <a id="plugin-provision"></a>
@@ -160,6 +166,46 @@ copilot plugin install provision@indie-marketplace
 | `frontend-design` | community | Guidance for distinctive, intentional visual design on new or existing UI |
 | `impeccable` | community | Design, critique, audit, and polish production-grade frontend interfaces |
 | `design-taste-frontend` | community | Anti-slop design taste for landing pages, portfolios, and redesigns |
+
+</details>
+
+<a id="plugin-database"></a>
+<details>
+<summary><strong>database</strong> — SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `sql-code-review` | community | Review SQL for security, maintainability, and anti-patterns across MySQL, PostgreSQL, SQL Server, Oracle |
+| `sql-optimization` | community | Tune SQL query performance — indexing strategies, execution plans, and batch operations |
+| `azure-kusto` | community | Query and analyze data in Azure Data Explorer (Kusto/ADX) using KQL |
+| `profiling-tables` | community | Deep-dive data profiling for a table — statistics, structure, and data quality |
+
+</details>
+
+<a id="plugin-devops"></a>
+<details>
+<summary><strong>devops</strong> — DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `multi-stage-dockerfile` | community | Create optimized multi-stage Dockerfiles for any language or framework |
+| `devcontainer-setup` | community | Create devcontainers with Claude Code, language-specific tooling, and persistent volumes |
+| `helm-chart-scaffolding` | community | Design, organize, and manage Helm charts for templating Kubernetes applications |
+| `kubernetes-specialist` | community | Deploy and manage Kubernetes workloads — manifests, RBAC, NetworkPolicies, GitOps |
+| `azure-devops-cli` | community | Manage Azure DevOps resources via CLI — repos, pipelines, builds, PRs, work items |
+| `ci-cd-and-automation` | community | Set up CI/CD pipelines, quality gates, test runners, and deployment strategies |
+
+</details>
+
+<a id="plugin-gitctrl"></a>
+<details>
+<summary><strong>gitctrl</strong> — git workflow and code review skills — cleanup, commit hygiene, and review excellence</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `git-cleanup` | community | Safely analyze and clean up local git branches and worktrees — merged, superseded, or active |
+| `code-review-excellence` | community | Effective code review practices — constructive feedback, catching bugs early, mentoring |
+| `git-commit` | community | Conventional commit message analysis, intelligent staging, and message generation |
 
 </details>
 

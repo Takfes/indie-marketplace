@@ -2,17 +2,11 @@
 
 Readily available plugins from the community. Install these separately via their own marketplaces or install commands.
 
-- [skills by mattpocock](https://github.com/mattpocock/skills)
 - [ponytail by gebert](https://github.com/DietrichGebert/ponytail)
 - [caveman by brussee](https://github.com/juliusbrussee/caveman)
 - [lyra by ananddtyagi](https://github.com/ccplugins/awesome-claude-code-plugins/tree/main/plugins/lyra)
 
 ## Install commands
-
-**mattpocock/skills**
-```
-npx skills@latest add mattpocock/skills
-```
 
 **ponytail**
 ```

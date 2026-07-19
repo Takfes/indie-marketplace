@@ -1,0 +1,9 @@
+{
+  "name": "database",
+  "description": "SQL and data engineering skills \u2014 query review, optimization, Azure Kusto, and table profiling",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

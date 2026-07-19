@@ -236,6 +236,94 @@ plugins:
         path: "skills/taste-skill"
 
   # ---------------------------------------------------------------------------
+  # database — SQL and data engineering skills: query review and
+  # optimization (awesome-copilot), Azure Kusto queries (azure-skills),
+  # and profiling tables (astronomer).
+  # ---------------------------------------------------------------------------
+  - name: database
+    description: SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
+    version: "0.1.0"
+    skills:
+      - name: sql-code-review
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/sql-code-review"
+
+      - name: sql-optimization
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/sql-optimization"
+
+      - name: azure-kusto
+        source: community
+        repo: "https://github.com/microsoft/azure-skills"
+        path: "skills/azure-kusto"
+
+      - name: profiling-tables
+        source: community
+        repo: "https://github.com/astronomer/agents"
+        path: "skills/profiling-tables"
+
+  # ---------------------------------------------------------------------------
+  # devops — containers, Kubernetes, CI/CD, and Azure DevOps skills.
+  # ---------------------------------------------------------------------------
+  - name: devops
+    description: DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
+    version: "0.1.0"
+    skills:
+      - name: multi-stage-dockerfile
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/multi-stage-dockerfile"
+
+      - name: devcontainer-setup
+        source: community
+        repo: "https://github.com/trailofbits/skills"
+        path: "plugins/devcontainer-setup/skills/devcontainer-setup"
+
+      - name: helm-chart-scaffolding
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "plugins/kubernetes-operations/skills/helm-chart-scaffolding"
+
+      - name: kubernetes-specialist
+        source: community
+        repo: "https://github.com/jeffallan/claude-skills"
+        path: "skills/kubernetes-specialist"
+
+      - name: azure-devops-cli
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/azure-devops-cli"
+
+      - name: ci-cd-and-automation
+        source: community
+        repo: "https://github.com/addyosmani/agent-skills"
+        path: "skills/ci-cd-and-automation"
+
+  # ---------------------------------------------------------------------------
+  # gitctrl — git workflow and code review hygiene skills.
+  # ---------------------------------------------------------------------------
+  - name: gitctrl
+    description: Git workflow and code review skills — cleanup, commit hygiene, and review excellence
+    version: "0.1.0"
+    skills:
+      - name: git-cleanup
+        source: community
+        repo: "https://github.com/trailofbits/skills"
+        path: "plugins/git-cleanup/skills/git-cleanup"
+
+      - name: code-review-excellence
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "plugins/developer-essentials/skills/code-review-excellence"
+
+      - name: git-commit
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/git-commit"
+
+  # ---------------------------------------------------------------------------
   # superpowers — obra's methodology skills library (TDD, systematic
   # debugging, brainstorming, code review, plans, git worktrees, ...) plus
   # its SessionStart hook, which injects the 'using-superpowers' skill into

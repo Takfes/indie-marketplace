@@ -44,6 +44,24 @@
       "source": "./plugins/frontend"
     },
     {
+      "name": "database",
+      "description": "SQL and data engineering skills \u2014 query review, optimization, Azure Kusto, and table profiling",
+      "version": "0.1.0",
+      "source": "./plugins/database"
+    },
+    {
+      "name": "devops",
+      "description": "DevOps and infrastructure skills \u2014 containers, Kubernetes, CI/CD, and Azure DevOps",
+      "version": "0.1.0",
+      "source": "./plugins/devops"
+    },
+    {
+      "name": "gitctrl",
+      "description": "Git workflow and code review skills \u2014 cleanup, commit hygiene, and review excellence",
+      "version": "0.1.0",
+      "source": "./plugins/gitctrl"
+    },
+    {
       "name": "superpowers",
       "description": "obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook",
       "version": "0.1.0",

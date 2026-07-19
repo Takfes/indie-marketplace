@@ -1,0 +1,9 @@
+{
+  "name": "gitctrl",
+  "description": "Git workflow and code review skills \u2014 cleanup, commit hygiene, and review excellence",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

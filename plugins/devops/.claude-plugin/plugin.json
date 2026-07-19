@@ -1,0 +1,9 @@
+{
+  "name": "devops",
+  "description": "DevOps and infrastructure skills \u2014 containers, Kubernetes, CI/CD, and Azure DevOps",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}
