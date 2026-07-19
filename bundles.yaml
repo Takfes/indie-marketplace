@@ -165,9 +165,9 @@ plugins:
         path: "skills/in-progress/loop-me"
 
   # ---------------------------------------------------------------------------
-  # spec-dev — Matt Pocock's engineering / spec-driven-development skills
+  # mattpocock — Matt Pocock's engineering / spec-driven-development skills
   # ---------------------------------------------------------------------------
-  - name: spec-dev
+  - name: mattpocock
     description: Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
     version: "0.1.0"
     skills:

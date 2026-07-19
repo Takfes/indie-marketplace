@@ -27,7 +27,7 @@ Available plugins:
 | `provision` | `/plugin install provision@indie-marketplace` |
 | `python` | `/plugin install python@indie-marketplace` |
 | `steering` | `/plugin install steering@indie-marketplace` |
-| `spec-dev` | `/plugin install spec-dev@indie-marketplace` |
+| `mattpocock` | `/plugin install mattpocock@indie-marketplace` |
 
 ### Other Agents
 
@@ -54,7 +54,7 @@ copilot plugin install provision@indie-marketplace
 - [provision](#plugin-provision) — meta-skills for managing, creating, and distributing skills and agents
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
 - [steering](#plugin-steering) — thinking, planning, and ideation skills
-- [spec-dev](#plugin-spec-dev) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
+- [mattpocock](#plugin-mattpocock) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
 
 <a id="plugin-provision"></a>
 <details>
@@ -105,9 +105,9 @@ copilot plugin install provision@indie-marketplace
 
 </details>
 
-<a id="plugin-spec-dev"></a>
+<a id="plugin-mattpocock"></a>
 <details>
-<summary><strong>spec-dev</strong> — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture</summary>
+<summary><strong>mattpocock</strong> — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture</summary>
 
 | Skill | Source | Description |
 |---|---|---|
