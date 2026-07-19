@@ -104,6 +104,7 @@ copilot plugin install provision@indie-marketplace
 | `grilling` | community | Grill the user relentlessly about a plan or design |
 | `handoff` | community | Compact a conversation into a handoff document for another agent |
 | `loop-me` | community | Grill me about specs for the workflows I want to build, within this workspace |
+| `doc-coauthoring` | community | Structured workflow for co-authoring docs, proposals, specs, and decision docs |
 
 </details>
 

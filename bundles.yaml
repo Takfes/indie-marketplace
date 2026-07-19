@@ -164,6 +164,11 @@ plugins:
         repo: "https://github.com/mattpocock/skills"
         path: "skills/in-progress/loop-me"
 
+      - name: doc-coauthoring
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skills/doc-coauthoring"
+
   # ---------------------------------------------------------------------------
   # mattpocock — Matt Pocock's engineering / spec-driven-development skills
   # ---------------------------------------------------------------------------
