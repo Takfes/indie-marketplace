@@ -18,6 +18,12 @@
 #                     it as its own skill, instead of naming one explicitly.
 #                     `name` becomes just a log label for these entries.
 #
+# plugin.hooks (optional, top-level sibling of `skills:`):
+#   Same idea as a community skill, but fetches a hooks/ directory verbatim
+#   instead of a skill. Fields: source: community, repo:, path: (defaults
+#   to "hooks"). Refreshed by the same make fetch / make fetch-build run as
+#   the plugin's skills — no separate command.
+#
 # To add a skill:          add an entry under the plugin's skills list, run build.py
 # To add a local plugin:   add a new block under plugins (no source:), run build.py
 # To add external plugin:  add a block with source: external + url:, run build.py
@@ -171,6 +177,27 @@ plugins:
         source: community
         repo: "https://github.com/mattpocock/skills"
         path: "skills/engineering/*"
+
+  # ---------------------------------------------------------------------------
+  # superpowers — obra's methodology skills library (TDD, systematic
+  # debugging, brainstorming, code review, plans, git worktrees, ...) plus
+  # its SessionStart hook, which injects the 'using-superpowers' skill into
+  # every session/clear/compact, pushing Claude to check for a matching
+  # skill before responding. Both skills and hooks/ are fetched verbatim
+  # from upstream — no hand-maintained copies.
+  # ---------------------------------------------------------------------------
+  - name: superpowers
+    description: obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
+    version: "0.1.0"
+    hooks:
+      source: community
+      repo: "https://github.com/obra/superpowers"
+      path: "hooks"
+    skills:
+      - name: obra-superpowers
+        source: community
+        repo: "https://github.com/obra/superpowers"
+        path: "skills/*"
 
   # ---------------------------------------------------------------------------
   # reflexes — event-driven hooks reacting to Claude Code session lifecycle

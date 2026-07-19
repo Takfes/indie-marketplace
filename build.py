@@ -15,6 +15,8 @@ How it works:
   source: local     → copies skills/<name>/ into the plugin (full directory)
   source: community → git clone repo into a tmpdir, copy skill subdir into plugin
                       Uses cached plugin content if already built, unless --fetch.
+  plugin `hooks:`   → same community fetch, but copies a hooks/ directory
+                      verbatim into the plugin instead of a skill.
 """
 
 import argparse
@@ -250,16 +252,82 @@ def fetch_community_skill(skill: dict, plugin_dir: Path, fetch: bool) -> None:
     ok(f"{name}  (community, fetched)")
 
 
+def fetch_community_hooks(hooks_cfg: dict, plugin_dir: Path, fetch: bool) -> None:
+    """
+    Fetch a plugin's hooks/ directory by git-cloning its repo and copying
+    the hooks subdirectory verbatim into the plugin.
+
+    bundles.yaml fields (under a plugin's `hooks:` block):
+      repo  — git URL to clone
+      path  — subdirectory inside the repo (defaults to "hooks")
+
+    Cache-aware like a single community skill: skips re-cloning if the
+    plugin already has a populated hooks/ directory, unless fetch=True.
+    """
+    repo = hooks_cfg.get("repo", "").strip()
+    path = hooks_cfg.get("path", "hooks").strip()
+    dest = plugin_dir / "hooks"
+    already_cached = dest.is_dir() and any(dest.iterdir())
+
+    if already_cached and not fetch:
+        ok("hooks  (community, cached — run --fetch to update)")
+        return
+
+    if not repo:
+        err("hooks — plugin's `hooks:` block missing `repo:` in bundles.yaml")
+        sys.exit(1)
+
+    print(f"  Cloning {repo} (hooks) ...")
+    with tempfile.TemporaryDirectory() as tmpdir_str:
+        tmpdir = Path(tmpdir_str)
+        result = subprocess.run(
+            ["git", "clone", "--depth", "1", repo, str(tmpdir)],
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            if already_cached:
+                warn("hooks — clone failed, using cached copy")
+                if result.stderr.strip():
+                    warn(f"  {result.stderr.strip()}")
+                return
+            err("hooks — git clone failed")
+            if result.stderr.strip():
+                err(f"  {result.stderr.strip()}")
+            sys.exit(1)
+
+        src = tmpdir / path
+        if not src.is_dir():
+            err(f"hooks — path '{path}' not found in {repo}")
+            sys.exit(1)
+
+        shutil.copytree(
+            src,
+            dest,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".git"),
+            dirs_exist_ok=True,
+        )
+
+    (dest / "SOURCE.md").write_text(
+        f"# Source\n\n"
+        f"- **Repo:** {repo}\n"
+        f"- **Path:** `{path}`\n"
+        f"- **Fetched:** {date.today()}\n",
+        encoding="utf-8",
+    )
+    ok("hooks  (community, fetched)")
+
+
 # ---------------------------------------------------------------------------
 # Plugin builder
 # ---------------------------------------------------------------------------
 
 def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = False) -> None:
     """
-    Build a plugin directory from its skill definitions.
+    Build a plugin directory from its skill (and optional hooks) definitions.
 
-    fetch_only=True  → only re-fetch community skills; skip local copy and manifests.
-    fetch=True       → re-fetch community skills from upstream before copying.
+    fetch_only=True  → only re-fetch community content; skip local copy and manifests.
+    fetch=True       → re-fetch community content from upstream before copying.
     """
     name = plugin["name"]
     plugin_dir = PLUGINS_DIR / name
@@ -282,6 +350,15 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
             fetch_community_skill(skill, skills_dir, fetch=fetch or fetch_only)
         else:
             err(f"{skill['name']} — unknown source type: {source}")
+            sys.exit(1)
+
+    hooks_cfg = plugin.get("hooks")
+    if hooks_cfg:
+        source = hooks_cfg.get("source", "community")
+        if source == "community":
+            fetch_community_hooks(hooks_cfg, plugin_dir, fetch=fetch or fetch_only)
+        else:
+            err(f"{name} — unknown hooks source type: {source}")
             sys.exit(1)
 
     if fetch_only:
