@@ -179,6 +179,30 @@ plugins:
         path: "skills/engineering/*"
 
   # ---------------------------------------------------------------------------
+  # frontend — frontend design and UI craft skills: layout/UX design
+  # (Anthropic), production frontend iteration (impeccable), and anti-slop
+  # design taste for landing pages/portfolios (taste-skill).
+  # ---------------------------------------------------------------------------
+  - name: frontend
+    description: Frontend design and UI craft skills — design, iterate, and critique frontend interfaces
+    version: "0.1.0"
+    skills:
+      - name: frontend-design
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skills/frontend-design"
+
+      - name: impeccable
+        source: community
+        repo: "https://github.com/pbakaus/impeccable"
+        path: ".claude/skills/impeccable"
+
+      - name: design-taste-frontend
+        source: community
+        repo: "https://github.com/leonxlnx/taste-skill"
+        path: "skills/taste-skill"
+
+  # ---------------------------------------------------------------------------
   # superpowers — obra's methodology skills library (TDD, systematic
   # debugging, brainstorming, code review, plans, git worktrees, ...) plus
   # its SessionStart hook, which injects the 'using-superpowers' skill into
