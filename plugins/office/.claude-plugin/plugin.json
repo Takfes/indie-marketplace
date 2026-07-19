@@ -1,0 +1,9 @@
+{
+  "name": "office",
+  "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

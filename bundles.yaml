@@ -184,6 +184,34 @@ plugins:
         path: "skills/engineering/*"
 
   # ---------------------------------------------------------------------------
+  # office — Anthropic's document-format skills for creating and editing
+  # Office/PDF documents (docx, pdf, pptx, xlsx).
+  # ---------------------------------------------------------------------------
+  - name: office
+    description: Create and edit Office documents — docx, pdf, pptx, and xlsx
+    version: "0.1.0"
+    skills:
+      - name: docx
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skills/docx"
+
+      - name: pdf
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skills/pdf"
+
+      - name: pptx
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skills/pptx"
+
+      - name: xlsx
+        source: community
+        repo: "https://github.com/anthropics/skills"
+        path: "skills/xlsx"
+
+  # ---------------------------------------------------------------------------
   # frontend — frontend design and UI craft skills: layout/UX design
   # (Anthropic), production frontend iteration (impeccable), and anti-slop
   # design taste for landing pages/portfolios (taste-skill).

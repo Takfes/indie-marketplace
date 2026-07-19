@@ -32,6 +32,12 @@
       "source": "./plugins/mattpocock"
     },
     {
+      "name": "office",
+      "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
+      "version": "0.1.0",
+      "source": "./plugins/office"
+    },
+    {
       "name": "frontend",
       "description": "Frontend design and UI craft skills \u2014 design, iterate, and critique frontend interfaces",
       "version": "0.1.0",
