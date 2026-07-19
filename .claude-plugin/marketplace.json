@@ -26,10 +26,10 @@
       "source": "./plugins/steering"
     },
     {
-      "name": "spec-dev",
+      "name": "mattpocock",
       "description": "Matt Pocock's engineering skills \u2014 spec-driven development, TDD, code review, architecture",
       "version": "0.1.0",
-      "source": "./plugins/spec-dev"
+      "source": "./plugins/mattpocock"
     },
     {
       "name": "reflexes",
