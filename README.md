@@ -28,6 +28,7 @@ Available plugins:
 | `python` | `/plugin install python@indie-marketplace` |
 | `steering` | `/plugin install steering@indie-marketplace` |
 | `mattpocock` | `/plugin install mattpocock@indie-marketplace` |
+| `office` | `/plugin install office@indie-marketplace` |
 | `superpowers` | `/plugin install superpowers@indie-marketplace` |
 
 ### Other Agents
@@ -56,6 +57,7 @@ copilot plugin install provision@indie-marketplace
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
 - [steering](#plugin-steering) — thinking, planning, and ideation skills
 - [mattpocock](#plugin-mattpocock) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
+- [office](#plugin-office) — create and edit Office documents — docx, pdf, pptx, and xlsx
 - [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
 
 <a id="plugin-provision"></a>
@@ -130,6 +132,19 @@ copilot plugin install provision@indie-marketplace
 | `to-tickets` | community | Break a plan or spec into tracer-bullet tickets with blocking edges |
 | `triage` | community | Move issues and PRs through a categorise/verify/grill triage state machine |
 | `wayfinder` | community | Plan and track work too large for one session as a map of investigation tickets |
+
+</details>
+
+<a id="plugin-office"></a>
+<details>
+<summary><strong>office</strong> — create and edit Office documents — docx, pdf, pptx, and xlsx</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `docx` | community | Create, read, edit, and manipulate Word documents (.docx/.dotx) |
+| `pdf` | community | Read, merge, split, watermark, fill, encrypt, and OCR PDF files |
+| `pptx` | community | Create, read, and edit slide decks and presentations (.pptx/.potx) |
+| `xlsx` | community | Create, read, edit, and clean spreadsheets (.xlsx/.xlsm/.csv/.tsv) |
 
 </details>
 

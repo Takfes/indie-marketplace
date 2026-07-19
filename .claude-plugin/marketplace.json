@@ -32,6 +32,12 @@
       "source": "./plugins/mattpocock"
     },
     {
+      "name": "office",
+      "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
+      "version": "0.1.0",
+      "source": "./plugins/office"
+    },
+    {
       "name": "superpowers",
       "description": "obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook",
       "version": "0.1.0",
