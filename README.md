@@ -90,7 +90,7 @@ copilot plugin install provision@indie-marketplace
 | Skill | Source | Description |
 |---|---|---|
 | `python-packaging` | community | Structure and publish distributable Python packages to PyPI |
-| `python-performance-optimization` | community | Profile and optimize Python code with cProfile and memory profilers |
+| `python-performance-optimization` | local | Profile and optimize Python code with cProfile, tracemalloc, and modern tools — includes an automated hotspot report and a live CPU/memory dashboard |
 | `python-refactor` | community | Turn complex code into clear, maintainable code while preserving correctness |
 | `python-simplifier` | community | Simplify overly complex code, flag code smells and duplication |
 | `python-testing-patterns` | community | pytest strategies — fixtures, mocking, test-driven development |
