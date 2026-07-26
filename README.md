@@ -93,7 +93,7 @@ copilot plugin install provision@indie-marketplace
 | `python-performance-optimization` | local | Profile and optimize Python code with cProfile, tracemalloc, and modern tools — includes an automated hotspot report and a live CPU/memory dashboard |
 | `python-refactor` | community | Turn complex code into clear, maintainable code while preserving correctness |
 | `python-simplifier` | community | Simplify overly complex code, flag code smells and duplication |
-| `python-testing-patterns` | community | pytest strategies — fixtures, mocking, test-driven development |
+| `python-testing-patterns` | local | Write a pytest suite for finished Python code — coverage planning, disciplined mocking, and testing anti-patterns |
 | `uv-package-manager` | community | Manage dependencies, virtual environments, and workflows with uv |
 
 </details>

@@ -101,10 +101,13 @@ plugins:
         repo: "https://github.com/charlesmsiegel/tg"
         path: ".claude/skills/python-simplifier"
 
+      # Originally fetched from community (https://github.com/wshobson/agents,
+      # plugins/python-development/skills/python-testing-patterns); now
+      # synthesized with TDD methodology from the mattpocock and superpowers
+      # tdd skills and hand-maintained — see
+      # skills/python-testing-patterns/ for the source of truth.
       - name: python-testing-patterns
-        source: community
-        repo: "https://github.com/wshobson/agents"
-        path: "plugins/python-development/skills/python-testing-patterns"
+        source: local
 
       - name: uv-package-manager
         source: community
