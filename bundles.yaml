@@ -84,10 +84,10 @@ plugins:
         repo: "https://github.com/wshobson/agents"
         path: "plugins/python-development/skills/python-packaging"
 
+      # Customized locally (started as a community fetch, now hand-maintained —
+      # see skills/python-performance-optimization/ for the source of truth)
       - name: python-performance-optimization
-        source: community
-        repo: "https://github.com/wshobson/agents"
-        path: "plugins/python-development/skills/python-performance-optimization"
+        source: local
 
       - name: python-refactor
         source: community
