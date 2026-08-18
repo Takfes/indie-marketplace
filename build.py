@@ -321,6 +321,36 @@ def fetch_community_hooks(hooks_cfg: dict, plugin_dir: Path, fetch: bool) -> Non
     ok("hooks  (community, fetched)")
 
 
+def env_prefix(plugin_name: str) -> str:
+    """The mandatory prefix for every env var a plugin declares."""
+    return plugin_name.upper().replace("-", "_") + "_"
+
+
+def validate_env_names(plugin: dict) -> None:
+    """
+    Reject any env var declared under a plugin's `mcp:` block that doesn't
+    carry that plugin's own prefix (`python` → PYTHON_, `web-research` →
+    WEB_RESEARCH_).
+
+    Every declared var ultimately resolves against Claude Code's single
+    process environment, so a bare name like API_KEY declared by two plugins
+    would silently collide there no matter which file it came from. The prefix
+    keeps each plugin in its own namespace; essentials' load-env.sh is the
+    runtime backstop for anything that still slips through.
+    """
+    prefix = env_prefix(plugin["name"])
+    for entry in plugin["mcp"]:
+        for var in entry.get("env") or {}:
+            if var == prefix:
+                err(f"{plugin['name']} — env var '{var}' on MCP server '{entry['name']}' is the bare prefix with no name after it")
+                sys.exit(1)
+            if not var.startswith(prefix):
+                err(f"{plugin['name']} — env var '{var}' on MCP server '{entry['name']}' must start with '{prefix}'")
+                err(f"  Rename it to '{prefix}{var}' in bundles.yaml, or pick another {prefix}* name.")
+                err("  Every plugin prefixes its env vars so two plugins cannot declare the same bare name.")
+                sys.exit(1)
+
+
 def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's .mcp.json from its `mcp:` block in bundles.yaml.
@@ -333,6 +363,7 @@ def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
       env     — optional map of required env var names. Only the names
                 are used; each becomes "${NAME}" in .mcp.json so Claude
                 Code resolves it from the user's shell environment.
+                Names must carry the plugin's prefix — see validate_env_names.
     """
     mcp_servers = {}
     for entry in plugin["mcp"]:
@@ -482,6 +513,7 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
         return
 
     if plugin.get("mcp"):
+        validate_env_names(plugin)
         write_mcp_json(plugin, plugin_dir)
         write_env_example(plugin, plugin_dir)
         write_vscode_mcp_json(plugin, plugin_dir)
