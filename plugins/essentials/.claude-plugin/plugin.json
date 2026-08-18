@@ -1,0 +1,9 @@
+{
+  "name": "essentials",
+  "description": "Always-on baseline \u2014 session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

@@ -68,10 +68,10 @@
       "source": "./plugins/superpowers"
     },
     {
-      "name": "reflexes",
-      "description": "Event-driven hooks that react to Claude Code session lifecycle events",
+      "name": "essentials",
+      "description": "Always-on baseline \u2014 session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills",
       "version": "0.1.0",
-      "source": "./plugins/reflexes"
+      "source": "./plugins/essentials"
     }
   ]
 }
