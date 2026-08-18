@@ -24,9 +24,25 @@
 #   to "hooks"). Refreshed by the same make fetch / make fetch-build run as
 #   the plugin's skills — no separate command.
 #
+# plugin.mcp (optional, top-level sibling of `skills:`, list):
+#   Hand-authored MCP server declarations — no `community` fetch variant,
+#   since these are written directly against the upstream MCP package
+#   rather than pulled from a third-party skills repo. Each entry becomes
+#   one server in the plugin's generated .mcp.json. Fields:
+#     name    — server key under mcpServers
+#     command — executable to run
+#     args    — list of CLI args (defaults to [])
+#     env     — optional map of required env var names. Only the names
+#               matter here — leave values blank/null; build.py writes
+#               each as "${NAME}" in .mcp.json so Claude Code resolves it
+#               from the user's shell environment at runtime. Actual
+#               defaults/examples belong in .env.example, generated
+#               separately — not hand-written here.
+#
 # To add a skill:          add an entry under the plugin's skills list, run build.py
 # To add a local plugin:   add a new block under plugins (no source:), run build.py
 # To add external plugin:  add a block with source: external + url:, run build.py
+# To add an MCP server:    add an entry under the plugin's mcp list, run build.py
 # =============================================================================
 
 marketplace:
@@ -78,6 +94,12 @@ plugins:
   - name: python
     description: Python development, packaging, testing, and refactoring skills
     version: "0.1.0"
+    mcp:
+      # Up-to-date, version-specific library docs. Works fully keyless on
+      # the free tier (lower rate limits); no env var is required.
+      - name: context7
+        command: npx
+        args: ["-y", "@upstash/context7-mcp"]
     skills:
       - name: python-packaging
         source: community

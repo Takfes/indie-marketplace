@@ -17,6 +17,8 @@ How it works:
                       Uses cached plugin content if already built, unless --fetch.
   plugin `hooks:`   → same community fetch, but copies a hooks/ directory
                       verbatim into the plugin instead of a skill.
+  plugin `mcp:`     → hand-authored, no fetch — writes a .mcp.json with
+                      one mcpServers entry per declared server.
 """
 
 import argparse
@@ -318,6 +320,37 @@ def fetch_community_hooks(hooks_cfg: dict, plugin_dir: Path, fetch: bool) -> Non
     ok("hooks  (community, fetched)")
 
 
+def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
+    """
+    Generate a plugin's .mcp.json from its `mcp:` block in bundles.yaml.
+
+    bundles.yaml fields (per entry, no `community` fetch variant — these
+    are hand-authored against the upstream MCP package):
+      name    — server key under mcpServers
+      command — executable to run
+      args    — list of CLI args (defaults to [])
+      env     — optional map of required env var names. Only the names
+                are used; each becomes "${NAME}" in .mcp.json so Claude
+                Code resolves it from the user's shell environment.
+    """
+    mcp_servers = {}
+    for entry in plugin["mcp"]:
+        name = entry["name"]
+        server = {
+            "command": entry["command"],
+            "args": entry.get("args", []),
+        }
+        env = entry.get("env")
+        if env:
+            server["env"] = {var: f"${{{var}}}" for var in env}
+        mcp_servers[name] = server
+
+    (plugin_dir / ".mcp.json").write_text(
+        json.dumps({"mcpServers": mcp_servers}, indent=2) + "\n", encoding="utf-8"
+    )
+    ok(".mcp.json")
+
+
 # ---------------------------------------------------------------------------
 # Plugin builder
 # ---------------------------------------------------------------------------
@@ -363,6 +396,9 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
 
     if fetch_only:
         return
+
+    if plugin.get("mcp"):
+        write_mcp_json(plugin, plugin_dir)
 
     plugin_json = {
         "name": name,
