@@ -334,12 +334,16 @@ def validate_env_names(plugin: dict) -> None:
 
     Every declared var ultimately resolves against Claude Code's single
     process environment, so a bare name like API_KEY declared by two plugins
-    would silently collide there no matter which file it came from. The
-    prefix makes that collision impossible to express in the first place.
+    would silently collide there no matter which file it came from. The prefix
+    keeps each plugin in its own namespace; essentials' load-env.sh is the
+    runtime backstop for anything that still slips through.
     """
     prefix = env_prefix(plugin["name"])
     for entry in plugin["mcp"]:
         for var in entry.get("env") or {}:
+            if var == prefix:
+                err(f"{plugin['name']} — env var '{var}' on MCP server '{entry['name']}' is the bare prefix with no name after it")
+                sys.exit(1)
             if not var.startswith(prefix):
                 err(f"{plugin['name']} — env var '{var}' on MCP server '{entry['name']}' must start with '{prefix}'")
                 err(f"  Rename it to '{prefix}{var}' in bundles.yaml, or pick another {prefix}* name.")

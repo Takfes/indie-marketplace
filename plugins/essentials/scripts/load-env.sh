@@ -2,18 +2,23 @@
 # Load every installed indie-marketplace plugin's .env into the environment.
 #
 # Each plugin keeps its own .env next to its .env.example, and every declared
-# variable is prefixed with its plugin's name (build.py enforces that). This
-# script is the runtime backstop: all those files resolve into one process
-# environment, so if two plugins do declare the same bare name, the second one
-# would silently win. Instead we stop and say which two.
+# variable carries its plugin's prefix (build.py enforces that). This script is
+# the runtime backstop: all those files resolve into one process environment,
+# so if two plugins do declare the same bare name, the second would silently
+# win. Instead every file is scanned first and nothing is loaded until they all
+# agree.
 #
 #   . load-env.sh    source it to keep the variables in your shell
 #   ./load-env.sh    run it to check for collisions without keeping anything
 #
-# Exits 0 when everything loads clean (including when no plugin has a .env),
-# non-zero on a collision.
+# Exits 0 when everything loads clean (including when no plugin ships a .env),
+# non-zero on a collision or on a .env that fails to load.
+#
+# Known limitation: a value spanning multiple lines (a PEM block, say) is read
+# as if each of its lines declared a variable, which can report a collision
+# that isn't one. Keep .env values on one line.
 
-MARKETPLACE=indie-marketplace
+__LOAD_ENV_MARKETPLACE=indie-marketplace
 
 # Bare variable names assigned in a .env file, in order. Comments and blank
 # lines can't match — the name has to be the first thing on the line.
@@ -26,8 +31,12 @@ __env_owner() {
     printf '%s\n' "$1" | awk -F'\t' -v k="$2" '$1 == k { print $2; exit }'
 }
 
+# Every local here is __le_-prefixed: the sourcing below runs in this same
+# scope, so a plainly-named variable in someone's .env could otherwise
+# overwrite this function's own bookkeeping and mask a real collision.
 __load_plugin_envs() {
-    local list plugin install_path env_file key prev seen count files
+    local __le_list __le_plugin __le_path __le_file __le_key __le_prev
+    local __le_seen __le_found __le_count __le_files __le_rc
 
     if ! command -v claude >/dev/null 2>&1; then
         echo "load-env: \`claude\` not found on PATH — run this from a shell where the Claude Code CLI is available." >&2
@@ -38,7 +47,10 @@ __load_plugin_envs() {
         return 1
     fi
 
-    list=$(claude plugin list --json 2>/dev/null | python3 -c '
+    # pipefail so a failing `claude` isn't masked by python3 parsing its
+    # (empty) output happily. Its stderr is left alone so the real reason —
+    # not logged in, marketplace untrusted — reaches the user.
+    __le_list=$(set -o pipefail; claude plugin list --json | python3 -c '
 import json, sys
 marketplace = sys.argv[1]
 try:
@@ -47,59 +59,79 @@ except ValueError:
     sys.exit("could not parse `claude plugin list --json` — the CLI output format may have changed.")
 if not isinstance(plugins, list):
     sys.exit("expected a list from `claude plugin list --json` — the CLI output format may have changed.")
+suffix = "@" + marketplace
 for p in plugins:
     if not p.get("enabled", True):
         continue
     pid = p.get("id", "")
     path = p.get("installPath")
-    if path and pid.endswith("@" + marketplace):
-        print(pid.split("@")[0] + "\t" + path)
-' "$MARKETPLACE")
+    if path and pid.endswith(suffix):
+        print(pid[: -len(suffix)] + "\t" + path)
+' "$__LOAD_ENV_MARKETPLACE")
     if [ $? -ne 0 ]; then
         echo "load-env: could not enumerate installed plugins." >&2
         return 1
     fi
+    if [ -z "$__le_list" ]; then
+        echo "load-env: no $__LOAD_ENV_MARKETPLACE plugin is installed — nothing to load."
+        return 0
+    fi
 
-    seen=""
-    count=0
-    files=0
+    # Pass 1 — collect every .env and check the whole set for collisions.
+    # Nothing is sourced yet, so a rejected run leaves the environment as it
+    # was rather than half-loaded.
+    __le_seen=""
+    __le_found=""
+    __le_count=0
+    __le_files=0
 
-    while IFS=$'\t' read -r plugin install_path; do
-        [ -n "$plugin" ] || continue
-        env_file="$install_path/.env"
-        [ -f "$env_file" ] || continue
+    while IFS=$'\t' read -r __le_plugin __le_path; do
+        [ -n "$__le_plugin" ] || continue
+        __le_file="$__le_path/.env"
+        [ -f "$__le_file" ] || continue
+        __le_files=$((__le_files + 1))
+        __le_found=$(printf '%s\n%s\t%s' "$__le_found" "$__le_plugin" "$__le_file")
 
-        # Check the whole file before sourcing any of it, so a colliding value
-        # never gets the chance to overwrite the one already loaded.
-        for key in $(__env_keys "$env_file"); do
-            prev=$(__env_owner "$seen" "$key")
-            if [ -n "$prev" ] && [ "$prev" != "$plugin" ]; then
-                echo "load-env: refusing to load — plugins '$prev' and '$plugin' both declare \$$key." >&2
-                echo "load-env: $install_path/.env" >&2
-                echo "load-env: rename it in the offending plugin's .env so each name carries its own plugin's prefix." >&2
+        for __le_key in $(__env_keys "$__le_file"); do
+            __le_prev=$(__env_owner "$__le_seen" "$__le_key")
+            if [ -n "$__le_prev" ] && [ "$__le_prev" != "$__le_plugin" ]; then
+                echo "load-env: refusing to load — plugins '$__le_prev' and '$__le_plugin' both declare \$$__le_key." >&2
+                echo "load-env: second declaration is in $__le_file" >&2
+                echo "load-env: rename it so each name carries its own plugin's prefix. Nothing was loaded." >&2
                 return 1
             fi
-            seen=$(printf '%s\n%s\t%s' "$seen" "$key" "$plugin")
-            count=$((count + 1))
+            __le_seen=$(printf '%s\n%s\t%s' "$__le_seen" "$__le_key" "$__le_plugin")
+            __le_count=$((__le_count + 1))
         done
+    done <<< "$__le_list"
 
-        set -a
-        . "$env_file"
-        set +a
-        files=$((files + 1))
-    done <<< "$list"
-
-    if [ "$files" -eq 0 ]; then
-        echo "load-env: no installed $MARKETPLACE plugin has a .env file — nothing to load."
-    else
-        echo "load-env: loaded $count variable(s) from $files plugin .env file(s), no collisions."
+    if [ "$__le_files" -eq 0 ]; then
+        echo "load-env: no installed $__LOAD_ENV_MARKETPLACE plugin has a .env file — nothing to load."
+        return 0
     fi
+
+    # Pass 2 — the set is clean, so load it. </dev/null keeps a .env that
+    # reads stdin from swallowing the loop's own input.
+    while IFS=$'\t' read -r __le_plugin __le_file; do
+        [ -n "$__le_plugin" ] || continue
+        set -a
+        . "$__le_file" </dev/null
+        __le_rc=$?
+        set +a
+        if [ $__le_rc -ne 0 ]; then
+            echo "load-env: $__le_file failed to load (exit $__le_rc) — the environment is now incomplete." >&2
+            return 1
+        fi
+    done <<< "$__le_found"
+
+    echo "load-env: loaded $__le_count variable(s) from $__le_files plugin .env file(s), no collisions."
     return 0
 }
 
 __load_plugin_envs
 __load_env_rc=$?
 unset -f __load_plugin_envs __env_keys __env_owner
+unset __LOAD_ENV_MARKETPLACE
 
 if [ "${BASH_SOURCE[0]}" != "$0" ]; then
     return $__load_env_rc
