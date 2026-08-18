@@ -24,6 +24,7 @@ Available plugins:
 
 | Plugin | Install command |
 |---|---|
+| `essentials` | `/plugin install essentials@indie-marketplace` |
 | `provision` | `/plugin install provision@indie-marketplace` |
 | `python` | `/plugin install python@indie-marketplace` |
 | `steering` | `/plugin install steering@indie-marketplace` |
@@ -51,12 +52,11 @@ copilot plugin marketplace add Takfes/indie-marketplace
 copilot plugin install provision@indie-marketplace
 ```
 
-> Looking for skills that live outside this marketplace (ponytail, caveman, etc.)? See [`EXTERNAL-PLUGINS.md`](EXTERNAL-PLUGINS.md).
-
 <a id="whats-included"></a>
 
 ## 2. What's Included — Plugins and Their Skills
 
+- [essentials](#plugin-essentials) — always-on baseline: session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills
 - [provision](#plugin-provision) — meta-skills for managing, creating, and distributing skills and agents
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
 - [steering](#plugin-steering) — thinking, planning, and ideation skills
@@ -68,6 +68,22 @@ copilot plugin install provision@indie-marketplace
 - [gitctrl](#plugin-gitctrl) — git workflow and code review skills — cleanup, commit hygiene, and review excellence
 - [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
 
+<a id="plugin-essentials"></a>
+<details>
+<summary><strong>essentials</strong> — Always-on baseline — session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `onboard-project` | local | Fill in a project's Stack, Commands, and Documentation sections in workspace.md |
+| `grill-me` | community | A relentless interview to sharpen a plan or design |
+| `grilling` | community | Grill the user relentlessly about a plan or design |
+| `handoff` | community | Compact a conversation into a handoff document for another agent |
+| `caveman` | community | Ultra-compressed communication mode — cuts output tokens while keeping technical accuracy |
+| `hooks/notify` | local | Stop hook — sound alert when Claude finishes responding |
+| `hooks/permission-alert` | local | Notification hook — sound alert when a permission prompt is waiting |
+
+</details>
+
 <a id="plugin-provision"></a>
 <details>
 <summary><strong>provision</strong> — AI toolkit provisioning and meta-skills</summary>
@@ -76,7 +92,6 @@ copilot plugin install provision@indie-marketplace
 |---|---|---|
 | `skill-bundler` | local | Package skills into distributable zip archives for sharing or backup |
 | `skill-downloader` | local | Sparse-checkout a specific skill folder from a GitHub repo |
-| `onboard-project` | local | Fill in a project's Stack, Commands, and Documentation sections in workspace.md |
 | `skill-creator` | community | Create, edit, and evaluate new skills |
 | `find-skills` | community | Discover and install skills matching a described need |
 | `agent-development` | community | Guidance on building subagents for Claude Code |
@@ -110,9 +125,6 @@ copilot plugin install provision@indie-marketplace
 | `llm-council` | community | Run a decision through a council of 5 AI advisors for a synthesized verdict |
 | `prd` | community | Generate Product Requirements Documents |
 | `claude-handoff` | community | Hand off a conversation to a fresh background agent |
-| `grill-me` | community | A relentless interview to sharpen a plan or design |
-| `grilling` | community | Grill the user relentlessly about a plan or design |
-| `handoff` | community | Compact a conversation into a handoff document for another agent |
 | `loop-me` | community | Grill me about specs for the workflows I want to build, within this workspace |
 | `doc-coauthoring` | community | Structured workflow for co-authoring docs, proposals, specs, and decision docs |
 
