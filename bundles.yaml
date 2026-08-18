@@ -168,10 +168,10 @@ plugins:
         repo: "https://github.com/mattpocock/skills"
         path: "skills/in-progress/claude-handoff"
 
-      - name: loop-me
+      - name: claude-loop-engineering
         source: community
-        repo: "https://github.com/mattpocock/skills"
-        path: "skills/in-progress/loop-me"
+        repo: "https://github.com/iamarvindh/claude-loop-engineering"
+        path: "skill"
 
       - name: doc-coauthoring
         source: community
@@ -191,6 +191,20 @@ plugins:
         source: community
         repo: "https://github.com/mattpocock/skills"
         path: "skills/engineering/*"
+
+  # ---------------------------------------------------------------------------
+  # research — research and knowledge-synthesis skills. WIP: notebooklm and
+  # zotero MCP servers are planned here but not yet ticketed — teach is the
+  # only entry for now.
+  # ---------------------------------------------------------------------------
+  - name: research
+    description: Research and knowledge-synthesis skills (WIP)
+    version: "0.1.0"
+    skills:
+      - name: teach
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/productivity/teach"
 
   # ---------------------------------------------------------------------------
   # office — Anthropic's document-format skills for creating and editing
