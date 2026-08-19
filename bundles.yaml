@@ -243,6 +243,46 @@ plugins:
         path: "skills/productivity/teach"
 
   # ---------------------------------------------------------------------------
+  # web-research — reaching the live web: Exa for semantic search and page
+  # fetch, Firecrawl for scraping and crawling, last30days for what people
+  # have actually been saying lately.
+  #
+  # Firecrawl ships an MCP server too; this deliberately takes its CLI plus
+  # the CLI's own skill instead — the skill teaches the flags and the CLI
+  # returns markdown sized for a context window, where the MCP server would
+  # sit in every session's tool list to do the same job. That choice is why
+  # this plugin needs the top-level `env:` block: the CLI's key has no server
+  # to hang off, so it reaches .env.example and nothing else.
+  #
+  # The CLI itself is a global npm tool, installed by hand — nothing in this
+  # repo fetches it:  npm install -g firecrawl-cli
+  # ---------------------------------------------------------------------------
+  - name: web-research
+    description: Live web research — Exa semantic search, Firecrawl CLI scraping, and recent public discussion
+    version: "0.1.0"
+    env:
+      WEB_RESEARCH_FIRECRAWL_API_KEY:
+    mcp:
+      # Semantic web search and page fetch, via the stdio package rather than
+      # Exa's hosted endpoint — .mcp.json only knows how to spawn a command.
+      - name: exa
+        command: npx
+        args: ["-y", "exa-mcp-server"]
+        env:
+          WEB_RESEARCH_EXA_API_KEY:
+    skills:
+      # The Firecrawl CLI's own umbrella skill — SKILL.md plus rules/.
+      - name: firecrawl
+        source: community
+        repo: "https://github.com/firecrawl/cli"
+        path: "skills/firecrawl"
+
+      - name: last30days
+        source: community
+        repo: "https://github.com/mvanhorn/last30days-skill"
+        path: "skills/last30days"
+
+  # ---------------------------------------------------------------------------
   # office — Anthropic's document-format skills for creating and editing
   # Office/PDF documents (docx, pdf, pptx, xlsx).
   # ---------------------------------------------------------------------------

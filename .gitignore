@@ -6,3 +6,9 @@ __pycache__/
 .venv/
 .claude/settings.local.json
 .claude/worktrees/
+
+# last30days ships ~14MB of demo media (jpegs, an mp3) that its SKILL.md and
+# scripts never reference — upstream's own .skillignore excludes the same
+# directory. build.py copies a community skill verbatim and has no way to
+# skip a subdirectory, so it is excluded here instead of in bundles.yaml.
+plugins/web-research/skills/last30days/assets/

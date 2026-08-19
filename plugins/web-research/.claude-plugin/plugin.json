@@ -1,0 +1,9 @@
+{
+  "name": "web-research",
+  "description": "Live web research \u2014 Exa semantic search, Firecrawl CLI scraping, and recent public discussion",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

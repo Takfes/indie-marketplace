@@ -38,6 +38,12 @@
       "source": "./plugins/research"
     },
     {
+      "name": "web-research",
+      "description": "Live web research \u2014 Exa semantic search, Firecrawl CLI scraping, and recent public discussion",
+      "version": "0.1.0",
+      "source": "./plugins/web-research"
+    },
+    {
       "name": "office",
       "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
       "version": "0.1.0",
