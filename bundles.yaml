@@ -402,6 +402,64 @@ plugins:
           ]
         env:
           DATABASE_DBTOOLS_CONFIG_PATH:
+
+      # Azure Data Explorer / Kusto (johnib/kusto-mcp, npm). Picked over the
+      # better-known pab1it0/adx-mcp-server because that one hands the raw
+      # query string straight to the Kusto SDK's execute(), which routes
+      # anything starting with "." to the management endpoint — .drop,
+      # .ingest and .set-or-replace all go through. It has no read-only layer
+      # at all, only whatever the Azure role happens to deny. The npm
+      # @mcp-apps/kusto-mcp-server publishes no source repo, so its read-only
+      # claim cannot be audited either.
+      #
+      # KUSTO_ALLOW_WRITE_OPERATIONS=false is this entry's equivalent of
+      # pgquery's --access-mode=restricted, and is load-bearing for the same
+      # reason: upstream defaults it to *true*, and setting it false enables a
+      # real validator that rejects every dot-command except the introspective
+      # .show family before it reaches the cluster. Plain KQL cannot mutate,
+      # so that pair is the whole write surface. Verified live — with this set
+      # the server logs "Running in READ-ONLY mode" on startup.
+      #
+      # Auth is the third distinct credential style in this plugin: not
+      # pgquery's connection string, not dbtools' config path, but the Azure
+      # Identity chain (KUSTO_AUTH_METHOD=azure-identity →
+      # DefaultAzureCredential). Fill in the three service-principal vars for
+      # an unattended identity; leave them blank and the chain falls through
+      # to managed identity and then to the same `az login` session the devops
+      # plugin's servers use. Blank is safe — the SDK gates the service
+      # principal on a plain truthiness check, so empty strings read as unset.
+      #
+      # The server takes no CLI flags (everything is env) and its internal
+      # names carry no DATABASE_ prefix, so `env` does the rename inline, the
+      # way pgquery's `docker -e` does. Claude Code expands ${...} in args.
+      # Cluster URL and database are both required for auto-connect; without
+      # them every session has to call initialize-connection by hand.
+      #
+      # Caveat: kusto-mcp reports anonymous usage telemetry to the maintainer
+      # (tool names, latency, error classes, salted tenant/user hashes — never
+      # query text, results, or cluster/table names). It cannot be disabled,
+      # only redirected to your own OTLP collector.
+      - name: azkusto
+        command: env
+        args:
+          [
+            "KUSTO_AUTH_METHOD=azure-identity",
+            "KUSTO_ALLOW_WRITE_OPERATIONS=false",
+            "KUSTO_CLUSTER_URL=${DATABASE_AZKUSTO_CLUSTER_URL}",
+            "KUSTO_DEFAULT_DATABASE=${DATABASE_AZKUSTO_DATABASE}",
+            "AZURE_TENANT_ID=${DATABASE_AZKUSTO_TENANT_ID}",
+            "AZURE_CLIENT_ID=${DATABASE_AZKUSTO_CLIENT_ID}",
+            "AZURE_CLIENT_SECRET=${DATABASE_AZKUSTO_CLIENT_SECRET}",
+            "npx",
+            "-y",
+            "kusto-mcp",
+          ]
+        env:
+          DATABASE_AZKUSTO_CLUSTER_URL:
+          DATABASE_AZKUSTO_DATABASE:
+          DATABASE_AZKUSTO_TENANT_ID:
+          DATABASE_AZKUSTO_CLIENT_ID:
+          DATABASE_AZKUSTO_CLIENT_SECRET:
     skills:
       - name: sql-code-review
         source: community
