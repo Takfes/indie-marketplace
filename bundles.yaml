@@ -292,6 +292,66 @@ plugins:
   - name: database
     description: SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
     version: "0.1.0"
+    mcp:
+      # Postgres-only server with query-plan analysis and index tuning.
+      # Docker is the only working distribution — `uvx postgres-mcp` has an
+      # upstream bug (see NEXTME.md), so there is no non-container path.
+      #
+      # --access-mode=restricted is load-bearing, not decoration: the server
+      # runs its own SQL validator that rejects writes before they ever reach
+      # Postgres, independent of whatever the DB role happens to grant. That
+      # second layer is the reason to use this over a plain DB client.
+      #
+      # The container expects its connection string in DATABASE_URI, a fixed
+      # internal name that cannot carry this repo's mandatory DATABASE_ prefix
+      # convention as its own. Rather than fight the prefix rule, the rename
+      # happens inline in args: Claude Code expands ${...} inside args before
+      # exec'ing docker, so the container receives DATABASE_URI while this repo
+      # only ever declares the prefixed DATABASE_PGQUERY_URI.
+      - name: pgquery
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "DATABASE_URI=${DATABASE_PGQUERY_URI}",
+            "crystaldba/postgres-mcp",
+            "--access-mode=restricted",
+            "--transport=stdio",
+          ]
+        env:
+          DATABASE_PGQUERY_URI:
+
+      # Multi-engine server (Postgres, MySQL, SQL Server, BigQuery, ...).
+      # Unlike pgquery it takes no per-database env vars at all: every source
+      # and every exposed SQL tool is declared in a tools.yaml config file
+      # mounted into the container.
+      #
+      # That file is inherently user-specific — it names the databases you
+      # personally query and the tools you want exposed over them — so this
+      # repo cannot ship one. The single declared env var is therefore a
+      # filesystem path, not a credential: point DATABASE_DBTOOLS_CONFIG_PATH
+      # at a tools.yaml you write yourself. It must be an absolute path;
+      # docker bind mounts reject relative ones.
+      # Format reference: https://googleapis.github.io/genai-toolbox/
+      - name: dbtools
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-v",
+            "${DATABASE_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+            "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
+            "--stdio",
+            "--config",
+            "/tools.yaml",
+          ]
+        env:
+          DATABASE_DBTOOLS_CONFIG_PATH:
     skills:
       - name: sql-code-review
         source: community
