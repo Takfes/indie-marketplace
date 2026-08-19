@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "azcloud": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest",
+        "server",
+        "start"
+      ]
+    },
+    "azdevops": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "${DEVOPS_AZDEVOPS_ORG}",
+        "--authentication",
+        "azcli"
+      ],
+      "env": {
+        "DEVOPS_AZDEVOPS_ORG": "${DEVOPS_AZDEVOPS_ORG}"
+      }
+    },
+    "azaks": {
+      "command": "${DEVOPS_AZAKS_BIN}",
+      "args": [
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "DEVOPS_AZAKS_BIN": "${DEVOPS_AZAKS_BIN}"
+      }
+    }
+  }
+}

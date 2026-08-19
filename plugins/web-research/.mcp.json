@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "exa": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "exa-mcp-server"
+      ],
+      "env": {
+        "WEB_RESEARCH_EXA_API_KEY": "${WEB_RESEARCH_EXA_API_KEY}"
+      }
+    }
+  }
+}

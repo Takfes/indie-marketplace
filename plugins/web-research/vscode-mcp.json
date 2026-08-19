@@ -1,0 +1,23 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "exa-web_research_exa_api_key",
+      "description": "WEB_RESEARCH_EXA_API_KEY",
+      "password": true
+    }
+  ],
+  "servers": {
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "exa-mcp-server"
+      ],
+      "env": {
+        "WEB_RESEARCH_EXA_API_KEY": "${input:exa-web_research_exa_api_key}"
+      }
+    }
+  }
+}
