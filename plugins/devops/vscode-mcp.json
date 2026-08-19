@@ -1,0 +1,53 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "azdevops-devops_azdevops_org",
+      "description": "DEVOPS_AZDEVOPS_ORG",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azaks-devops_azaks_bin",
+      "description": "DEVOPS_AZAKS_BIN",
+      "password": true
+    }
+  ],
+  "servers": {
+    "azcloud": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest",
+        "server",
+        "start"
+      ]
+    },
+    "azdevops": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "${DEVOPS_AZDEVOPS_ORG}",
+        "--authentication",
+        "azcli"
+      ],
+      "env": {
+        "DEVOPS_AZDEVOPS_ORG": "${input:azdevops-devops_azdevops_org}"
+      }
+    },
+    "azaks": {
+      "type": "stdio",
+      "command": "${DEVOPS_AZAKS_BIN}",
+      "args": [
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "DEVOPS_AZAKS_BIN": "${input:azaks-devops_azaks_bin}"
+      }
+    }
+  }
+}

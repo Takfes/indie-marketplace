@@ -319,6 +319,48 @@ plugins:
   - name: devops
     description: DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
     version: "0.1.0"
+    mcp:
+      # Official Azure MCP Server (microsoft/mcp, servers/Azure.Mcp.Server —
+      # the archived Azure/azure-mcp repo folded into that monorepo). Covers
+      # 40+ Azure services for resource management. Authenticates through the
+      # Azure Identity SDK off an existing `az login` session, so no
+      # credential is ever passed to the server and it declares no env var.
+      - name: azcloud
+        command: npx
+        args: ["-y", "@azure/mcp@latest", "server", "start"]
+
+      # Official Microsoft Azure DevOps MCP Server (microsoft/azure-devops-mcp),
+      # not one of the older community forks. The organization name is a
+      # required positional arg with no env-var equivalent upstream, so it is
+      # injected via ${...} in args — Claude Code expands those before spawning
+      # the server. `--authentication azcli` reuses the same `az login` session
+      # as the other two servers; the upstream default is `interactive`, a
+      # browser sign-in that suits a stdio subprocess poorly.
+      - name: azdevops
+        command: npx
+        args:
+          [
+            "-y",
+            "@azure-devops/mcp",
+            "${DEVOPS_AZDEVOPS_ORG}",
+            "--authentication",
+            "azcli",
+          ]
+        env:
+          DEVOPS_AZDEVOPS_ORG:
+
+      # Official AKS MCP server (Azure/aks-mcp). A Go binary with no npm
+      # package, and upstream supports only a locally-spawned stdio process —
+      # it explicitly rules out running behind a container service — so the
+      # user downloads a release binary from
+      # https://github.com/Azure/aks-mcp/releases/latest and points the env var
+      # below at it. Auth is the user's own `az login` plus kubeconfig; the
+      # access level defaults to readonly upstream.
+      - name: azaks
+        command: "${DEVOPS_AZAKS_BIN}"
+        args: ["--transport", "stdio"]
+        env:
+          DEVOPS_AZAKS_BIN:
     skills:
       - name: multi-stage-dockerfile
         source: community
