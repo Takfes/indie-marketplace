@@ -22,6 +22,9 @@ How it works:
                       .env.example template and a VS Code vscode-mcp.json.
   plugin `env:`     → env var names with no MCP server behind them (a CLI
                       tool a skill drives). Reaches .env.example only.
+  plugin `deps:`    → CLI tools a skill drives with no MCP server and no
+                      env var either — validates the shape and writes them
+                      verbatim to deps.json for the toolchain-doctor skill.
 """
 
 import argparse
@@ -359,6 +362,37 @@ def validate_env_names(plugin: dict) -> None:
                 sys.exit(1)
 
 
+def validate_deps(plugin: dict) -> None:
+    """
+    Validate a plugin's `deps:` block — CLI tools its skills invoke directly
+    that have no MCP server behind them. Every entry needs at least `command`,
+    the executable the toolchain-doctor skill looks for on PATH.
+    """
+    for entry in plugin.get("deps") or []:
+        if not entry.get("command"):
+            err(f"{plugin['name']} — a `deps:` entry is missing required `command`")
+            sys.exit(1)
+
+
+def write_deps_json(plugin: dict, plugin_dir: Path) -> None:
+    """
+    Generate a plugin's deps.json from its `deps:` block in bundles.yaml.
+
+    Read directly off each installed plugin's own directory by the
+    toolchain-doctor skill, which is stdlib-only and has no YAML parser —
+    this is plain JSON so it can read the catalog without one, for plugins
+    from any marketplace, not just this one.
+    """
+    deps = [
+        {k: v for k, v in entry.items() if k in ("command", "label", "install", "manual")}
+        for entry in plugin["deps"]
+    ]
+    (plugin_dir / ".claude-plugin" / "deps.json").write_text(
+        json.dumps(deps, indent=2) + "\n", encoding="utf-8"
+    )
+    ok("deps.json")
+
+
 def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's .mcp.json from its `mcp:` block in bundles.yaml.
@@ -532,6 +566,10 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     if plugin.get("mcp"):
         write_mcp_json(plugin, plugin_dir)
         write_vscode_mcp_json(plugin, plugin_dir)
+
+    if plugin.get("deps"):
+        validate_deps(plugin)
+        write_deps_json(plugin, plugin_dir)
 
     plugin_json = {
         "name": name,

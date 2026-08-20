@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Report which runtimes the user's installed Claude Code plugins need, and which
-of those are missing from PATH.
+Report which runtimes and catalog dependencies the user's installed Claude
+Code plugins need, and which of those are missing from PATH.
 
 Stdlib only, and deliberately not a uv script — uv is one of the runtimes this
 tool exists to detect the absence of.
 
-  check_runtimes.py                        report only; never installs
-  check_runtimes.py --install uv --yes     install one missing runtime
+  check_toolchain.py                        report only; never installs
+  check_toolchain.py --install uv --yes     install one missing runtime
 """
 
 import argparse
@@ -16,6 +16,7 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 MACOS = sys.platform == "darwin"
 HAS_BREW = bool(shutil.which("brew"))
@@ -104,46 +105,108 @@ def requirements(plugins):
     return needs
 
 
+def plugin_deps(plugin):
+    """
+    A plugin's own catalog of non-MCP CLI dependencies, read from the
+    deps.json that build.py writes next to its plugin.json (see bundles.yaml's
+    `deps:` block). Returns [] for a plugin that never declared one — this
+    catalog is fully optional, and most plugins from most marketplaces won't
+    have it at all.
+    """
+    install_path = plugin.get("installPath")
+    if not install_path:
+        return []
+    deps_file = Path(install_path) / ".claude-plugin" / "deps.json"
+    if not deps_file.is_file():
+        return []
+    try:
+        deps = json.loads(deps_file.read_text())
+    except (OSError, json.JSONDecodeError):
+        return []
+    return deps if isinstance(deps, list) else []
+
+
+def catalog_requirements(plugins):
+    """{command: [(plugin id, dep entry), ...]} declared across every plugin's deps.json."""
+    needs = {}
+    for plugin in plugins:
+        for entry in plugin_deps(plugin):
+            command = entry.get("command")
+            if not command:
+                continue
+            needs.setdefault(command, []).append((plugin.get("id", "<unknown>"), entry))
+    return needs
+
+
 def missing_commands(needs):
     return {cmd for cmd in needs if not shutil.which(cmd)}
 
 
-def report(needs):
+def report(needs, catalog_needs):
     missing = missing_commands(needs)
 
     if not needs:
         print("No installed plugin declares an MCP server, so no runtime is required.")
+    else:
+        print("Runtimes required by installed plugins:\n")
+        for cmd in sorted(needs):
+            mark = "missing" if cmd in missing else "ok"
+            print(f"  [{mark:>7}] {cmd}")
+            for user in needs[cmd]:
+                print(f"            └─ {user}")
+        print()
+
+        if not missing:
+            print("Everything needed is already on PATH. Nothing to install.")
+        else:
+            print("Missing — nothing has been installed:\n")
+            seen = set()
+            for cmd in sorted(missing):
+                runtime = COMMAND_RUNTIME.get(cmd)
+                if runtime is None:
+                    print(f"  {cmd} — unrecognised runtime; install it however that tool documents.")
+                    continue
+                if runtime in seen:
+                    continue
+                seen.add(runtime)
+                info = RUNTIMES[runtime]
+                print(f"  {cmd} — {info['label']}")
+                if info["install"]:
+                    print(f"      ask the user to approve: {info['install']}")
+                    print(f"      then run: python3 {sys.argv[0]} --install {runtime} --yes")
+                else:
+                    print(f"      no scripted install available; see {info['manual']}")
+
+    print()
+    catalog_missing = missing_commands(catalog_needs)
+
+    if not catalog_needs:
+        print("No installed plugin declares a catalog dependency (bundles.yaml `deps:`).")
         return
 
-    print("Runtimes required by installed plugins:\n")
-    for cmd in sorted(needs):
-        mark = "missing" if cmd in missing else "ok"
+    print("Catalog dependencies required by installed plugins:\n")
+    for cmd in sorted(catalog_needs):
+        mark = "missing" if cmd in catalog_missing else "ok"
         print(f"  [{mark:>7}] {cmd}")
-        for user in needs[cmd]:
-            print(f"            └─ {user}")
+        for plugin_id, _entry in catalog_needs[cmd]:
+            print(f"            └─ {plugin_id}")
     print()
 
-    if not missing:
+    if not catalog_missing:
         print("Everything needed is already on PATH. Nothing to install.")
         return
 
     print("Missing — nothing has been installed:\n")
-    seen = set()
-    for cmd in sorted(missing):
-        runtime = COMMAND_RUNTIME.get(cmd)
-        if runtime is None:
-            print(f"  {cmd} — unrecognised runtime; install it however that tool documents.")
-            continue
-        if runtime in seen:
-            continue
-        seen.add(runtime)
-        info = RUNTIMES[runtime]
-        print(f"  {cmd} — {info['label']}")
-        if info["install"]:
-            print(f"      ask the user to approve: {info['install']}")
-            print(f"      then run: python3 {sys.argv[0]} --install {runtime} --yes")
+    for cmd in sorted(catalog_missing):
+        _plugin_id, entry = catalog_needs[cmd][0]
+        label = entry.get("label", cmd)
+        print(f"  {cmd} — {label}")
+        if entry.get("install"):
+            print(f"      ask the user to approve: {entry['install']}")
+        elif entry.get("manual"):
+            print(f"      no scripted install available; see {entry['manual']}")
         else:
-            print(f"      no scripted install available; see {info['manual']}")
+            print("      no install suggestion declared; install it however that tool documents.")
 
 
 def install(runtime, assume_yes):
@@ -190,10 +253,12 @@ def main():
     )
     args = parser.parse_args()
 
-    needs = requirements(installed_plugins())
+    plugins = installed_plugins()
+    needs = requirements(plugins)
+    catalog_needs = catalog_requirements(plugins)
 
     if not args.install:
-        report(needs)
+        report(needs, catalog_needs)
         return
 
     wanted = {COMMAND_RUNTIME.get(cmd) for cmd in missing_commands(needs)}
