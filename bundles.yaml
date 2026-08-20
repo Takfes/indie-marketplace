@@ -229,13 +229,42 @@ plugins:
         path: "skills/engineering/*"
 
   # ---------------------------------------------------------------------------
-  # research — research and knowledge-synthesis skills. WIP: notebooklm and
-  # zotero MCP servers are planned here but not yet ticketed — teach is the
-  # only entry for now.
+  # research — research and knowledge-synthesis skills. WIP: a notebooklm MCP
+  # server is still planned here but not yet ticketed.
+  #
+  # zotero (54yyyu/zotero-mcp, PyPI zotero-mcp, MIT) — Zotero library search
+  # and reference lookup. Defaults to local mode: ZOTERO_LOCAL=true is
+  # hardcoded in args, the same way azkusto hardcodes
+  # KUSTO_ALLOW_WRITE_OPERATIONS=false above — it's a mode flag, not a
+  # secret, so it skips .env.example. Local mode talks to a Zotero 7+
+  # desktop app's local API on the same machine and needs zero credentials,
+  # which is why it's the default over the Web API mode. The three Web API
+  # vars below are only for remote/no-desktop-app setups; they're optional
+  # and blank is safe, since a hardcoded ZOTERO_LOCAL=true makes zotero-mcp
+  # use the local client regardless of whether they're set.
+  #
+  # zotero-mcp also has an optional semantic-search extra (embedding-based
+  # library search) that needs OPENAI_API_KEY or GEMINI_API_KEY — out of
+  # scope for now, not wired into this entry.
   # ---------------------------------------------------------------------------
   - name: research
     description: Research and knowledge-synthesis skills (WIP)
     version: "0.1.0"
+    mcp:
+      - name: zotero
+        command: env
+        args:
+          [
+            "ZOTERO_LOCAL=true",
+            "ZOTERO_API_KEY=${RESEARCH_ZOTERO_API_KEY}",
+            "ZOTERO_LIBRARY_ID=${RESEARCH_ZOTERO_LIBRARY_ID}",
+            "ZOTERO_LIBRARY_TYPE=${RESEARCH_ZOTERO_LIBRARY_TYPE}",
+            "zotero-mcp",
+          ]
+        env:
+          RESEARCH_ZOTERO_API_KEY:
+          RESEARCH_ZOTERO_LIBRARY_ID:
+          RESEARCH_ZOTERO_LIBRARY_TYPE:
     skills:
       - name: teach
         source: community

@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "zotero": {
+      "command": "env",
+      "args": [
+        "ZOTERO_LOCAL=true",
+        "ZOTERO_API_KEY=${RESEARCH_ZOTERO_API_KEY}",
+        "ZOTERO_LIBRARY_ID=${RESEARCH_ZOTERO_LIBRARY_ID}",
+        "ZOTERO_LIBRARY_TYPE=${RESEARCH_ZOTERO_LIBRARY_TYPE}",
+        "zotero-mcp"
+      ],
+      "env": {
+        "RESEARCH_ZOTERO_API_KEY": "${RESEARCH_ZOTERO_API_KEY}",
+        "RESEARCH_ZOTERO_LIBRARY_ID": "${RESEARCH_ZOTERO_LIBRARY_ID}",
+        "RESEARCH_ZOTERO_LIBRARY_TYPE": "${RESEARCH_ZOTERO_LIBRARY_TYPE}"
+      }
+    }
+  }
+}
