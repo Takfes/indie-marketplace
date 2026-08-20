@@ -2,8 +2,8 @@
   "inputs": [
     {
       "type": "promptString",
-      "id": "exa-web_research_exa_api_key",
-      "description": "WEB_RESEARCH_EXA_API_KEY",
+      "id": "exa-web_search_exa_api_key",
+      "description": "WEB_SEARCH_EXA_API_KEY",
       "password": true
     }
   ],
@@ -16,7 +16,7 @@
         "exa-mcp-server"
       ],
       "env": {
-        "WEB_RESEARCH_EXA_API_KEY": "${input:exa-web_research_exa_api_key}"
+        "WEB_SEARCH_EXA_API_KEY": "${input:exa-web_search_exa_api_key}"
       }
     }
   }

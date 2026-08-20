@@ -332,7 +332,7 @@ def validate_env_names(plugin: dict) -> None:
     """
     Reject any env var a plugin declares — under an `mcp:` entry or in its
     top-level `env:` block — that doesn't carry that plugin's own prefix
-    (`python` → PYTHON_, `web-research` → WEB_RESEARCH_).
+    (`python` → PYTHON_, `web-search` → WEB_SEARCH_).
 
     Every declared var ultimately resolves against Claude Code's single
     process environment, so a bare name like API_KEY declared by two plugins

@@ -41,8 +41,8 @@
 #
 #               Every name MUST start with its own plugin's name, uppercased,
 #               hyphens turned into underscores, followed by an underscore:
-#               plugin `python` → PYTHON_API_KEY, plugin `web-research` →
-#               WEB_RESEARCH_API_KEY. build.py rejects the build outright if a
+#               plugin `python` → PYTHON_API_KEY, plugin `web-search` →
+#               WEB_SEARCH_API_KEY. build.py rejects the build outright if a
 #               declared name is missing its prefix. This is not cosmetic:
 #               every var, whichever file it came from, ends up in Claude
 #               Code's single process environment, so two plugins both
@@ -272,7 +272,7 @@ plugins:
         path: "skills/productivity/teach"
 
   # ---------------------------------------------------------------------------
-  # web-research — reaching the live web: Exa for semantic search and page
+  # web-search — reaching the live web: Exa for semantic search and page
   # fetch, Firecrawl for scraping and crawling, last30days for what people
   # have actually been saying lately.
   #
@@ -285,12 +285,19 @@ plugins:
   #
   # The CLI itself is a global npm tool, installed by hand — nothing in this
   # repo fetches it:  npm install -g firecrawl-cli
+  #
+  # last30days' own SKILL.md also declares 13 optional env vars (OpenAI, XAI,
+  # OpenRouter, Perplexity, Parallel, Brave, Apify, plus several social-
+  # platform auth tokens) beyond its primaryEnv below — left undeclared here
+  # since most integrations won't use most of them; add one to `env:` above
+  # if a skill actually needs it.
   # ---------------------------------------------------------------------------
-  - name: web-research
+  - name: web-search
     description: Live web research — Exa semantic search, Firecrawl CLI scraping, and recent public discussion
     version: "0.1.0"
     env:
-      WEB_RESEARCH_FIRECRAWL_API_KEY:
+      WEB_SEARCH_FIRECRAWL_API_KEY:
+      WEB_SEARCH_SCRAPECREATORS_API_KEY:
     mcp:
       # Semantic web search and page fetch, via the stdio package rather than
       # Exa's hosted endpoint — .mcp.json only knows how to spawn a command.
@@ -298,7 +305,7 @@ plugins:
         command: npx
         args: ["-y", "exa-mcp-server"]
         env:
-          WEB_RESEARCH_EXA_API_KEY:
+          WEB_SEARCH_EXA_API_KEY:
     skills:
       # The Firecrawl CLI's own umbrella skill — SKILL.md plus rules/.
       - name: firecrawl
