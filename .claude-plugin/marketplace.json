@@ -62,10 +62,10 @@
       "source": "./plugins/database"
     },
     {
-      "name": "devops",
+      "name": "azdevops",
       "description": "DevOps and infrastructure skills \u2014 containers, Kubernetes, CI/CD, and Azure DevOps",
       "version": "0.1.0",
-      "source": "./plugins/devops"
+      "source": "./plugins/azdevops"
     },
     {
       "name": "gitctrl",

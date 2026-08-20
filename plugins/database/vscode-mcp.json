@@ -11,36 +11,6 @@
       "id": "dbtools-database_dbtools_config_path",
       "description": "DATABASE_DBTOOLS_CONFIG_PATH",
       "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "azkusto-database_azkusto_cluster_url",
-      "description": "DATABASE_AZKUSTO_CLUSTER_URL",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "azkusto-database_azkusto_database",
-      "description": "DATABASE_AZKUSTO_DATABASE",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "azkusto-database_azkusto_tenant_id",
-      "description": "DATABASE_AZKUSTO_TENANT_ID",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "azkusto-database_azkusto_client_id",
-      "description": "DATABASE_AZKUSTO_CLIENT_ID",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "azkusto-database_azkusto_client_secret",
-      "description": "DATABASE_AZKUSTO_CLIENT_SECRET",
-      "password": true
     }
   ],
   "servers": {
@@ -77,29 +47,6 @@
       ],
       "env": {
         "DATABASE_DBTOOLS_CONFIG_PATH": "${input:dbtools-database_dbtools_config_path}"
-      }
-    },
-    "azkusto": {
-      "type": "stdio",
-      "command": "env",
-      "args": [
-        "KUSTO_AUTH_METHOD=azure-identity",
-        "KUSTO_ALLOW_WRITE_OPERATIONS=false",
-        "KUSTO_CLUSTER_URL=${DATABASE_AZKUSTO_CLUSTER_URL}",
-        "KUSTO_DEFAULT_DATABASE=${DATABASE_AZKUSTO_DATABASE}",
-        "AZURE_TENANT_ID=${DATABASE_AZKUSTO_TENANT_ID}",
-        "AZURE_CLIENT_ID=${DATABASE_AZKUSTO_CLIENT_ID}",
-        "AZURE_CLIENT_SECRET=${DATABASE_AZKUSTO_CLIENT_SECRET}",
-        "npx",
-        "-y",
-        "kusto-mcp"
-      ],
-      "env": {
-        "DATABASE_AZKUSTO_CLUSTER_URL": "${input:azkusto-database_azkusto_cluster_url}",
-        "DATABASE_AZKUSTO_DATABASE": "${input:azkusto-database_azkusto_database}",
-        "DATABASE_AZKUSTO_TENANT_ID": "${input:azkusto-database_azkusto_tenant_id}",
-        "DATABASE_AZKUSTO_CLIENT_ID": "${input:azkusto-database_azkusto_client_id}",
-        "DATABASE_AZKUSTO_CLIENT_SECRET": "${input:azkusto-database_azkusto_client_secret}"
       }
     }
   }

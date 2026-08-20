@@ -1,0 +1,106 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "azdevops-azdevops_azdevops_org",
+      "description": "AZDEVOPS_AZDEVOPS_ORG",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azaks-azdevops_azaks_bin",
+      "description": "AZDEVOPS_AZAKS_BIN",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-azdevops_azkusto_cluster_url",
+      "description": "AZDEVOPS_AZKUSTO_CLUSTER_URL",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-azdevops_azkusto_database",
+      "description": "AZDEVOPS_AZKUSTO_DATABASE",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-azdevops_azkusto_tenant_id",
+      "description": "AZDEVOPS_AZKUSTO_TENANT_ID",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-azdevops_azkusto_client_id",
+      "description": "AZDEVOPS_AZKUSTO_CLIENT_ID",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-azdevops_azkusto_client_secret",
+      "description": "AZDEVOPS_AZKUSTO_CLIENT_SECRET",
+      "password": true
+    }
+  ],
+  "servers": {
+    "azcloud": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest",
+        "server",
+        "start"
+      ]
+    },
+    "azdevops": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "${AZDEVOPS_AZDEVOPS_ORG}",
+        "--authentication",
+        "azcli"
+      ],
+      "env": {
+        "AZDEVOPS_AZDEVOPS_ORG": "${input:azdevops-azdevops_azdevops_org}"
+      }
+    },
+    "azaks": {
+      "type": "stdio",
+      "command": "${AZDEVOPS_AZAKS_BIN}",
+      "args": [
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "AZDEVOPS_AZAKS_BIN": "${input:azaks-azdevops_azaks_bin}"
+      }
+    },
+    "azkusto": {
+      "type": "stdio",
+      "command": "env",
+      "args": [
+        "KUSTO_AUTH_METHOD=azure-identity",
+        "KUSTO_ALLOW_WRITE_OPERATIONS=false",
+        "KUSTO_CLUSTER_URL=${AZDEVOPS_AZKUSTO_CLUSTER_URL}",
+        "KUSTO_DEFAULT_DATABASE=${AZDEVOPS_AZKUSTO_DATABASE}",
+        "AZURE_TENANT_ID=${AZDEVOPS_AZKUSTO_TENANT_ID}",
+        "AZURE_CLIENT_ID=${AZDEVOPS_AZKUSTO_CLIENT_ID}",
+        "AZURE_CLIENT_SECRET=${AZDEVOPS_AZKUSTO_CLIENT_SECRET}",
+        "npx",
+        "-y",
+        "kusto-mcp"
+      ],
+      "env": {
+        "AZDEVOPS_AZKUSTO_CLUSTER_URL": "${input:azkusto-azdevops_azkusto_cluster_url}",
+        "AZDEVOPS_AZKUSTO_DATABASE": "${input:azkusto-azdevops_azkusto_database}",
+        "AZDEVOPS_AZKUSTO_TENANT_ID": "${input:azkusto-azdevops_azkusto_tenant_id}",
+        "AZDEVOPS_AZKUSTO_CLIENT_ID": "${input:azkusto-azdevops_azkusto_client_id}",
+        "AZDEVOPS_AZKUSTO_CLIENT_SECRET": "${input:azkusto-azdevops_azkusto_client_secret}"
+      }
+    }
+  }
+}
