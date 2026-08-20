@@ -2,4 +2,4 @@
 
 - **Repo:** https://github.com/obra/superpowers
 - **Path:** `skills/requesting-code-review`
-- **Fetched:** 2026-07-19
+- **Fetched:** 2026-08-20
