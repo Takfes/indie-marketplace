@@ -1,7 +1,0 @@
-[
-  {
-    "command": "notebooklm-mcp-cli",
-    "label": "notebooklm-mcp-cli (NotebookLM CLI)",
-    "install": "uv tool install notebooklm-mcp-cli"
-  }
-]

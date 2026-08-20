@@ -247,8 +247,7 @@ plugins:
         path: "skills/engineering/*"
 
   # ---------------------------------------------------------------------------
-  # research — research and knowledge-synthesis skills. WIP: a notebooklm MCP
-  # server is still planned here but not yet ticketed.
+  # research — research and knowledge-synthesis skills.
   #
   # zotero (54yyyu/zotero-mcp, PyPI zotero-mcp, MIT) — Zotero library search
   # and reference lookup. Defaults to local mode: ZOTERO_LOCAL=true is
@@ -264,6 +263,28 @@ plugins:
   # zotero-mcp also has an optional semantic-search extra (embedding-based
   # library search) that needs OPENAI_API_KEY or GEMINI_API_KEY — out of
   # scope for now, not wired into this entry.
+  #
+  # notebooklm — unified CLI + MCP server for Google's Gemini Notebook
+  # (product formerly branded NotebookLM). PyPI package `notebooklm-mcp-cli`,
+  # MIT license, actively maintained (5k+ stars). Its GitHub repo has since
+  # been renamed jacob-bd/gemini-notebook-mcp-cli, following the product
+  # rename — the PyPI package name is unchanged. `uv tool install
+  # notebooklm-mcp-cli` installs both an `nlm` CLI and this `notebooklm-mcp`
+  # MCP server binary from one package — NOT the separate, stale
+  # `notebooklm-mcp-server` package.
+  #
+  # Fragility caveat, straight from the project's own README: it "uses
+  # internal APIs that are undocumented and may change without notice,
+  # require cookie extraction from your browser." It works today, but it is
+  # not a stable, officially-supported integration and could break on a
+  # Google-side change with no warning.
+  #
+  # No env var: auth is entirely external-session-based, the same pattern
+  # as azcloud/azaks. Run `nlm login` once (opens a browser, extracts
+  # session cookies) — the CLI persists them itself via `platformdirs` (a
+  # declared PyPI dependency, confirmed against the package metadata), not
+  # through anything this repo declares or reads. Re-run `nlm login` if
+  # cookies expire (~2-4 weeks).
   # ---------------------------------------------------------------------------
   - name: research
     description: Research and knowledge-synthesis skills (WIP)
@@ -283,13 +304,9 @@ plugins:
           RESEARCH_ZOTERO_API_KEY:
           RESEARCH_ZOTERO_LIBRARY_ID:
           RESEARCH_ZOTERO_LIBRARY_TYPE:
-    deps:
-      # NotebookLM CLI, driven by a skill in this plugin. No MCP server
-      # behind it, so the runtime check that only walks mcp: entries can't
-      # see it — this catalog entry is what makes it visible.
-      - command: notebooklm-mcp-cli
-        label: notebooklm-mcp-cli (NotebookLM CLI)
-        install: uv tool install notebooklm-mcp-cli
+
+      - name: notebooklm
+        command: notebooklm-mcp
     skills:
       - name: teach
         source: community

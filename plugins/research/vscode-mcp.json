@@ -35,6 +35,11 @@
         "RESEARCH_ZOTERO_LIBRARY_ID": "${input:zotero-research_zotero_library_id}",
         "RESEARCH_ZOTERO_LIBRARY_TYPE": "${input:zotero-research_zotero_library_type}"
       }
+    },
+    "notebooklm": {
+      "type": "stdio",
+      "command": "notebooklm-mcp",
+      "args": []
     }
   }
 }
