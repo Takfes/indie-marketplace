@@ -67,7 +67,7 @@ RUNTIMES = {
 INSTALLABLE = sorted(r for r, i in RUNTIMES.items() if i["install"])
 
 
-def installed_plugins():
+def installed_plugins() -> list[dict]:
     """Installed, enabled plugins as reported by Claude Code itself."""
     try:
         out = subprocess.run(
@@ -91,9 +91,9 @@ def installed_plugins():
     return [p for p in plugins if p.get("enabled", True)]
 
 
-def requirements(plugins):
+def requirements(plugins: list[dict]) -> dict[str, list[str]]:
     """{executable: [plugin id, ...]} declared across every plugin's MCP servers."""
-    needs = {}
+    needs: dict[str, list[str]] = {}
     for plugin in plugins:
         for server, spec in (plugin.get("mcpServers") or {}).items():
             command = spec.get("command")
@@ -105,13 +105,17 @@ def requirements(plugins):
     return needs
 
 
-def plugin_deps(plugin):
+def plugin_deps(plugin: dict) -> list[dict]:
     """
     A plugin's own catalog of non-MCP CLI dependencies, read from the
     deps.json that build.py writes next to its plugin.json (see bundles.yaml's
     `deps:` block). Returns [] for a plugin that never declared one — this
     catalog is fully optional, and most plugins from most marketplaces won't
     have it at all.
+
+    deps.json isn't necessarily ours: any marketplace's plugin can ship one,
+    hand-written or otherwise, so non-dict entries are dropped rather than
+    trusted — a malformed one shouldn't crash the report for every plugin.
     """
     install_path = plugin.get("installPath")
     if not install_path:
@@ -123,12 +127,14 @@ def plugin_deps(plugin):
         deps = json.loads(deps_file.read_text())
     except (OSError, json.JSONDecodeError):
         return []
-    return deps if isinstance(deps, list) else []
+    if not isinstance(deps, list):
+        return []
+    return [entry for entry in deps if isinstance(entry, dict)]
 
 
-def catalog_requirements(plugins):
+def catalog_requirements(plugins: list[dict]) -> dict[str, list[tuple[str, dict]]]:
     """{command: [(plugin id, dep entry), ...]} declared across every plugin's deps.json."""
-    needs = {}
+    needs: dict[str, list[tuple[str, dict]]] = {}
     for plugin in plugins:
         for entry in plugin_deps(plugin):
             command = entry.get("command")
@@ -138,11 +144,11 @@ def catalog_requirements(plugins):
     return needs
 
 
-def missing_commands(needs):
+def missing_commands(needs: dict[str, list]) -> set[str]:
     return {cmd for cmd in needs if not shutil.which(cmd)}
 
 
-def report(needs, catalog_needs):
+def report(needs: dict[str, list[str]], catalog_needs: dict[str, list[tuple[str, dict]]]) -> None:
     missing = missing_commands(needs)
 
     if not needs:
@@ -198,7 +204,13 @@ def report(needs, catalog_needs):
 
     print("Missing — nothing has been installed:\n")
     for cmd in sorted(catalog_missing):
-        _plugin_id, entry = catalog_needs[cmd][0]
+        # Prefer an entry that actually declares a suggestion — if two plugins
+        # both need `cmd` and only the second names an install command, don't
+        # silently drop it just because it wasn't the first one collected.
+        _plugin_id, entry = next(
+            ((pid, e) for pid, e in catalog_needs[cmd] if e.get("install") or e.get("manual")),
+            catalog_needs[cmd][0],
+        )
         label = entry.get("label", cmd)
         print(f"  {cmd} — {label}")
         if entry.get("install"):
@@ -209,7 +221,7 @@ def report(needs, catalog_needs):
             print("      no install suggestion declared; install it however that tool documents.")
 
 
-def install(runtime, assume_yes):
+def install(runtime: str, assume_yes: bool) -> None:
     info = RUNTIMES[runtime]
     print(f"About to install {info['label']} by running:\n\n    {info['install']}\n")
 
@@ -234,7 +246,7 @@ def install(runtime, assume_yes):
     print(f"\nInstall finished. If {runtime} still isn't found, open a new shell and re-run the report.")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
