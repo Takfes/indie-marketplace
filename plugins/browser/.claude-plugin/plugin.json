@@ -1,0 +1,9 @@
+{
+  "name": "browser",
+  "description": "Browser automation and E2E test authoring \u2014 Playwright CLI codegen plus self-healing Planner/Generator/Healer test agents. CLI + Skills only, no MCP server.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}

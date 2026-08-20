@@ -319,6 +319,44 @@ plugins:
         path: "skills/last30days"
 
   # ---------------------------------------------------------------------------
+  # browser — Playwright CLI codegen/general browser actions plus self-healing
+  # E2E test authoring (Planner/Generator/Healer agents), CLI + Skills only.
+  # No MCP server here by design — see browser-mcp below. A plugin's .mcp.json
+  # servers all activate together on install, so "opt-in Playwright MCP" has
+  # to be its own plugin rather than a flag on this one.
+  # ---------------------------------------------------------------------------
+  - name: browser
+    description: Browser automation and E2E test authoring — Playwright CLI codegen plus self-healing Planner/Generator/Healer test agents. CLI + Skills only, no MCP server.
+    version: "0.1.0"
+    skills:
+      # Upstream's own CLI + Skill: general browser actions (open/click/fill/
+      # snapshot/...) and its own CLI-driven plan/generate/heal workflow.
+      - name: playwright-cli
+        source: community
+        repo: "https://github.com/microsoft/playwright-cli"
+        path: "skills/playwright-cli"
+
+      # Hand-authored: teaches `npx playwright init-agents --loop=claude` and
+      # the resulting Planner/Generator/Healer subagents — see
+      # skills/playwright-test-agents/ for the source of truth.
+      - name: playwright-test-agents
+        source: local
+
+  # ---------------------------------------------------------------------------
+  # browser-mcp — Playwright MCP server only, opt-in. Kept as its own plugin
+  # (not folded into `browser`) specifically so installing `browser` never
+  # pulls in live MCP-driven browser/DOM control — only whoever specifically
+  # wants that installs this too. Neither plugin depends on the other.
+  # ---------------------------------------------------------------------------
+  - name: browser-mcp
+    description: Playwright MCP server (opt-in) — live exploratory browser and DOM control for whoever specifically needs it
+    version: "0.1.0"
+    mcp:
+      - name: playwright
+        command: npx
+        args: ["-y", "@playwright/mcp@latest"]
+
+  # ---------------------------------------------------------------------------
   # office — Anthropic's document-format skills for creating and editing
   # Office/PDF documents (docx, pdf, pptx, xlsx).
   # ---------------------------------------------------------------------------

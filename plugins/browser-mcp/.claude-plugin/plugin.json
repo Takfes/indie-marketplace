@@ -1,0 +1,9 @@
+{
+  "name": "browser-mcp",
+  "description": "Playwright MCP server (opt-in) \u2014 live exploratory browser and DOM control for whoever specifically needs it",
+  "version": "0.1.0",
+  "author": {
+    "name": "Takis Fessas",
+    "url": "https://github.com/Takfes"
+  }
+}
