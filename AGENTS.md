@@ -5,6 +5,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 - Add durable project-specific notes here as they are discovered through real work.
 - Config and generation: `bundles.yaml` is the single source of truth for plugins; `./build.py` (see its docstring and `bundles.yaml`'s own header comments) regenerates `plugins/*/`, `.claude-plugin/marketplace.json`, `.env.example`, `.mcp.json`, and `vscode-mcp.json` from it — never hand-edit those generated files.
 - When making a scoped change (e.g. renaming or editing one plugin), run `./build.py --plugin <name>` rather than a bare `./build.py`: the full build re-fetches every non-cached community skill from upstream, which can pull unrelated upstream drift into your diff. If you do run a full build by accident, `git status` and revert any plugin directories you didn't mean to touch.
+- Two more caching gotchas found while refreshing vendored plugins: a plugin's `hooks:` block (single-path fetch, e.g. `superpowers`) is cache-aware like a single skill and only re-fetches with `--fetch` — a bare `./build.py`, or even an unscoped `--fetch`, does not touch it unless you target `--plugin <name> --fetch`. A wildcard `skills:` group fetch (`path: "*"` or `"dir/*"`) always re-clones, but its `shutil.copytree` only adds/overwrites — it never deletes a locally-vendored file whose upstream source was renamed or removed. After any wildcard refresh, diff the plugin's file list against a fresh upstream clone to catch orphans before committing.
 
 ## Maintaining this file
 
