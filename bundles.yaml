@@ -343,6 +343,14 @@ plugins:
         repo: "https://github.com/mvanhorn/last30days-skill"
         path: "skills/last30days"
 
+      # Lean, purpose-built YouTube search/lookup primitive via the yt-dlp
+      # CLI (query search, single-video lookup, optional transcript fetch).
+      # Deliberately drops the tracked-channel reference-file lookup and
+      # thumbnail caching a prior digest-pipeline version had — those are
+      # specific to that pipeline, not to general web research.
+      - name: yt-dlp
+        source: local
+
   # ---------------------------------------------------------------------------
   # browser — Playwright CLI codegen/general browser actions plus self-healing
   # E2E test authoring (Planner/Generator/Healer agents), CLI + Skills only.
