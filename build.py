@@ -9,7 +9,7 @@ Usage:
   ./build.py              # build all plugins (community skills use cached content)
   ./build.py --fetch      # re-fetch all community skills from upstream, then build
   ./build.py --fetch-only # re-fetch community skills only, skip build
-  ./build.py --plugin provision  # build a single named plugin only
+  ./build.py --plugin skillcraft  # build a single named plugin only
 
 How it works:
   source: local     → copies skills/<name>/ into the plugin (full directory)
@@ -627,9 +627,9 @@ def main() -> None:
             "  ./build.py                          build all, use cached community skills\n"
             "  ./build.py --fetch                  re-fetch community, then build all\n"
             "  ./build.py --fetch-only             re-fetch community only, skip build\n"
-            "  ./build.py --plugin provision       build one plugin, use cache\n"
-            "  ./build.py --plugin provision --fetch       fetch + build one plugin\n"
-            "  ./build.py --plugin provision --fetch-only  fetch community for one plugin\n"
+            "  ./build.py --plugin skillcraft       build one plugin, use cache\n"
+            "  ./build.py --plugin skillcraft --fetch       fetch + build one plugin\n"
+            "  ./build.py --plugin skillcraft --fetch-only  fetch community for one plugin\n"
         ),
     )
     parser.add_argument(

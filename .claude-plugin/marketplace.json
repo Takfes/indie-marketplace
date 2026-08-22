@@ -8,10 +8,10 @@
   },
   "plugins": [
     {
-      "name": "provision",
+      "name": "skillcraft",
       "description": "AI toolkit provisioning and meta-skills",
       "version": "0.1.0",
-      "source": "./plugins/provision"
+      "source": "./plugins/skillcraft"
     },
     {
       "name": "python",
