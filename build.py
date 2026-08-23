@@ -25,12 +25,11 @@ How it works:
   plugin `deps:`    → CLI tools a skill drives with no MCP server and no
                       env var either — validates the shape and writes them
                       verbatim to deps.json for the toolchain-doctor skill.
-  `mcp:`/`skills:`/`deps:` entries → each may also carry `group`, `description`,
-                      and (on `skills:`/`deps:`) their own `env:` map, the same
-                      shape/prefix rule as an `mcp:` entry's `env:`.
-  plugin `catalog: true` → writes catalog.json: one {name, type, group,
-                      description, env} object per mcp:/skills:/deps: entry,
-                      for a config panel to render — env lists names only.
+  `skills:`/`deps:` entries → may also carry their own `env:` map, same
+                      shape as an `mcp:` entry's `env:`.
+  plugin `catalog: true` → writes catalog.json: one {name, type, env}
+                      object per mcp:/skills:/deps: entry, env listing
+                      names only — for later tooling to consume.
 """
 
 import argparse
@@ -332,50 +331,6 @@ def fetch_community_hooks(hooks_cfg: dict, plugin_dir: Path, fetch: bool) -> Non
     ok("hooks  (community, fetched)")
 
 
-def env_prefix(plugin_name: str) -> str:
-    """The mandatory prefix for every env var a plugin declares."""
-    return plugin_name.upper().replace("-", "_") + "_"
-
-
-def validate_env_names(plugin: dict) -> None:
-    """
-    Reject any env var a plugin declares — under an `mcp:`, `skills:`, or
-    `deps:` entry, or in its top-level `env:` block — that doesn't carry that
-    plugin's own prefix (`python` → PYTHON_, `web-search` → WEB_SEARCH_).
-
-    Every declared var ultimately resolves against Claude Code's single
-    process environment, so a bare name like API_KEY declared by two plugins
-    would silently collide there no matter which file it came from. The
-    prefix keeps each plugin in its own namespace and its owner obvious at a
-    glance.
-    """
-    prefix = env_prefix(plugin["name"])
-    declared = [
-        (f"MCP server '{entry['name']}'", entry.get("env") or {})
-        for entry in plugin.get("mcp") or []
-    ]
-    declared += [
-        (f"skill '{entry['name']}'", entry.get("env") or {})
-        for entry in plugin.get("skills") or []
-    ]
-    declared += [
-        (f"dep '{entry.get('label') or entry['command']}'", entry.get("env") or {})
-        for entry in plugin.get("deps") or []
-    ]
-    declared.append(("the plugin's own `env:` block", plugin.get("env") or {}))
-
-    for where, env in declared:
-        for var in env:
-            if var == prefix:
-                err(f"{plugin['name']} — env var '{var}' on {where} is the bare prefix with no name after it")
-                sys.exit(1)
-            if not var.startswith(prefix):
-                err(f"{plugin['name']} — env var '{var}' on {where} must start with '{prefix}'")
-                err(f"  Rename it to '{prefix}{var}' in bundles.yaml, or pick another {prefix}* name.")
-                err("  Every plugin prefixes its env vars so two plugins cannot declare the same bare name.")
-                sys.exit(1)
-
-
 def validate_deps(plugin: dict) -> None:
     """
     Validate a plugin's `deps:` block — CLI tools its skills invoke directly
@@ -419,7 +374,6 @@ def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
       env     — optional map of required env var names. Only the names
                 are used; each becomes "${NAME}" in .mcp.json so Claude
                 Code resolves it from the user's shell environment.
-                Names must carry the plugin's prefix — see validate_env_names.
     """
     mcp_servers = {}
     for entry in plugin["mcp"]:
@@ -540,37 +494,22 @@ def write_vscode_mcp_json(plugin: dict, plugin_dir: Path) -> None:
 def write_catalog_json(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's catalog.json — one entry per `mcp:`/`skills:`/`deps:`
-    item, carrying the metadata a config panel needs to render an opt-in
-    list: name, type, group, description, and which env var names it needs
-    (names only, never values). Only written for a plugin declaring
-    `catalog: true` in bundles.yaml.
+    item, naming it, its type, and which env var names it needs (names only,
+    never values). Only written for a plugin declaring `catalog: true` in
+    bundles.yaml.
     """
     catalog = [
-        {
-            "name": entry["name"],
-            "type": "mcp",
-            "group": entry.get("group", ""),
-            "description": entry.get("description", ""),
-            "env": list(entry.get("env") or {}),
-        }
+        {"name": entry["name"], "type": "mcp", "env": list(entry.get("env") or {})}
         for entry in plugin.get("mcp") or []
     ]
     catalog += [
-        {
-            "name": entry["name"],
-            "type": "skill",
-            "group": entry.get("group", ""),
-            "description": entry.get("description", ""),
-            "env": list(entry.get("env") or {}),
-        }
+        {"name": entry["name"], "type": "skill", "env": list(entry.get("env") or {})}
         for entry in plugin.get("skills") or []
     ]
     catalog += [
         {
             "name": entry.get("label") or entry["command"],
             "type": "cli",
-            "group": entry.get("group", ""),
-            "description": entry.get("description", ""),
             "env": list(entry.get("env") or {}),
         }
         for entry in plugin.get("deps") or []
@@ -635,7 +574,6 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
         or any(d.get("env") for d in plugin.get("deps") or [])
     )
     if has_credentials:
-        validate_env_names(plugin)
         write_env_example(plugin, plugin_dir)
 
     if plugin.get("mcp"):

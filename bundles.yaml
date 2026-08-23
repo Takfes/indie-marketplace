@@ -25,70 +25,42 @@
 #   the plugin's skills — no separate command.
 #
 # plugin.mcp (optional, top-level sibling of `skills:`, list):
-#   Hand-authored MCP server declarations — no `community` fetch variant,
-#   since these are written directly against the upstream MCP package
-#   rather than pulled from a third-party skills repo. Each entry becomes
-#   one server in the plugin's generated .mcp.json. Fields:
+#   Hand-authored MCP server declarations. Each entry becomes one server in
+#   the plugin's generated .mcp.json. Fields:
 #     name    — server key under mcpServers
 #     command — executable to run
 #     args    — list of CLI args (defaults to [])
-#     env     — optional map of required env var names. Only the names
-#               matter here — leave values blank/null; build.py writes
-#               each as "${NAME}" in .mcp.json so Claude Code resolves it
-#               from the user's shell environment at runtime. Actual
-#               defaults/examples belong in .env.example, generated
-#               separately — not hand-written here.
-#
-#               Every name MUST start with its own plugin's name, uppercased,
-#               hyphens turned into underscores, followed by an underscore:
-#               plugin `python` → PYTHON_API_KEY, plugin `web-search` →
-#               WEB_SEARCH_API_KEY. build.py rejects the build outright if a
-#               declared name is missing its prefix — kept for readability,
-#               so a var's owning plugin is obvious at a glance wherever it
-#               shows up.
+#     env     — optional map of required env var names (values left null;
+#               build.py writes "${NAME}" in .mcp.json so Claude Code
+#               resolves it from the shell at runtime). Name it for
+#               whatever the entry actually needs — no enforced prefix.
 #
 # plugin.env (optional, top-level sibling of `skills:`, map):
-#   Env var names the plugin needs that have no MCP server behind them — the
-#   credential for a CLI tool one of its skills drives, say. Same shape as an
-#   mcp entry's `env` (names only, values left null) and the same prefix rule,
-#   enforced identically. The difference is where they land: these names reach
-#   .env.example and nothing else. Nothing here is written to .mcp.json or
-#   vscode-mcp.json, because there is no server to hand them to — the CLI
-#   picks them up from the shell itself.
+#   Env var names a plugin needs with no single mcp:/skills:/deps: entry to
+#   attach to. Same shape as an mcp: entry's `env:`. Reaches .env.example
+#   only — nothing here is written to .mcp.json or vscode-mcp.json.
 #
 # plugin.deps (optional, top-level sibling of `skills:`, list):
-#   CLI tools a plugin's skills invoke directly that have no MCP server behind
-#   them, so they're invisible to a runtime check that only walks mcp: entries.
-#   Lives here rather than in a per-plugin file (e.g. clis.txt) for the same
-#   reason mcp:/env: do: bundles.yaml stays the single source of truth instead
-#   of scattering plugin metadata across N files. Each entry:
+#   CLI tools a plugin's skills invoke directly, with no MCP server behind
+#   them. Each entry:
 #     command — the executable to look for on PATH (required)
 #     label   — human-readable name for the doctor's report (defaults to command)
 #     install — shell command that installs it, shown as a suggestion only —
 #               nothing here is ever run automatically
 #     manual  — install docs URL, shown when there's no scripted `install`
-#   build.py only validates the shape (every entry needs `command`) and copies
-#   it verbatim into the plugin's deps.json — it fetches nothing. The
-#   toolchain-doctor skill (skills/toolchain-doctor) reads that file straight
-#   off each installed plugin's own directory to report missing entries the
-#   same way it reports missing runtimes, with no YAML parser required.
-#
-# Catalog metadata (optional, on `mcp:`, `skills:`, and `deps:` entries):
-#   group       — a short grouping label (e.g. browser, research, database)
-#   description — a one-line, human-facing description
-#   env         — (skills:/deps: only; mcp: already has this) same shape and
-#                 prefix rule as an mcp: entry's env:, but tied to the specific
-#                 skill/dep that needs it instead of only living in the
-#                 plugin's shared top-level env: block.
-#   These exist for plugin.catalog below — they're inert otherwise.
+#     env     — optional, same shape as an mcp: entry's `env:`
+#   build.py copies these verbatim into the plugin's deps.json; the
+#   toolchain-doctor skill (skills/toolchain-doctor) reads that file to
+#   report what's missing, the same way it reports missing runtimes.
 #
 # plugin.catalog (optional, top-level sibling of `skills:`, bool):
-#   Set true to have build.py write catalog.json: one {name, type, group,
-#   description, env} object per mcp:/skills:/deps: entry (env lists names
-#   only, never values) — for a config panel to render an opt-in list from.
+#   Set true to have build.py write catalog.json: one {name, type, env}
+#   object per mcp:/skills:/deps: entry (env lists names only, never
+#   values) — for later tooling (secrets status, install checks) to read
+#   without a YAML parser.
 #
 # Env var files (per plugin, at the plugin root — two files, one job each):
-#   .env.example — generated by build.py from the `env` names above, values
+#   .env.example — generated by build.py from every `env:` above, values
 #                  left empty. Committed; contains no secrets by construction.
 #   .env         — the user's real values, hand-maintained by copying
 #                  .env.example and filling it in. Never committed (.gitignore
@@ -248,18 +220,6 @@ plugins:
         path: "skills/engineering/*"
 
   # ---------------------------------------------------------------------------
-  # research — research and knowledge-synthesis skills.
-  # ---------------------------------------------------------------------------
-  - name: research
-    description: Research and knowledge-synthesis skills (WIP)
-    version: "0.1.0"
-    skills:
-      - name: teach
-        source: community
-        repo: "https://github.com/mattpocock/skills"
-        path: "skills/productivity/teach"
-
-  # ---------------------------------------------------------------------------
   # office — Anthropic's document-format skills for creating and editing
   # Office/PDF documents (docx, pdf, pptx, xlsx).
   # ---------------------------------------------------------------------------
@@ -375,111 +335,68 @@ plugins:
   # ---------------------------------------------------------------------------
   # integrations — every MCP server, every CLI that substitutes for one (with
   # its own skill), and every skill needing an externally-sourced credential,
-  # in one place. Claude Code installs a plugin whole, so putting these
-  # together lets a config panel (not plugin install/uninstall) be the unit
-  # of opt-in/opt-out per integration — see docs/spec-integrations-bundle.md.
-  # `gh` has no skill of its own to move with it, so it lands as a bare
-  # `deps:` entry (install-tracked, catalog-visible) rather than a
-  # hand-authored skill.
+  # in one place — so a config panel (not plugin install/uninstall) can be
+  # the unit of opt-in/opt-out per integration. See
+  # docs/spec-integrations-bundle.md. gh, yt-dlp, firecrawl, and
+  # playwright-cli are real global CLI installs tracked via deps: below,
+  # alongside az (shared by azcloud/azdevops/azaks/azure-devops-cli).
   # ---------------------------------------------------------------------------
   - name: integrations
     description: Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place
     version: "0.1.0"
     catalog: true
     mcp:
-      # Up-to-date, version-specific library docs. Works fully keyless on
-      # the free tier (lower rate limits); no env var is required.
+      # Keyless on the free tier (lower rate limits); no env var required.
       - name: context7
         command: npx
         args: ["-y", "@upstash/context7-mcp"]
-        group: python
-        description: Up-to-date, version-specific library documentation lookup, keyless on the free tier.
 
-      # zotero (54yyyu/zotero-mcp, PyPI zotero-mcp, MIT) — Zotero library
-      # search and reference lookup. Defaults to local mode: ZOTERO_LOCAL=true
-      # is hardcoded in args, the same way azkusto hardcodes
-      # KUSTO_ALLOW_WRITE_OPERATIONS=false below — it's a mode flag, not a
-      # secret, so it skips .env.example. Local mode talks to a Zotero 7+
-      # desktop app's local API on the same machine and needs zero
-      # credentials, which is why it's the default over the Web API mode.
-      # The three Web API vars below are only for remote/no-desktop-app
-      # setups; they're optional and blank is safe, since a hardcoded
-      # ZOTERO_LOCAL=true makes zotero-mcp use the local client regardless of
-      # whether they're set.
-      #
-      # zotero-mcp also has an optional semantic-search extra (embedding-
-      # based library search) that needs OPENAI_API_KEY or GEMINI_API_KEY —
-      # out of scope for now, not wired into this entry.
+      # zotero-mcp (PyPI zotero-mcp, MIT). Defaults to local mode
+      # (ZOTERO_LOCAL=true hardcoded — a mode flag, not a secret) talking to
+      # a Zotero 7+ desktop app locally, needing zero credentials. The Web
+      # API vars below are only for remote/no-desktop-app setups; blank is
+      # safe since local mode wins regardless.
       - name: zotero
         command: env
         args:
           [
             "ZOTERO_LOCAL=true",
-            "ZOTERO_API_KEY=${INTEGRATIONS_ZOTERO_API_KEY}",
-            "ZOTERO_LIBRARY_ID=${INTEGRATIONS_ZOTERO_LIBRARY_ID}",
-            "ZOTERO_LIBRARY_TYPE=${INTEGRATIONS_ZOTERO_LIBRARY_TYPE}",
+            "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
+            "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
+            "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
             "zotero-mcp",
           ]
         env:
-          INTEGRATIONS_ZOTERO_API_KEY:
-          INTEGRATIONS_ZOTERO_LIBRARY_ID:
-          INTEGRATIONS_ZOTERO_LIBRARY_TYPE:
-        group: research
-        description: Zotero library search and reference lookup; defaults to local desktop-app mode needing zero credentials.
+          ZOTERO_API_KEY:
+          ZOTERO_LIBRARY_ID:
+          ZOTERO_LIBRARY_TYPE:
 
-      # notebooklm — unified CLI + MCP server for Google's Gemini Notebook
-      # (product formerly branded NotebookLM). PyPI package
-      # `notebooklm-mcp-cli`, MIT license, actively maintained (5k+ stars).
-      # Its GitHub repo has since been renamed jacob-bd/gemini-notebook-mcp-
-      # cli, following the product rename — the PyPI package name is
-      # unchanged. `uv tool install notebooklm-mcp-cli` installs both an
-      # `nlm` CLI and this `notebooklm-mcp` MCP server binary from one
-      # package — NOT the separate, stale `notebooklm-mcp-server` package.
+      # Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM).
+      # `uv tool install notebooklm-mcp-cli` installs both an `nlm` CLI and
+      # this server binary. Uses undocumented internal APIs — can break on a
+      # Google-side change with no warning.
       #
-      # Fragility caveat, straight from the project's own README: it "uses
-      # internal APIs that are undocumented and may change without notice,
-      # require cookie extraction from your browser." It works today, but it
-      # is not a stable, officially-supported integration and could break on
-      # a Google-side change with no warning.
-      #
-      # No env var: auth is entirely external-session-based, the same
-      # pattern as azcloud/azaks below. Run `nlm login` once (opens a
-      # browser, extracts session cookies) — the CLI persists them itself
-      # via `platformdirs` (a declared PyPI dependency), not through
-      # anything this repo declares or reads. Re-run `nlm login` if cookies
-      # expire (~2-4 weeks).
+      # No env var: run `nlm login` once (browser session, cookies persisted
+      # by the CLI itself); re-run if cookies expire (~2-4 weeks).
       - name: notebooklm
         command: notebooklm-mcp
-        group: research
-        description: Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM); auth via a one-time `nlm login`.
 
-      # Semantic web search and page fetch, via the stdio package rather than
-      # Exa's hosted endpoint — .mcp.json only knows how to spawn a command.
+      # Semantic web search and page fetch via Exa's stdio MCP package.
       - name: exa
         command: npx
         args: ["-y", "exa-mcp-server"]
         env:
-          INTEGRATIONS_EXA_API_KEY:
-        group: web
-        description: Semantic web search and page fetch via Exa's MCP server.
+          EXA_API_KEY:
 
-      # Postgres-only server with query-plan analysis and index tuning.
-      # Docker is the only working distribution — `uvx postgres-mcp` has an
-      # upstream bug, so there is no non-container path.
+      # Postgres-only, query-plan analysis + index tuning. Docker-only —
+      # `uvx postgres-mcp` has an upstream bug.
       #
-      # --access-mode=restricted is load-bearing, not decoration: the server
-      # runs its own SQL validator that rejects writes before they ever
-      # reach Postgres, independent of whatever the DB role happens to
-      # grant. That second layer is the reason to use this over a plain DB
-      # client.
+      # --access-mode=restricted is load-bearing: a second SQL validator
+      # rejects writes before Postgres sees them, independent of the DB
+      # role's own grant.
       #
-      # The container expects its connection string in DATABASE_URI, a
-      # fixed internal name that cannot carry this repo's mandatory
-      # INTEGRATIONS_ prefix as its own. Rather than fight the prefix rule,
-      # the rename happens inline in args: Claude Code expands ${...} inside
-      # args before exec'ing docker, so the container receives DATABASE_URI
-      # while this repo only ever declares the prefixed
-      # INTEGRATIONS_PGQUERY_URI.
+      # The container's own env var name (DATABASE_URI) is fixed upstream,
+      # so the rename happens inline in args instead.
       - name: pgquery
         command: docker
         args:
@@ -488,28 +405,19 @@ plugins:
             "-i",
             "--rm",
             "-e",
-            "DATABASE_URI=${INTEGRATIONS_PGQUERY_URI}",
+            "DATABASE_URI=${PGQUERY_URI}",
             "crystaldba/postgres-mcp",
             "--access-mode=restricted",
             "--transport=stdio",
           ]
         env:
-          INTEGRATIONS_PGQUERY_URI:
-        group: database
-        description: Dedicated Postgres MCP server with query-plan analysis, index tuning, and a read-only validator.
+          PGQUERY_URI:
 
-      # Multi-engine server (Postgres, MySQL, SQL Server, BigQuery, ...).
-      # Unlike pgquery it takes no per-database env vars at all: every
-      # source and every exposed SQL tool is declared in a tools.yaml config
-      # file mounted into the container.
-      #
-      # That file is inherently user-specific — it names the databases you
-      # personally query and the tools you want exposed over them — so this
-      # repo cannot ship one. The single declared env var is therefore a
-      # filesystem path, not a credential: point
-      # INTEGRATIONS_DBTOOLS_CONFIG_PATH at a tools.yaml you write yourself.
-      # It must be an absolute path; docker bind mounts reject relative
-      # ones. Format reference: https://googleapis.github.io/genai-toolbox/
+      # Multi-engine (Postgres/MySQL/MSSQL/BigQuery/...), configured via a
+      # tools.yaml mounted into the container — inherently user-specific, so
+      # this repo can't ship one. Point DBTOOLS_CONFIG_PATH at your own
+      # (absolute path — docker bind mounts reject relative ones).
+      # Format: https://googleapis.github.io/genai-toolbox/
       - name: dbtools
         command: docker
         args:
@@ -518,29 +426,23 @@ plugins:
             "-i",
             "--rm",
             "-v",
-            "${INTEGRATIONS_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+            "${DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
             "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
             "--stdio",
             "--config",
             "/tools.yaml",
           ]
         env:
-          INTEGRATIONS_DBTOOLS_CONFIG_PATH:
-        group: database
-        description: Multi-engine SQL server (Postgres/MySQL/MSSQL/BigQuery/...) driven by a user-supplied tools.yaml.
+          DBTOOLS_CONFIG_PATH:
 
-      # Dedicated MySQL server (benborla/mcp-server-mysql, MIT) — a real
-      # app-level write gate (ALLOW_INSERT/UPDATE/DELETE_OPERATION),
-      # independent of the DB grant, the same second-layer pattern pgquery
-      # gives Postgres. No published image; Dockerfile vendored here
-      # (docker/mysql-mcp/, pinned commit — see that file). Build once
-      # locally:
+      # Dedicated MySQL (benborla/mcp-server-mysql, MIT) — an app-level
+      # write gate independent of the DB grant, same pattern as pgquery's
+      # --access-mode. No published image; Dockerfile vendored at
+      # docker/mysql-mcp/ (pinned commit — see that file). Build once:
       #   docker build -t indie-marketplace-mysql-mcp:local plugins/integrations/docker/mysql-mcp
       #
-      # The image's own defaults are ALLOW_INSERT/UPDATE_OPERATION=true —
-      # this entry overrides all three to false, non-configurably, the same
-      # way pgquery hardcodes --access-mode=restricted. Only the connection
-      # details are user-supplied.
+      # ALLOW_*_OPERATION flags are hardcoded false here, overriding the
+      # image's own true defaults — non-configurable by design.
       - name: mysql-mcp
         command: docker
         args:
@@ -549,13 +451,13 @@ plugins:
             "-i",
             "--rm",
             "-e",
-            "MYSQL_HOST=${INTEGRATIONS_MYSQL_MCP_HOST}",
+            "MYSQL_HOST=${MYSQL_MCP_HOST}",
             "-e",
-            "MYSQL_USER=${INTEGRATIONS_MYSQL_MCP_USER}",
+            "MYSQL_USER=${MYSQL_MCP_USER}",
             "-e",
-            "MYSQL_PASS=${INTEGRATIONS_MYSQL_MCP_PASS}",
+            "MYSQL_PASS=${MYSQL_MCP_PASS}",
             "-e",
-            "MYSQL_DB=${INTEGRATIONS_MYSQL_MCP_DB}",
+            "MYSQL_DB=${MYSQL_MCP_DB}",
             "-e",
             "ALLOW_INSERT_OPERATION=false",
             "-e",
@@ -565,25 +467,17 @@ plugins:
             "indie-marketplace-mysql-mcp:local",
           ]
         env:
-          INTEGRATIONS_MYSQL_MCP_HOST:
-          INTEGRATIONS_MYSQL_MCP_USER:
-          INTEGRATIONS_MYSQL_MCP_PASS:
-          INTEGRATIONS_MYSQL_MCP_DB:
-        group: database
-        description: Dedicated MySQL MCP server with an app-level write gate independent of the DB grant.
+          MYSQL_MCP_HOST:
+          MYSQL_MCP_USER:
+          MYSQL_MCP_PASS:
+          MYSQL_MCP_DB:
 
-      # Dedicated MSSQL server (JexinSam/mssql_mcp_server, MIT) — its
-      # query_sql tool regex-gates to SELECT/WITH/SHOW only (verified in
-      # source); execute_sql stays unrestricted by upstream design, so treat
-      # this as read-mostly, not read-only. No published image; Dockerfile
-      # vendored here (docker/mssql-mcp/, pinned commit — see that file,
-      # which also fixes an upstream build bug: their own Dockerfile never
-      # copies README.md into the build context, which the pip build
-      # backend requires). Build once locally:
+      # Dedicated MSSQL (JexinSam/mssql_mcp_server, MIT) — query_sql regex-
+      # gates to SELECT/WITH/SHOW; execute_sql stays unrestricted upstream,
+      # so treat this as read-mostly, not read-only. No published image;
+      # Dockerfile vendored at docker/mssql-mcp/ (pinned commit, also fixes
+      # an upstream build bug). Build once:
       #   docker build -t indie-marketplace-mssql-mcp:local plugins/integrations/docker/mssql-mcp
-      #
-      # MSSQL_DRIVER and MCP_TRANSPORT are baked into the image; only the
-      # connection details are user-supplied.
       - name: mssql-mcp
         command: docker
         args:
@@ -592,219 +486,176 @@ plugins:
             "-i",
             "--rm",
             "-e",
-            "MSSQL_HOST=${INTEGRATIONS_MSSQL_MCP_HOST}",
+            "MSSQL_HOST=${MSSQL_MCP_HOST}",
             "-e",
-            "MSSQL_DATABASE=${INTEGRATIONS_MSSQL_MCP_DATABASE}",
+            "MSSQL_DATABASE=${MSSQL_MCP_DATABASE}",
             "-e",
-            "MSSQL_USER=${INTEGRATIONS_MSSQL_MCP_USER}",
+            "MSSQL_USER=${MSSQL_MCP_USER}",
             "-e",
-            "MSSQL_PASSWORD=${INTEGRATIONS_MSSQL_MCP_PASSWORD}",
+            "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
             "indie-marketplace-mssql-mcp:local",
           ]
         env:
-          INTEGRATIONS_MSSQL_MCP_HOST:
-          INTEGRATIONS_MSSQL_MCP_DATABASE:
-          INTEGRATIONS_MSSQL_MCP_USER:
-          INTEGRATIONS_MSSQL_MCP_PASSWORD:
-        group: database
-        description: Dedicated MSSQL MCP server; query_sql regex-gates to read-only statements, execute_sql stays unrestricted.
+          MSSQL_MCP_HOST:
+          MSSQL_MCP_DATABASE:
+          MSSQL_MCP_USER:
+          MSSQL_MCP_PASSWORD:
 
-      # Official Azure MCP Server (microsoft/mcp, servers/Azure.Mcp.Server —
-      # the archived Azure/azure-mcp repo folded into that monorepo). Covers
-      # 40+ Azure services for resource management. Authenticates through
-      # the Azure Identity SDK off an existing `az login` session, so no
-      # credential is ever passed to the server and it declares no env var.
+      # Official Azure MCP server (microsoft/mcp), 40+ services. Auth via
+      # an existing `az login` session — no env var.
       - name: azcloud
         command: npx
         args: ["-y", "@azure/mcp@latest", "server", "start"]
-        group: azure
-        description: Official Azure MCP server covering 40+ Azure services, authenticated via an existing `az login` session.
 
-      # Official Microsoft Azure DevOps MCP Server (microsoft/azure-devops-mcp),
-      # not one of the older community forks. The organization name is a
-      # required positional arg with no env-var equivalent upstream, so it
-      # is injected via ${...} in args — Claude Code expands those before
-      # spawning the server. `--authentication azcli` reuses the same
-      # `az login` session as azcloud; the upstream default is
-      # `interactive`, a browser sign-in that suits a stdio subprocess
-      # poorly.
+      # Official Azure DevOps MCP server (microsoft/azure-devops-mcp). Org
+      # name is a required positional arg, injected via ${...}.
+      # --authentication azcli reuses the same `az login` session as
+      # azcloud (upstream default is an interactive browser sign-in).
       - name: azdevops
         command: npx
         args:
           [
             "-y",
             "@azure-devops/mcp",
-            "${INTEGRATIONS_AZDEVOPS_ORG}",
+            "${AZDEVOPS_ORG}",
             "--authentication",
             "azcli",
           ]
         env:
-          INTEGRATIONS_AZDEVOPS_ORG:
-        group: azure
-        description: Official Azure DevOps MCP server for the given organization.
+          AZDEVOPS_ORG:
 
-      # Official AKS MCP server (Azure/aks-mcp). A Go binary with no npm
-      # package, and upstream supports only a locally-spawned stdio
-      # process — it explicitly rules out running behind a container
-      # service — so the user downloads a release binary from
-      # https://github.com/Azure/aks-mcp/releases/latest and points the env
-      # var below at it. Auth is the user's own `az login` plus kubeconfig;
-      # the access level defaults to readonly upstream.
+      # Official AKS MCP server (Azure/aks-mcp) — a Go binary with no npm
+      # package; download a release from
+      # https://github.com/Azure/aks-mcp/releases/latest and point
+      # AZAKS_BIN at it. Auth: `az login` + kubeconfig, readonly by default.
       - name: azaks
-        command: "${INTEGRATIONS_AZAKS_BIN}"
+        command: "${AZAKS_BIN}"
         args: ["--transport", "stdio"]
         env:
-          INTEGRATIONS_AZAKS_BIN:
-        group: azure
-        description: Official AKS MCP server — a locally-downloaded Go binary, readonly by default.
+          AZAKS_BIN:
 
-      # Azure Data Explorer / Kusto (johnib/kusto-mcp, npm). Picked over the
-      # better-known pab1it0/adx-mcp-server because that one hands the raw
-      # query string straight to the Kusto SDK's execute(), which routes
-      # anything starting with "." to the management endpoint — .drop,
-      # .ingest and .set-or-replace all go through. It has no read-only
-      # layer at all, only whatever the Azure role happens to deny. The npm
-      # @mcp-apps/kusto-mcp-server publishes no source repo, so its
-      # read-only claim cannot be audited either.
+      # Azure Data Explorer / Kusto (johnib/kusto-mcp, npm) — picked over
+      # pab1it0/adx-mcp-server, which hands raw queries straight to the
+      # Kusto SDK with no read-only layer.
       #
-      # KUSTO_ALLOW_WRITE_OPERATIONS=false is this entry's equivalent of
-      # pgquery's --access-mode=restricted, and is load-bearing for the same
-      # reason: upstream defaults it to *true*, and setting it false enables
-      # a real validator that rejects every dot-command except the
-      # introspective .show family before it reaches the cluster. Plain KQL
-      # cannot mutate, so that pair is the whole write surface. Verified
-      # live — with this set the server logs "Running in READ-ONLY mode" on
-      # startup.
+      # KUSTO_ALLOW_WRITE_OPERATIONS=false is load-bearing: upstream
+      # defaults it true; setting it false enables a real validator
+      # rejecting every dot-command except the introspective .show family.
       #
-      # Auth is a third distinct credential style alongside azdevops' org
-      # string and azaks' local binary: the Azure Identity chain
-      # (KUSTO_AUTH_METHOD=azure-identity → DefaultAzureCredential). Fill in
-      # the three service-principal vars for an unattended identity; leave
-      # them blank and the chain falls through to managed identity and then
-      # to the same `az login` session azcloud/azdevops use. Blank is safe —
-      # the SDK gates the service principal on a plain truthiness check, so
-      # empty strings read as unset.
+      # Auth: fill in the three service-principal vars for an unattended
+      # identity, or leave them blank to fall through to managed identity
+      # then the same `az login` session azcloud/azdevops use.
       #
-      # The server takes no CLI flags (everything is env) and its internal
-      # names carry no INTEGRATIONS_ prefix, so `env` does the rename
-      # inline, the way pgquery's `docker -e` does above. Claude Code
-      # expands ${...} in args. Cluster URL and database are both required
-      # for auto-connect; without them every session has to call
-      # initialize-connection by hand.
-      #
-      # Caveat: kusto-mcp reports anonymous usage telemetry to the
-      # maintainer (tool names, latency, error classes, salted tenant/user
-      # hashes — never query text, results, or cluster/table names). It
-      # cannot be disabled, only redirected to your own OTLP collector.
+      # Caveat: reports anonymous usage telemetry to the maintainer (tool
+      # names, latency, salted tenant/user hashes — never query text or
+      # results); redirectable to your own OTLP collector, not disable-able.
       - name: azkusto
         command: env
         args:
           [
             "KUSTO_AUTH_METHOD=azure-identity",
             "KUSTO_ALLOW_WRITE_OPERATIONS=false",
-            "KUSTO_CLUSTER_URL=${INTEGRATIONS_AZKUSTO_CLUSTER_URL}",
-            "KUSTO_DEFAULT_DATABASE=${INTEGRATIONS_AZKUSTO_DATABASE}",
-            "AZURE_TENANT_ID=${INTEGRATIONS_AZKUSTO_TENANT_ID}",
-            "AZURE_CLIENT_ID=${INTEGRATIONS_AZKUSTO_CLIENT_ID}",
-            "AZURE_CLIENT_SECRET=${INTEGRATIONS_AZKUSTO_CLIENT_SECRET}",
+            "KUSTO_CLUSTER_URL=${AZKUSTO_CLUSTER_URL}",
+            "KUSTO_DEFAULT_DATABASE=${AZKUSTO_DATABASE}",
+            "AZURE_TENANT_ID=${AZKUSTO_TENANT_ID}",
+            "AZURE_CLIENT_ID=${AZKUSTO_CLIENT_ID}",
+            "AZURE_CLIENT_SECRET=${AZKUSTO_CLIENT_SECRET}",
             "npx",
             "-y",
             "kusto-mcp",
           ]
         env:
-          INTEGRATIONS_AZKUSTO_CLUSTER_URL:
-          INTEGRATIONS_AZKUSTO_DATABASE:
-          INTEGRATIONS_AZKUSTO_TENANT_ID:
-          INTEGRATIONS_AZKUSTO_CLIENT_ID:
-          INTEGRATIONS_AZKUSTO_CLIENT_SECRET:
-        group: azure
-        description: Azure Data Explorer / Kusto MCP server, forced read-only via KUSTO_ALLOW_WRITE_OPERATIONS=false.
+          AZKUSTO_CLUSTER_URL:
+          AZKUSTO_DATABASE:
+          AZKUSTO_TENANT_ID:
+          AZKUSTO_CLIENT_ID:
+          AZKUSTO_CLIENT_SECRET:
 
-      # Playwright MCP server for live exploratory browser/DOM control.
-      # Opt-in by nature (not bundled with playwright-cli below) — a
-      # plugin's .mcp.json servers all activate together on install, so this
-      # used to need its own plugin (browser-mcp) just to keep "opt-in
-      # Playwright MCP" separate from the always-on browser CLI skills. The
-      # catalog panel now does that separation instead.
+      # Live exploratory browser/DOM control — opt-in by nature. A plugin's
+      # .mcp.json servers all activate together on install, so this used to
+      # need its own plugin (browser-mcp) to stay separate from the
+      # always-on browser CLI skills below.
       - name: playwright
         command: npx
         args: ["-y", "@playwright/mcp@latest"]
-        group: browser
-        description: Live exploratory browser and DOM control via Playwright's MCP server.
     skills:
-      # The Firecrawl CLI's own umbrella skill — SKILL.md plus rules/.
-      # Firecrawl ships an MCP server too; this deliberately takes its CLI
-      # plus the CLI's own skill instead — the skill teaches the flags and
-      # the CLI returns markdown sized for a context window, where the MCP
-      # server would sit in every session's tool list to do the same job.
-      # The CLI itself is a global npm tool, installed by hand — nothing in
-      # this repo fetches it: npm install -g firecrawl-cli
+      # Firecrawl's own umbrella skill — SKILL.md plus rules/. Deliberately
+      # CLI + skill instead of Firecrawl's own MCP server: the skill teaches
+      # the flags and the CLI returns markdown sized for a context window,
+      # where an MCP server would sit in every session's tool list.
+      #
+      # Auth is `firecrawl login --browser` (or --api-key), a one-time
+      # interactive step like `gh auth login` — no env var to wire here.
       - name: firecrawl
         source: community
         repo: "https://github.com/firecrawl/cli"
         path: "skills/firecrawl"
-        env:
-          INTEGRATIONS_FIRECRAWL_API_KEY:
-        group: web
-        description: Firecrawl CLI for scraping and crawling, taught by its own skill.
 
-      # last30days' own SKILL.md also declares 13 optional env vars (OpenAI,
-      # XAI, OpenRouter, Perplexity, Parallel, Brave, Apify, plus several
-      # social-platform auth tokens) beyond its primary env below — left
-      # undeclared here since most integrations won't use most of them; add
-      # one to this entry's env: if a skill actually needs it.
+      # Its own script reads the bare SCRAPECREATORS_API_KEY straight from
+      # the process environment (not through Claude Code's ${VAR}
+      # substitution, which only applies to mcp: entries) — the name below
+      # must match exactly, no prefix. SKILL.md documents 13 more optional
+      # provider keys beyond this primary one; add one here only if needed.
       - name: last30days
         source: community
         repo: "https://github.com/mvanhorn/last30days-skill"
         path: "skills/last30days"
         env:
-          INTEGRATIONS_LAST30DAYS_SCRAPECREATORS_API_KEY:
-        group: web
-        description: Recent public discussion lookup across social platforms and search APIs.
+          SCRAPECREATORS_API_KEY:
 
-      # Lean, purpose-built YouTube search/lookup primitive via the yt-dlp
-      # CLI (query search, single-video lookup, optional transcript fetch).
-      # Deliberately drops the tracked-channel reference-file lookup and
-      # thumbnail caching a prior digest-pipeline version had — those are
-      # specific to that pipeline, not to general web research.
+      # YouTube search/lookup primitive via the yt-dlp CLI (query search,
+      # single-video lookup, optional transcript fetch) — see deps: below
+      # for the CLI itself.
       - name: yt-dlp
         source: local
-        group: web
-        description: YouTube search/lookup CLI primitive — query search, single-video lookup, optional transcript fetch.
 
-      # Upstream's own CLI + Skill: general browser actions (open/click/fill/
-      # snapshot/...) and its own CLI-driven plan/generate/heal workflow.
+      # Upstream's own CLI + skill: general browser actions plus its own
+      # CLI-driven plan/generate/heal workflow — see deps: below for the
+      # CLI itself.
       - name: playwright-cli
         source: community
         repo: "https://github.com/microsoft/playwright-cli"
         path: "skills/playwright-cli"
-        group: browser
-        description: Playwright's own CLI + skill for general browser actions (open/click/fill/snapshot/...).
 
-      # Hand-authored: teaches `npx playwright init-agents --loop=claude` and
-      # the resulting Planner/Generator/Healer subagents — see
-      # skills/playwright-test-agents/ for the source of truth.
+      # Hand-authored: teaches `npx playwright init-agents --loop=claude`
+      # and the resulting Planner/Generator/Healer subagents — see
+      # skills/playwright-test-agents/ for the source of truth. Uses npx
+      # per-invocation, not a persistent global install.
       - name: playwright-test-agents
         source: local
-        group: browser
-        description: Self-healing E2E test authoring via Planner/Generator/Healer subagents.
 
+      # See deps: below (az) for the CLI itself, plus
+      # `az extension add --name azure-devops` (one-time, not tracked here).
       - name: azure-devops-cli
         source: community
         repo: "https://github.com/github/awesome-copilot"
         path: "skills/azure-devops-cli"
-        group: azure
-        description: Azure DevOps CLI skill (`az devops`) for boards/repos/pipelines from the command line.
     deps:
-      # No existing skill teaches gh, unlike every other CLI entry above —
-      # it lands as a bare catalog entry instead of a hand-authored skill.
-      # Its own auth (`gh auth login`) stays a manual, un-automated step.
+      # gh has no skill of its own — a bare catalog entry instead of a
+      # hand-authored one. `gh auth login` stays manual.
       - command: gh
         label: gh (GitHub CLI)
         install: brew install gh
         manual: "https://github.com/cli/cli#installation"
-        group: vcs
-        description: GitHub CLI for issues, PRs, and repo operations. Run `gh auth login` yourself after install.
+
+      - command: yt-dlp
+        install: brew install yt-dlp
+        manual: "https://github.com/yt-dlp/yt-dlp#installation"
+
+      - command: firecrawl
+        install: npm install -g firecrawl-cli@latest
+        manual: "https://docs.firecrawl.dev/sdks/cli"
+
+      - command: playwright-cli
+        install: npm install -g @playwright/cli@latest
+        manual: "https://github.com/microsoft/playwright-cli"
+
+      # Shared by azcloud/azdevops/azaks above (their MCP servers reuse an
+      # existing `az login` session) and azure-devops-cli's own skill.
+      - command: az
+        label: az (Azure CLI)
+        install: brew install azure-cli
+        manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
 
   # ---------------------------------------------------------------------------
   # gitctrl — git workflow and code review hygiene skills.
@@ -883,3 +734,8 @@ plugins:
         source: community
         repo: "https://github.com/juliusbrussee/caveman"
         path: "skills/caveman"
+
+      - name: teach
+        source: community
+        repo: "https://github.com/mattpocock/skills"
+        path: "skills/productivity/teach"

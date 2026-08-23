@@ -2,128 +2,128 @@
   "inputs": [
     {
       "type": "promptString",
-      "id": "zotero-integrations_zotero_api_key",
-      "description": "INTEGRATIONS_ZOTERO_API_KEY",
+      "id": "zotero-zotero_api_key",
+      "description": "ZOTERO_API_KEY",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "zotero-integrations_zotero_library_id",
-      "description": "INTEGRATIONS_ZOTERO_LIBRARY_ID",
+      "id": "zotero-zotero_library_id",
+      "description": "ZOTERO_LIBRARY_ID",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "zotero-integrations_zotero_library_type",
-      "description": "INTEGRATIONS_ZOTERO_LIBRARY_TYPE",
+      "id": "zotero-zotero_library_type",
+      "description": "ZOTERO_LIBRARY_TYPE",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "exa-integrations_exa_api_key",
-      "description": "INTEGRATIONS_EXA_API_KEY",
+      "id": "exa-exa_api_key",
+      "description": "EXA_API_KEY",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "pgquery-integrations_pgquery_uri",
-      "description": "INTEGRATIONS_PGQUERY_URI",
+      "id": "pgquery-pgquery_uri",
+      "description": "PGQUERY_URI",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "dbtools-integrations_dbtools_config_path",
-      "description": "INTEGRATIONS_DBTOOLS_CONFIG_PATH",
+      "id": "dbtools-dbtools_config_path",
+      "description": "DBTOOLS_CONFIG_PATH",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mysql-mcp-integrations_mysql_mcp_host",
-      "description": "INTEGRATIONS_MYSQL_MCP_HOST",
+      "id": "mysql-mcp-mysql_mcp_host",
+      "description": "MYSQL_MCP_HOST",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mysql-mcp-integrations_mysql_mcp_user",
-      "description": "INTEGRATIONS_MYSQL_MCP_USER",
+      "id": "mysql-mcp-mysql_mcp_user",
+      "description": "MYSQL_MCP_USER",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mysql-mcp-integrations_mysql_mcp_pass",
-      "description": "INTEGRATIONS_MYSQL_MCP_PASS",
+      "id": "mysql-mcp-mysql_mcp_pass",
+      "description": "MYSQL_MCP_PASS",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mysql-mcp-integrations_mysql_mcp_db",
-      "description": "INTEGRATIONS_MYSQL_MCP_DB",
+      "id": "mysql-mcp-mysql_mcp_db",
+      "description": "MYSQL_MCP_DB",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mssql-mcp-integrations_mssql_mcp_host",
-      "description": "INTEGRATIONS_MSSQL_MCP_HOST",
+      "id": "mssql-mcp-mssql_mcp_host",
+      "description": "MSSQL_MCP_HOST",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mssql-mcp-integrations_mssql_mcp_database",
-      "description": "INTEGRATIONS_MSSQL_MCP_DATABASE",
+      "id": "mssql-mcp-mssql_mcp_database",
+      "description": "MSSQL_MCP_DATABASE",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mssql-mcp-integrations_mssql_mcp_user",
-      "description": "INTEGRATIONS_MSSQL_MCP_USER",
+      "id": "mssql-mcp-mssql_mcp_user",
+      "description": "MSSQL_MCP_USER",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "mssql-mcp-integrations_mssql_mcp_password",
-      "description": "INTEGRATIONS_MSSQL_MCP_PASSWORD",
+      "id": "mssql-mcp-mssql_mcp_password",
+      "description": "MSSQL_MCP_PASSWORD",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azdevops-integrations_azdevops_org",
-      "description": "INTEGRATIONS_AZDEVOPS_ORG",
+      "id": "azdevops-azdevops_org",
+      "description": "AZDEVOPS_ORG",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azaks-integrations_azaks_bin",
-      "description": "INTEGRATIONS_AZAKS_BIN",
+      "id": "azaks-azaks_bin",
+      "description": "AZAKS_BIN",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azkusto-integrations_azkusto_cluster_url",
-      "description": "INTEGRATIONS_AZKUSTO_CLUSTER_URL",
+      "id": "azkusto-azkusto_cluster_url",
+      "description": "AZKUSTO_CLUSTER_URL",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azkusto-integrations_azkusto_database",
-      "description": "INTEGRATIONS_AZKUSTO_DATABASE",
+      "id": "azkusto-azkusto_database",
+      "description": "AZKUSTO_DATABASE",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azkusto-integrations_azkusto_tenant_id",
-      "description": "INTEGRATIONS_AZKUSTO_TENANT_ID",
+      "id": "azkusto-azkusto_tenant_id",
+      "description": "AZKUSTO_TENANT_ID",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azkusto-integrations_azkusto_client_id",
-      "description": "INTEGRATIONS_AZKUSTO_CLIENT_ID",
+      "id": "azkusto-azkusto_client_id",
+      "description": "AZKUSTO_CLIENT_ID",
       "password": true
     },
     {
       "type": "promptString",
-      "id": "azkusto-integrations_azkusto_client_secret",
-      "description": "INTEGRATIONS_AZKUSTO_CLIENT_SECRET",
+      "id": "azkusto-azkusto_client_secret",
+      "description": "AZKUSTO_CLIENT_SECRET",
       "password": true
     }
   ],
@@ -141,15 +141,15 @@
       "command": "env",
       "args": [
         "ZOTERO_LOCAL=true",
-        "ZOTERO_API_KEY=${INTEGRATIONS_ZOTERO_API_KEY}",
-        "ZOTERO_LIBRARY_ID=${INTEGRATIONS_ZOTERO_LIBRARY_ID}",
-        "ZOTERO_LIBRARY_TYPE=${INTEGRATIONS_ZOTERO_LIBRARY_TYPE}",
+        "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
+        "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
+        "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
         "zotero-mcp"
       ],
       "env": {
-        "INTEGRATIONS_ZOTERO_API_KEY": "${input:zotero-integrations_zotero_api_key}",
-        "INTEGRATIONS_ZOTERO_LIBRARY_ID": "${input:zotero-integrations_zotero_library_id}",
-        "INTEGRATIONS_ZOTERO_LIBRARY_TYPE": "${input:zotero-integrations_zotero_library_type}"
+        "ZOTERO_API_KEY": "${input:zotero-zotero_api_key}",
+        "ZOTERO_LIBRARY_ID": "${input:zotero-zotero_library_id}",
+        "ZOTERO_LIBRARY_TYPE": "${input:zotero-zotero_library_type}"
       }
     },
     "notebooklm": {
@@ -165,7 +165,7 @@
         "exa-mcp-server"
       ],
       "env": {
-        "INTEGRATIONS_EXA_API_KEY": "${input:exa-integrations_exa_api_key}"
+        "EXA_API_KEY": "${input:exa-exa_api_key}"
       }
     },
     "pgquery": {
@@ -176,13 +176,13 @@
         "-i",
         "--rm",
         "-e",
-        "DATABASE_URI=${INTEGRATIONS_PGQUERY_URI}",
+        "DATABASE_URI=${PGQUERY_URI}",
         "crystaldba/postgres-mcp",
         "--access-mode=restricted",
         "--transport=stdio"
       ],
       "env": {
-        "INTEGRATIONS_PGQUERY_URI": "${input:pgquery-integrations_pgquery_uri}"
+        "PGQUERY_URI": "${input:pgquery-pgquery_uri}"
       }
     },
     "dbtools": {
@@ -193,14 +193,14 @@
         "-i",
         "--rm",
         "-v",
-        "${INTEGRATIONS_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+        "${DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
         "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
         "--stdio",
         "--config",
         "/tools.yaml"
       ],
       "env": {
-        "INTEGRATIONS_DBTOOLS_CONFIG_PATH": "${input:dbtools-integrations_dbtools_config_path}"
+        "DBTOOLS_CONFIG_PATH": "${input:dbtools-dbtools_config_path}"
       }
     },
     "mysql-mcp": {
@@ -211,13 +211,13 @@
         "-i",
         "--rm",
         "-e",
-        "MYSQL_HOST=${INTEGRATIONS_MYSQL_MCP_HOST}",
+        "MYSQL_HOST=${MYSQL_MCP_HOST}",
         "-e",
-        "MYSQL_USER=${INTEGRATIONS_MYSQL_MCP_USER}",
+        "MYSQL_USER=${MYSQL_MCP_USER}",
         "-e",
-        "MYSQL_PASS=${INTEGRATIONS_MYSQL_MCP_PASS}",
+        "MYSQL_PASS=${MYSQL_MCP_PASS}",
         "-e",
-        "MYSQL_DB=${INTEGRATIONS_MYSQL_MCP_DB}",
+        "MYSQL_DB=${MYSQL_MCP_DB}",
         "-e",
         "ALLOW_INSERT_OPERATION=false",
         "-e",
@@ -227,10 +227,10 @@
         "indie-marketplace-mysql-mcp:local"
       ],
       "env": {
-        "INTEGRATIONS_MYSQL_MCP_HOST": "${input:mysql-mcp-integrations_mysql_mcp_host}",
-        "INTEGRATIONS_MYSQL_MCP_USER": "${input:mysql-mcp-integrations_mysql_mcp_user}",
-        "INTEGRATIONS_MYSQL_MCP_PASS": "${input:mysql-mcp-integrations_mysql_mcp_pass}",
-        "INTEGRATIONS_MYSQL_MCP_DB": "${input:mysql-mcp-integrations_mysql_mcp_db}"
+        "MYSQL_MCP_HOST": "${input:mysql-mcp-mysql_mcp_host}",
+        "MYSQL_MCP_USER": "${input:mysql-mcp-mysql_mcp_user}",
+        "MYSQL_MCP_PASS": "${input:mysql-mcp-mysql_mcp_pass}",
+        "MYSQL_MCP_DB": "${input:mysql-mcp-mysql_mcp_db}"
       }
     },
     "mssql-mcp": {
@@ -241,20 +241,20 @@
         "-i",
         "--rm",
         "-e",
-        "MSSQL_HOST=${INTEGRATIONS_MSSQL_MCP_HOST}",
+        "MSSQL_HOST=${MSSQL_MCP_HOST}",
         "-e",
-        "MSSQL_DATABASE=${INTEGRATIONS_MSSQL_MCP_DATABASE}",
+        "MSSQL_DATABASE=${MSSQL_MCP_DATABASE}",
         "-e",
-        "MSSQL_USER=${INTEGRATIONS_MSSQL_MCP_USER}",
+        "MSSQL_USER=${MSSQL_MCP_USER}",
         "-e",
-        "MSSQL_PASSWORD=${INTEGRATIONS_MSSQL_MCP_PASSWORD}",
+        "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
         "indie-marketplace-mssql-mcp:local"
       ],
       "env": {
-        "INTEGRATIONS_MSSQL_MCP_HOST": "${input:mssql-mcp-integrations_mssql_mcp_host}",
-        "INTEGRATIONS_MSSQL_MCP_DATABASE": "${input:mssql-mcp-integrations_mssql_mcp_database}",
-        "INTEGRATIONS_MSSQL_MCP_USER": "${input:mssql-mcp-integrations_mssql_mcp_user}",
-        "INTEGRATIONS_MSSQL_MCP_PASSWORD": "${input:mssql-mcp-integrations_mssql_mcp_password}"
+        "MSSQL_MCP_HOST": "${input:mssql-mcp-mssql_mcp_host}",
+        "MSSQL_MCP_DATABASE": "${input:mssql-mcp-mssql_mcp_database}",
+        "MSSQL_MCP_USER": "${input:mssql-mcp-mssql_mcp_user}",
+        "MSSQL_MCP_PASSWORD": "${input:mssql-mcp-mssql_mcp_password}"
       }
     },
     "azcloud": {
@@ -273,23 +273,23 @@
       "args": [
         "-y",
         "@azure-devops/mcp",
-        "${INTEGRATIONS_AZDEVOPS_ORG}",
+        "${AZDEVOPS_ORG}",
         "--authentication",
         "azcli"
       ],
       "env": {
-        "INTEGRATIONS_AZDEVOPS_ORG": "${input:azdevops-integrations_azdevops_org}"
+        "AZDEVOPS_ORG": "${input:azdevops-azdevops_org}"
       }
     },
     "azaks": {
       "type": "stdio",
-      "command": "${INTEGRATIONS_AZAKS_BIN}",
+      "command": "${AZAKS_BIN}",
       "args": [
         "--transport",
         "stdio"
       ],
       "env": {
-        "INTEGRATIONS_AZAKS_BIN": "${input:azaks-integrations_azaks_bin}"
+        "AZAKS_BIN": "${input:azaks-azaks_bin}"
       }
     },
     "azkusto": {
@@ -298,21 +298,21 @@
       "args": [
         "KUSTO_AUTH_METHOD=azure-identity",
         "KUSTO_ALLOW_WRITE_OPERATIONS=false",
-        "KUSTO_CLUSTER_URL=${INTEGRATIONS_AZKUSTO_CLUSTER_URL}",
-        "KUSTO_DEFAULT_DATABASE=${INTEGRATIONS_AZKUSTO_DATABASE}",
-        "AZURE_TENANT_ID=${INTEGRATIONS_AZKUSTO_TENANT_ID}",
-        "AZURE_CLIENT_ID=${INTEGRATIONS_AZKUSTO_CLIENT_ID}",
-        "AZURE_CLIENT_SECRET=${INTEGRATIONS_AZKUSTO_CLIENT_SECRET}",
+        "KUSTO_CLUSTER_URL=${AZKUSTO_CLUSTER_URL}",
+        "KUSTO_DEFAULT_DATABASE=${AZKUSTO_DATABASE}",
+        "AZURE_TENANT_ID=${AZKUSTO_TENANT_ID}",
+        "AZURE_CLIENT_ID=${AZKUSTO_CLIENT_ID}",
+        "AZURE_CLIENT_SECRET=${AZKUSTO_CLIENT_SECRET}",
         "npx",
         "-y",
         "kusto-mcp"
       ],
       "env": {
-        "INTEGRATIONS_AZKUSTO_CLUSTER_URL": "${input:azkusto-integrations_azkusto_cluster_url}",
-        "INTEGRATIONS_AZKUSTO_DATABASE": "${input:azkusto-integrations_azkusto_database}",
-        "INTEGRATIONS_AZKUSTO_TENANT_ID": "${input:azkusto-integrations_azkusto_tenant_id}",
-        "INTEGRATIONS_AZKUSTO_CLIENT_ID": "${input:azkusto-integrations_azkusto_client_id}",
-        "INTEGRATIONS_AZKUSTO_CLIENT_SECRET": "${input:azkusto-integrations_azkusto_client_secret}"
+        "AZKUSTO_CLUSTER_URL": "${input:azkusto-azkusto_cluster_url}",
+        "AZKUSTO_DATABASE": "${input:azkusto-azkusto_database}",
+        "AZKUSTO_TENANT_ID": "${input:azkusto-azkusto_tenant_id}",
+        "AZKUSTO_CLIENT_ID": "${input:azkusto-azkusto_client_id}",
+        "AZKUSTO_CLIENT_SECRET": "${input:azkusto-azkusto_client_secret}"
       }
     },
     "playwright": {

@@ -14,8 +14,8 @@ visible reason.
 
 Some plugins also drive a plain CLI tool directly from a skill, with no MCP
 server behind it at all — bundles.yaml's `deps:` block is how those get
-declared (see `research`'s `notebooklm-mcp-cli`), so they show up in this same
-report instead of staying invisible to it.
+declared (see `integrations`' `gh`/`yt-dlp`/`firecrawl` entries), so they
+show up in this same report instead of staying invisible to it.
 
 This skill answers: *which runtimes and CLI tools do my installed plugins
 actually need, and do I have them?*
