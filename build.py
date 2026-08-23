@@ -25,6 +25,12 @@ How it works:
   plugin `deps:`    → CLI tools a skill drives with no MCP server and no
                       env var either — validates the shape and writes them
                       verbatim to deps.json for the toolchain-doctor skill.
+  `mcp:`/`skills:`/`deps:` entries → each may also carry `group`, `description`,
+                      and (on `skills:`/`deps:`) their own `env:` map, the same
+                      shape/prefix rule as an `mcp:` entry's `env:`.
+  plugin `catalog: true` → writes catalog.json: one {name, type, group,
+                      description, env} object per mcp:/skills:/deps: entry,
+                      for a config panel to render — env lists names only.
 """
 
 import argparse
@@ -333,9 +339,9 @@ def env_prefix(plugin_name: str) -> str:
 
 def validate_env_names(plugin: dict) -> None:
     """
-    Reject any env var a plugin declares — under an `mcp:` entry or in its
-    top-level `env:` block — that doesn't carry that plugin's own prefix
-    (`python` → PYTHON_, `web-search` → WEB_SEARCH_).
+    Reject any env var a plugin declares — under an `mcp:`, `skills:`, or
+    `deps:` entry, or in its top-level `env:` block — that doesn't carry that
+    plugin's own prefix (`python` → PYTHON_, `web-search` → WEB_SEARCH_).
 
     Every declared var ultimately resolves against Claude Code's single
     process environment, so a bare name like API_KEY declared by two plugins
@@ -347,6 +353,14 @@ def validate_env_names(plugin: dict) -> None:
     declared = [
         (f"MCP server '{entry['name']}'", entry.get("env") or {})
         for entry in plugin.get("mcp") or []
+    ]
+    declared += [
+        (f"skill '{entry['name']}'", entry.get("env") or {})
+        for entry in plugin.get("skills") or []
+    ]
+    declared += [
+        (f"dep '{entry.get('label') or entry['command']}'", entry.get("env") or {})
+        for entry in plugin.get("deps") or []
     ]
     declared.append(("the plugin's own `env:` block", plugin.get("env") or {}))
 
@@ -428,9 +442,9 @@ def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
 def write_env_example(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's .env.example from every env var name it declares —
-    one group per `mcp:` entry that needs vars, plus one for the plugin's
-    top-level `env:` block (credentials for CLI tools its skills drive, which
-    have no server to hang off and so appear in no other generated file).
+    one group per `mcp:`/`skills:`/`deps:` entry that needs vars, plus one
+    for the plugin's top-level `env:` block (credentials for a CLI tool with
+    no entry of its own to carry them).
 
     Names are emitted verbatim as declared in bundles.yaml, with empty values —
     this is a template, never a secret store. Real values live in a hand-kept
@@ -440,6 +454,16 @@ def write_env_example(plugin: dict, plugin_dir: Path) -> None:
     groups = [
         (entry["name"], entry["env"])
         for entry in plugin.get("mcp") or []
+        if entry.get("env")
+    ]
+    groups += [
+        (entry["name"], entry["env"])
+        for entry in plugin.get("skills") or []
+        if entry.get("env")
+    ]
+    groups += [
+        (entry.get("label") or entry["command"], entry["env"])
+        for entry in plugin.get("deps") or []
         if entry.get("env")
     ]
     if plugin.get("env"):
@@ -513,6 +537,51 @@ def write_vscode_mcp_json(plugin: dict, plugin_dir: Path) -> None:
     ok("vscode-mcp.json")
 
 
+def write_catalog_json(plugin: dict, plugin_dir: Path) -> None:
+    """
+    Generate a plugin's catalog.json — one entry per `mcp:`/`skills:`/`deps:`
+    item, carrying the metadata a config panel needs to render an opt-in
+    list: name, type, group, description, and which env var names it needs
+    (names only, never values). Only written for a plugin declaring
+    `catalog: true` in bundles.yaml.
+    """
+    catalog = [
+        {
+            "name": entry["name"],
+            "type": "mcp",
+            "group": entry.get("group", ""),
+            "description": entry.get("description", ""),
+            "env": list(entry.get("env") or {}),
+        }
+        for entry in plugin.get("mcp") or []
+    ]
+    catalog += [
+        {
+            "name": entry["name"],
+            "type": "skill",
+            "group": entry.get("group", ""),
+            "description": entry.get("description", ""),
+            "env": list(entry.get("env") or {}),
+        }
+        for entry in plugin.get("skills") or []
+    ]
+    catalog += [
+        {
+            "name": entry.get("label") or entry["command"],
+            "type": "cli",
+            "group": entry.get("group", ""),
+            "description": entry.get("description", ""),
+            "env": list(entry.get("env") or {}),
+        }
+        for entry in plugin.get("deps") or []
+    ]
+
+    (plugin_dir / ".claude-plugin" / "catalog.json").write_text(
+        json.dumps(catalog, indent=2) + "\n", encoding="utf-8"
+    )
+    ok("catalog.json")
+
+
 # ---------------------------------------------------------------------------
 # Plugin builder
 # ---------------------------------------------------------------------------
@@ -559,7 +628,13 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     if fetch_only:
         return
 
-    if plugin.get("mcp") or plugin.get("env"):
+    has_credentials = (
+        plugin.get("mcp")
+        or plugin.get("env")
+        or any(s.get("env") for s in plugin.get("skills") or [])
+        or any(d.get("env") for d in plugin.get("deps") or [])
+    )
+    if has_credentials:
         validate_env_names(plugin)
         write_env_example(plugin, plugin_dir)
 
@@ -570,6 +645,9 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     if plugin.get("deps"):
         validate_deps(plugin)
         write_deps_json(plugin, plugin_dir)
+
+    if plugin.get("catalog"):
+        write_catalog_json(plugin, plugin_dir)
 
     plugin_json = {
         "name": name,
