@@ -43,13 +43,9 @@
 #               hyphens turned into underscores, followed by an underscore:
 #               plugin `python` → PYTHON_API_KEY, plugin `web-search` →
 #               WEB_SEARCH_API_KEY. build.py rejects the build outright if a
-#               declared name is missing its prefix. This is not cosmetic:
-#               every var, whichever file it came from, ends up in Claude
-#               Code's single process environment, so two plugins both
-#               declaring a bare API_KEY would silently clobber each other.
-#               The prefix keeps each plugin in its own namespace; essentials'
-#               load-env.sh is the runtime backstop for anything that slips
-#               through (e.g. a name typed straight into a .env).
+#               declared name is missing its prefix — kept for readability,
+#               so a var's owning plugin is obvious at a glance wherever it
+#               shows up.
 #
 # plugin.env (optional, top-level sibling of `skills:`, map):
 #   Env var names the plugin needs that have no MCP server behind them — the
@@ -57,8 +53,8 @@
 #   mcp entry's `env` (names only, values left null) and the same prefix rule,
 #   enforced identically. The difference is where they land: these names reach
 #   .env.example and nothing else. Nothing here is written to .mcp.json or
-#   vscode-mcp.json, because there is no server to hand them to — the CLI picks
-#   them up from the shell, which is what load-env.sh below populates.
+#   vscode-mcp.json, because there is no server to hand them to — the CLI
+#   picks them up from the shell itself.
 #
 # plugin.deps (optional, top-level sibling of `skills:`, list):
 #   CLI tools a plugin's skills invoke directly that have no MCP server behind
@@ -83,10 +79,7 @@
 #   .env         — the user's real values, hand-maintained by copying
 #                  .env.example and filling it in. Never committed (.gitignore
 #                  excludes .env everywhere) and never read or written by
-#                  build.py. plugins/essentials/scripts/load-env.sh sources
-#                  every installed plugin's .env and refuses to continue if
-#                  two of them declare the same bare variable name — the
-#                  runtime backstop for the prefix rule above.
+#                  build.py.
 #
 # To add a skill:          add an entry under the plugin's skills list, run build.py
 # To add a local plugin:   add a new block under plugins (no source:), run build.py
