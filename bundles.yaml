@@ -260,80 +260,27 @@ plugins:
         path: "skills/productivity/teach"
 
   # ---------------------------------------------------------------------------
-  # web-search — reaching the live web: Firecrawl for scraping and crawling,
-  # last30days for what people have actually been saying lately. (exa moved
-  # to `integrations` — see that plugin's mcp: block.)
-  #
-  # Firecrawl ships an MCP server too; this deliberately takes its CLI plus
-  # the CLI's own skill instead — the skill teaches the flags and the CLI
-  # returns markdown sized for a context window, where the MCP server would
-  # sit in every session's tool list to do the same job. That choice is why
-  # this plugin needs the top-level `env:` block: the CLI's key has no server
-  # to hang off, so it reaches .env.example and nothing else.
-  #
-  # The CLI itself is a global npm tool, installed by hand — nothing in this
-  # repo fetches it:  npm install -g firecrawl-cli
-  #
-  # last30days' own SKILL.md also declares 13 optional env vars (OpenAI, XAI,
-  # OpenRouter, Perplexity, Parallel, Brave, Apify, plus several social-
-  # platform auth tokens) beyond its primaryEnv below — left undeclared here
-  # since most integrations won't use most of them; add one to `env:` above
-  # if a skill actually needs it.
+  # web-search — emptied by the integrations migration (exa, firecrawl,
+  # last30days, and yt-dlp all moved to `integrations`). Deleted outright in
+  # the next ticket — see docs/spec-integrations-bundle.md.
   # ---------------------------------------------------------------------------
   - name: web-search
     description: Live web research — Firecrawl CLI scraping and recent public discussion
     version: "0.1.0"
-    env:
-      WEB_SEARCH_FIRECRAWL_API_KEY:
-      WEB_SEARCH_SCRAPECREATORS_API_KEY:
-    skills:
-      # The Firecrawl CLI's own umbrella skill — SKILL.md plus rules/.
-      - name: firecrawl
-        source: community
-        repo: "https://github.com/firecrawl/cli"
-        path: "skills/firecrawl"
-
-      - name: last30days
-        source: community
-        repo: "https://github.com/mvanhorn/last30days-skill"
-        path: "skills/last30days"
-
-      # Lean, purpose-built YouTube search/lookup primitive via the yt-dlp
-      # CLI (query search, single-video lookup, optional transcript fetch).
-      # Deliberately drops the tracked-channel reference-file lookup and
-      # thumbnail caching a prior digest-pipeline version had — those are
-      # specific to that pipeline, not to general web research.
-      - name: yt-dlp
-        source: local
 
   # ---------------------------------------------------------------------------
-  # browser — Playwright CLI codegen/general browser actions plus self-healing
-  # E2E test authoring (Planner/Generator/Healer agents), CLI + Skills only.
-  # No MCP server here by design — see browser-mcp below. A plugin's .mcp.json
-  # servers all activate together on install, so "opt-in Playwright MCP" has
-  # to be its own plugin rather than a flag on this one.
+  # browser — emptied by the integrations migration (playwright-cli and
+  # playwright-test-agents both moved to `integrations`). Deleted outright in
+  # the next ticket — see docs/spec-integrations-bundle.md.
   # ---------------------------------------------------------------------------
   - name: browser
     description: Browser automation and E2E test authoring — Playwright CLI codegen plus self-healing Planner/Generator/Healer test agents. CLI + Skills only, no MCP server.
     version: "0.1.0"
-    skills:
-      # Upstream's own CLI + Skill: general browser actions (open/click/fill/
-      # snapshot/...) and its own CLI-driven plan/generate/heal workflow.
-      - name: playwright-cli
-        source: community
-        repo: "https://github.com/microsoft/playwright-cli"
-        path: "skills/playwright-cli"
-
-      # Hand-authored: teaches `npx playwright init-agents --loop=claude` and
-      # the resulting Planner/Generator/Healer subagents — see
-      # skills/playwright-test-agents/ for the source of truth.
-      - name: playwright-test-agents
-        source: local
 
   # ---------------------------------------------------------------------------
   # browser-mcp — emptied by the integrations migration (its playwright MCP
-  # server moved to `integrations`). Deleted outright once `browser` is also
-  # emptied by the CLI migration — see docs/spec-integrations-bundle.md.
+  # server moved to `integrations`). Deleted outright in the next ticket —
+  # see docs/spec-integrations-bundle.md.
   # ---------------------------------------------------------------------------
   - name: browser-mcp
     description: Playwright MCP server (opt-in) — live exploratory browser and DOM control for whoever specifically needs it
@@ -447,11 +394,6 @@ plugins:
         repo: "https://github.com/jeffallan/claude-skills"
         path: "skills/kubernetes-specialist"
 
-      - name: azure-devops-cli
-        source: community
-        repo: "https://github.com/github/awesome-copilot"
-        path: "skills/azure-devops-cli"
-
       - name: ci-cd-and-automation
         source: community
         repo: "https://github.com/addyosmani/agent-skills"
@@ -462,10 +404,10 @@ plugins:
   # its own skill), and every skill needing an externally-sourced credential,
   # in one place. Claude Code installs a plugin whole, so putting these
   # together lets a config panel (not plugin install/uninstall) be the unit
-  # of opt-in/opt-out per integration. Populated by items 2-3 of the
-  # integrations-bundle plan (see docs/spec-integrations-bundle.md); this
-  # entry is the empty scaffold, `catalog: true` from the start so
-  # catalog.json generation can be verified before any entry exists.
+  # of opt-in/opt-out per integration — see docs/spec-integrations-bundle.md.
+  # `gh` has no skill of its own to move with it, so it lands as a bare
+  # `deps:` entry (install-tracked, catalog-visible) rather than a
+  # hand-authored skill.
   # ---------------------------------------------------------------------------
   - name: integrations
     description: Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place
@@ -816,8 +758,80 @@ plugins:
         args: ["-y", "@playwright/mcp@latest"]
         group: browser
         description: Live exploratory browser and DOM control via Playwright's MCP server.
-    skills: []
-    deps: []
+    skills:
+      # The Firecrawl CLI's own umbrella skill — SKILL.md plus rules/.
+      # Firecrawl ships an MCP server too; this deliberately takes its CLI
+      # plus the CLI's own skill instead — the skill teaches the flags and
+      # the CLI returns markdown sized for a context window, where the MCP
+      # server would sit in every session's tool list to do the same job.
+      # The CLI itself is a global npm tool, installed by hand — nothing in
+      # this repo fetches it: npm install -g firecrawl-cli
+      - name: firecrawl
+        source: community
+        repo: "https://github.com/firecrawl/cli"
+        path: "skills/firecrawl"
+        env:
+          INTEGRATIONS_FIRECRAWL_API_KEY:
+        group: web
+        description: Firecrawl CLI for scraping and crawling, taught by its own skill.
+
+      # last30days' own SKILL.md also declares 13 optional env vars (OpenAI,
+      # XAI, OpenRouter, Perplexity, Parallel, Brave, Apify, plus several
+      # social-platform auth tokens) beyond its primary env below — left
+      # undeclared here since most integrations won't use most of them; add
+      # one to this entry's env: if a skill actually needs it.
+      - name: last30days
+        source: community
+        repo: "https://github.com/mvanhorn/last30days-skill"
+        path: "skills/last30days"
+        env:
+          INTEGRATIONS_LAST30DAYS_SCRAPECREATORS_API_KEY:
+        group: web
+        description: Recent public discussion lookup across social platforms and search APIs.
+
+      # Lean, purpose-built YouTube search/lookup primitive via the yt-dlp
+      # CLI (query search, single-video lookup, optional transcript fetch).
+      # Deliberately drops the tracked-channel reference-file lookup and
+      # thumbnail caching a prior digest-pipeline version had — those are
+      # specific to that pipeline, not to general web research.
+      - name: yt-dlp
+        source: local
+        group: web
+        description: YouTube search/lookup CLI primitive — query search, single-video lookup, optional transcript fetch.
+
+      # Upstream's own CLI + Skill: general browser actions (open/click/fill/
+      # snapshot/...) and its own CLI-driven plan/generate/heal workflow.
+      - name: playwright-cli
+        source: community
+        repo: "https://github.com/microsoft/playwright-cli"
+        path: "skills/playwright-cli"
+        group: browser
+        description: Playwright's own CLI + skill for general browser actions (open/click/fill/snapshot/...).
+
+      # Hand-authored: teaches `npx playwright init-agents --loop=claude` and
+      # the resulting Planner/Generator/Healer subagents — see
+      # skills/playwright-test-agents/ for the source of truth.
+      - name: playwright-test-agents
+        source: local
+        group: browser
+        description: Self-healing E2E test authoring via Planner/Generator/Healer subagents.
+
+      - name: azure-devops-cli
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/azure-devops-cli"
+        group: azure
+        description: Azure DevOps CLI skill (`az devops`) for boards/repos/pipelines from the command line.
+    deps:
+      # No existing skill teaches gh, unlike every other CLI entry above —
+      # it lands as a bare catalog entry instead of a hand-authored skill.
+      # Its own auth (`gh auth login`) stays a manual, un-automated step.
+      - command: gh
+        label: gh (GitHub CLI)
+        install: brew install gh
+        manual: "https://github.com/cli/cli#installation"
+        group: vcs
+        description: GitHub CLI for issues, PRs, and repo operations. Run `gh auth login` yourself after install.
 
   # ---------------------------------------------------------------------------
   # gitctrl — git workflow and code review hygiene skills.

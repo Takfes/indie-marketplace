@@ -119,5 +119,58 @@
     "group": "browser",
     "description": "Live exploratory browser and DOM control via Playwright's MCP server.",
     "env": []
+  },
+  {
+    "name": "firecrawl",
+    "type": "skill",
+    "group": "web",
+    "description": "Firecrawl CLI for scraping and crawling, taught by its own skill.",
+    "env": [
+      "INTEGRATIONS_FIRECRAWL_API_KEY"
+    ]
+  },
+  {
+    "name": "last30days",
+    "type": "skill",
+    "group": "web",
+    "description": "Recent public discussion lookup across social platforms and search APIs.",
+    "env": [
+      "INTEGRATIONS_LAST30DAYS_SCRAPECREATORS_API_KEY"
+    ]
+  },
+  {
+    "name": "yt-dlp",
+    "type": "skill",
+    "group": "web",
+    "description": "YouTube search/lookup CLI primitive \u2014 query search, single-video lookup, optional transcript fetch.",
+    "env": []
+  },
+  {
+    "name": "playwright-cli",
+    "type": "skill",
+    "group": "browser",
+    "description": "Playwright's own CLI + skill for general browser actions (open/click/fill/snapshot/...).",
+    "env": []
+  },
+  {
+    "name": "playwright-test-agents",
+    "type": "skill",
+    "group": "browser",
+    "description": "Self-healing E2E test authoring via Planner/Generator/Healer subagents.",
+    "env": []
+  },
+  {
+    "name": "azure-devops-cli",
+    "type": "skill",
+    "group": "azure",
+    "description": "Azure DevOps CLI skill (`az devops`) for boards/repos/pipelines from the command line.",
+    "env": []
+  },
+  {
+    "name": "gh (GitHub CLI)",
+    "type": "cli",
+    "group": "vcs",
+    "description": "GitHub CLI for issues, PRs, and repo operations. Run `gh auth login` yourself after install.",
+    "env": []
   }
 ]
