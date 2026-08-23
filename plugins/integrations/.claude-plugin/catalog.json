@@ -117,17 +117,12 @@
     "env": []
   },
   {
-    "name": "playwright-test-agents",
-    "type": "skill",
-    "env": []
-  },
-  {
     "name": "azure-devops-cli",
     "type": "skill",
     "env": []
   },
   {
-    "name": "gh (GitHub CLI)",
+    "name": "gh",
     "type": "cli",
     "env": []
   },
@@ -147,7 +142,7 @@
     "env": []
   },
   {
-    "name": "az (Azure CLI)",
+    "name": "az",
     "type": "cli",
     "env": []
   }

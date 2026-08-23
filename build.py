@@ -24,7 +24,7 @@ How it works:
                       tool a skill drives). Reaches .env.example only.
   plugin `deps:`    → CLI tools a skill drives with no MCP server and no
                       env var either — validates the shape and writes them
-                      verbatim to deps.json for the toolchain-doctor skill.
+                      verbatim to deps.json.
   `skills:`/`deps:` entries → may also carry their own `env:` map, same
                       shape as an `mcp:` entry's `env:`.
   plugin `catalog: true` → writes catalog.json: one {name, type, env}
@@ -335,7 +335,7 @@ def validate_deps(plugin: dict) -> None:
     """
     Validate a plugin's `deps:` block — CLI tools its skills invoke directly
     that have no MCP server behind them. Every entry needs at least `command`,
-    the executable the toolchain-doctor skill looks for on PATH.
+    the executable to look for on PATH.
     """
     for entry in plugin.get("deps") or []:
         if not entry.get("command"):
@@ -347,13 +347,11 @@ def write_deps_json(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's deps.json from its `deps:` block in bundles.yaml.
 
-    Read directly off each installed plugin's own directory by the
-    toolchain-doctor skill, which is stdlib-only and has no YAML parser —
-    this is plain JSON so it can read the catalog without one, for plugins
-    from any marketplace, not just this one.
+    Plain JSON, not YAML, so it can be read without a YAML parser — for
+    plugins from any marketplace, not just this one.
     """
     deps = [
-        {k: v for k, v in entry.items() if k in ("command", "label", "install", "manual")}
+        {k: v for k, v in entry.items() if k in ("command", "install", "manual")}
         for entry in plugin["deps"]
     ]
     (plugin_dir / ".claude-plugin" / "deps.json").write_text(
@@ -416,7 +414,7 @@ def write_env_example(plugin: dict, plugin_dir: Path) -> None:
         if entry.get("env")
     ]
     groups += [
-        (entry.get("label") or entry["command"], entry["env"])
+        (entry["command"], entry["env"])
         for entry in plugin.get("deps") or []
         if entry.get("env")
     ]
@@ -508,7 +506,7 @@ def write_catalog_json(plugin: dict, plugin_dir: Path) -> None:
     ]
     catalog += [
         {
-            "name": entry.get("label") or entry["command"],
+            "name": entry["command"],
             "type": "cli",
             "env": list(entry.get("env") or {}),
         }

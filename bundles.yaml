@@ -44,14 +44,11 @@
 #   CLI tools a plugin's skills invoke directly, with no MCP server behind
 #   them. Each entry:
 #     command — the executable to look for on PATH (required)
-#     label   — human-readable name for the doctor's report (defaults to command)
 #     install — shell command that installs it, shown as a suggestion only —
 #               nothing here is ever run automatically
 #     manual  — install docs URL, shown when there's no scripted `install`
 #     env     — optional, same shape as an mcp: entry's `env:`
-#   build.py copies these verbatim into the plugin's deps.json; the
-#   toolchain-doctor skill (skills/toolchain-doctor) reads that file to
-#   report what's missing, the same way it reports missing runtimes.
+#   build.py copies these verbatim into the plugin's deps.json.
 #
 # plugin.catalog (optional, top-level sibling of `skills:`, bool):
 #   Set true to have build.py write catalog.json: one {name, type, env}
@@ -97,9 +94,6 @@ plugins:
         source: local
 
       - name: skill-downloader
-        source: local
-
-      - name: toolchain-doctor
         source: local
 
       # Community skills (git-cloned on make fetch / make fetch-build)
@@ -617,13 +611,6 @@ plugins:
         repo: "https://github.com/microsoft/playwright-cli"
         path: "skills/playwright-cli"
 
-      # Hand-authored: teaches `npx playwright init-agents --loop=claude`
-      # and the resulting Planner/Generator/Healer subagents — see
-      # skills/playwright-test-agents/ for the source of truth. Uses npx
-      # per-invocation, not a persistent global install.
-      - name: playwright-test-agents
-        source: local
-
       # See deps: below (az) for the CLI itself, plus
       # `az extension add --name azure-devops` (one-time, not tracked here).
       - name: azure-devops-cli
@@ -634,7 +621,6 @@ plugins:
       # gh has no skill of its own — a bare catalog entry instead of a
       # hand-authored one. `gh auth login` stays manual.
       - command: gh
-        label: gh (GitHub CLI)
         install: brew install gh
         manual: "https://github.com/cli/cli#installation"
 
@@ -653,7 +639,6 @@ plugins:
       # Shared by azcloud/azdevops/azaks above (their MCP servers reuse an
       # existing `az login` session) and azure-devops-cli's own skill.
       - command: az
-        label: az (Azure CLI)
         install: brew install azure-cli
         manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
 

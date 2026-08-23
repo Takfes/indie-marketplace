@@ -245,10 +245,9 @@ Consolidates every MCP server, every CLI that substitutes for one, and every ski
 | `last30days` | community | `SCRAPECREATORS_API_KEY` | Recent public discussion across social platforms |
 | `yt-dlp` | local | none | YouTube search/lookup CLI primitive |
 | `playwright-cli` | community | none | General browser actions via the Playwright CLI |
-| `playwright-test-agents` | local | none | Self-healing E2E test authoring (Planner/Generator/Healer) |
 | `azure-devops-cli` | community | none (`az login`) | Azure DevOps CLI — repos, pipelines, builds, PRs, work items |
 
-**CLI dependencies** (`deps:` — install-tracked by `skillcraft`'s `toolchain-doctor` skill):
+**CLI dependencies** (`deps:`):
 
 | CLI | Install |
 |---|---|
