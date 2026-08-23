@@ -1,9 +1,0 @@
-{
-  "name": "web-search",
-  "description": "Live web research \u2014 Firecrawl CLI scraping and recent public discussion",
-  "version": "0.1.0",
-  "author": {
-    "name": "Takis Fessas",
-    "url": "https://github.com/Takfes"
-  }
-}

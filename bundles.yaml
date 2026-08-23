@@ -260,33 +260,6 @@ plugins:
         path: "skills/productivity/teach"
 
   # ---------------------------------------------------------------------------
-  # web-search — emptied by the integrations migration (exa, firecrawl,
-  # last30days, and yt-dlp all moved to `integrations`). Deleted outright in
-  # the next ticket — see docs/spec-integrations-bundle.md.
-  # ---------------------------------------------------------------------------
-  - name: web-search
-    description: Live web research — Firecrawl CLI scraping and recent public discussion
-    version: "0.1.0"
-
-  # ---------------------------------------------------------------------------
-  # browser — emptied by the integrations migration (playwright-cli and
-  # playwright-test-agents both moved to `integrations`). Deleted outright in
-  # the next ticket — see docs/spec-integrations-bundle.md.
-  # ---------------------------------------------------------------------------
-  - name: browser
-    description: Browser automation and E2E test authoring — Playwright CLI codegen plus self-healing Planner/Generator/Healer test agents. CLI + Skills only, no MCP server.
-    version: "0.1.0"
-
-  # ---------------------------------------------------------------------------
-  # browser-mcp — emptied by the integrations migration (its playwright MCP
-  # server moved to `integrations`). Deleted outright in the next ticket —
-  # see docs/spec-integrations-bundle.md.
-  # ---------------------------------------------------------------------------
-  - name: browser-mcp
-    description: Playwright MCP server (opt-in) — live exploratory browser and DOM control for whoever specifically needs it
-    version: "0.1.0"
-
-  # ---------------------------------------------------------------------------
   # office — Anthropic's document-format skills for creating and editing
   # Office/PDF documents (docx, pdf, pptx, xlsx).
   # ---------------------------------------------------------------------------
