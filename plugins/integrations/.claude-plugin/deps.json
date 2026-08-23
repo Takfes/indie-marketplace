@@ -1,7 +1,6 @@
 [
   {
     "command": "gh",
-    "label": "gh (GitHub CLI)",
     "install": "brew install gh",
     "manual": "https://github.com/cli/cli#installation"
   },
@@ -22,7 +21,6 @@
   },
   {
     "command": "az",
-    "label": "az (Azure CLI)",
     "install": "brew install azure-cli",
     "manual": "https://learn.microsoft.com/cli/azure/install-azure-cli"
   }
