@@ -105,10 +105,10 @@ marketplace:
 
 plugins:
   # ---------------------------------------------------------------------------
-  # provision — AI toolkit meta-skills
+  # skillcraft — AI toolkit meta-skills
   # Skills for managing, creating, and distributing other skills and agents.
   # ---------------------------------------------------------------------------
-  - name: provision
+  - name: skillcraft
     description: AI toolkit provisioning and meta-skills
     version: "0.1.0"
     color: "#1a1a1a"

@@ -17,7 +17,7 @@ Add this repo as a marketplace, then install whichever plugins you want from it:
 
 ```
 /plugin marketplace add Takfes/indie-marketplace
-/plugin install provision@indie-marketplace
+/plugin install skillcraft@indie-marketplace
 ```
 
 Available plugins:
@@ -25,7 +25,7 @@ Available plugins:
 | Plugin | Install command |
 |---|---|
 | `essentials` | `/plugin install essentials@indie-marketplace` |
-| `provision` | `/plugin install provision@indie-marketplace` |
+| `skillcraft` | `/plugin install skillcraft@indie-marketplace` |
 | `python` | `/plugin install python@indie-marketplace` |
 | `steering` | `/plugin install steering@indie-marketplace` |
 | `mattpocock` | `/plugin install mattpocock@indie-marketplace` |
@@ -43,13 +43,13 @@ The `.claude-plugin/` manifests in this repo are also directly compatible with C
 **Codex CLI:**
 ```
 codex plugin marketplace add Takfes/indie-marketplace
-codex plugin add provision@indie-marketplace
+codex plugin add skillcraft@indie-marketplace
 ```
 
 **GitHub Copilot CLI:**
 ```
 copilot plugin marketplace add Takfes/indie-marketplace
-copilot plugin install provision@indie-marketplace
+copilot plugin install skillcraft@indie-marketplace
 ```
 
 <a id="whats-included"></a>
@@ -57,7 +57,7 @@ copilot plugin install provision@indie-marketplace
 ## 2. What's Included — Plugins and Their Skills
 
 - [essentials](#plugin-essentials) — always-on baseline: session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills
-- [provision](#plugin-provision) — meta-skills for managing, creating, and distributing skills and agents
+- [skillcraft](#plugin-skillcraft) — meta-skills for managing, creating, and distributing skills and agents
 - [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
 - [steering](#plugin-steering) — thinking, planning, and ideation skills
 - [mattpocock](#plugin-mattpocock) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
@@ -84,9 +84,9 @@ copilot plugin install provision@indie-marketplace
 
 </details>
 
-<a id="plugin-provision"></a>
+<a id="plugin-skillcraft"></a>
 <details>
-<summary><strong>provision</strong> — AI toolkit provisioning and meta-skills</summary>
+<summary><strong>skillcraft</strong> — AI toolkit provisioning and meta-skills</summary>
 
 | Skill | Source | Description |
 |---|---|---|
