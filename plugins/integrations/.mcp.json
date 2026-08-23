@@ -11,15 +11,15 @@
       "command": "env",
       "args": [
         "ZOTERO_LOCAL=true",
-        "ZOTERO_API_KEY=${INTEGRATIONS_ZOTERO_API_KEY}",
-        "ZOTERO_LIBRARY_ID=${INTEGRATIONS_ZOTERO_LIBRARY_ID}",
-        "ZOTERO_LIBRARY_TYPE=${INTEGRATIONS_ZOTERO_LIBRARY_TYPE}",
+        "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
+        "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
+        "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
         "zotero-mcp"
       ],
       "env": {
-        "INTEGRATIONS_ZOTERO_API_KEY": "${INTEGRATIONS_ZOTERO_API_KEY}",
-        "INTEGRATIONS_ZOTERO_LIBRARY_ID": "${INTEGRATIONS_ZOTERO_LIBRARY_ID}",
-        "INTEGRATIONS_ZOTERO_LIBRARY_TYPE": "${INTEGRATIONS_ZOTERO_LIBRARY_TYPE}"
+        "ZOTERO_API_KEY": "${ZOTERO_API_KEY}",
+        "ZOTERO_LIBRARY_ID": "${ZOTERO_LIBRARY_ID}",
+        "ZOTERO_LIBRARY_TYPE": "${ZOTERO_LIBRARY_TYPE}"
       }
     },
     "notebooklm": {
@@ -33,7 +33,7 @@
         "exa-mcp-server"
       ],
       "env": {
-        "INTEGRATIONS_EXA_API_KEY": "${INTEGRATIONS_EXA_API_KEY}"
+        "EXA_API_KEY": "${EXA_API_KEY}"
       }
     },
     "pgquery": {
@@ -43,13 +43,13 @@
         "-i",
         "--rm",
         "-e",
-        "DATABASE_URI=${INTEGRATIONS_PGQUERY_URI}",
+        "DATABASE_URI=${PGQUERY_URI}",
         "crystaldba/postgres-mcp",
         "--access-mode=restricted",
         "--transport=stdio"
       ],
       "env": {
-        "INTEGRATIONS_PGQUERY_URI": "${INTEGRATIONS_PGQUERY_URI}"
+        "PGQUERY_URI": "${PGQUERY_URI}"
       }
     },
     "dbtools": {
@@ -59,14 +59,14 @@
         "-i",
         "--rm",
         "-v",
-        "${INTEGRATIONS_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+        "${DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
         "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
         "--stdio",
         "--config",
         "/tools.yaml"
       ],
       "env": {
-        "INTEGRATIONS_DBTOOLS_CONFIG_PATH": "${INTEGRATIONS_DBTOOLS_CONFIG_PATH}"
+        "DBTOOLS_CONFIG_PATH": "${DBTOOLS_CONFIG_PATH}"
       }
     },
     "mysql-mcp": {
@@ -76,13 +76,13 @@
         "-i",
         "--rm",
         "-e",
-        "MYSQL_HOST=${INTEGRATIONS_MYSQL_MCP_HOST}",
+        "MYSQL_HOST=${MYSQL_MCP_HOST}",
         "-e",
-        "MYSQL_USER=${INTEGRATIONS_MYSQL_MCP_USER}",
+        "MYSQL_USER=${MYSQL_MCP_USER}",
         "-e",
-        "MYSQL_PASS=${INTEGRATIONS_MYSQL_MCP_PASS}",
+        "MYSQL_PASS=${MYSQL_MCP_PASS}",
         "-e",
-        "MYSQL_DB=${INTEGRATIONS_MYSQL_MCP_DB}",
+        "MYSQL_DB=${MYSQL_MCP_DB}",
         "-e",
         "ALLOW_INSERT_OPERATION=false",
         "-e",
@@ -92,10 +92,10 @@
         "indie-marketplace-mysql-mcp:local"
       ],
       "env": {
-        "INTEGRATIONS_MYSQL_MCP_HOST": "${INTEGRATIONS_MYSQL_MCP_HOST}",
-        "INTEGRATIONS_MYSQL_MCP_USER": "${INTEGRATIONS_MYSQL_MCP_USER}",
-        "INTEGRATIONS_MYSQL_MCP_PASS": "${INTEGRATIONS_MYSQL_MCP_PASS}",
-        "INTEGRATIONS_MYSQL_MCP_DB": "${INTEGRATIONS_MYSQL_MCP_DB}"
+        "MYSQL_MCP_HOST": "${MYSQL_MCP_HOST}",
+        "MYSQL_MCP_USER": "${MYSQL_MCP_USER}",
+        "MYSQL_MCP_PASS": "${MYSQL_MCP_PASS}",
+        "MYSQL_MCP_DB": "${MYSQL_MCP_DB}"
       }
     },
     "mssql-mcp": {
@@ -105,20 +105,20 @@
         "-i",
         "--rm",
         "-e",
-        "MSSQL_HOST=${INTEGRATIONS_MSSQL_MCP_HOST}",
+        "MSSQL_HOST=${MSSQL_MCP_HOST}",
         "-e",
-        "MSSQL_DATABASE=${INTEGRATIONS_MSSQL_MCP_DATABASE}",
+        "MSSQL_DATABASE=${MSSQL_MCP_DATABASE}",
         "-e",
-        "MSSQL_USER=${INTEGRATIONS_MSSQL_MCP_USER}",
+        "MSSQL_USER=${MSSQL_MCP_USER}",
         "-e",
-        "MSSQL_PASSWORD=${INTEGRATIONS_MSSQL_MCP_PASSWORD}",
+        "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
         "indie-marketplace-mssql-mcp:local"
       ],
       "env": {
-        "INTEGRATIONS_MSSQL_MCP_HOST": "${INTEGRATIONS_MSSQL_MCP_HOST}",
-        "INTEGRATIONS_MSSQL_MCP_DATABASE": "${INTEGRATIONS_MSSQL_MCP_DATABASE}",
-        "INTEGRATIONS_MSSQL_MCP_USER": "${INTEGRATIONS_MSSQL_MCP_USER}",
-        "INTEGRATIONS_MSSQL_MCP_PASSWORD": "${INTEGRATIONS_MSSQL_MCP_PASSWORD}"
+        "MSSQL_MCP_HOST": "${MSSQL_MCP_HOST}",
+        "MSSQL_MCP_DATABASE": "${MSSQL_MCP_DATABASE}",
+        "MSSQL_MCP_USER": "${MSSQL_MCP_USER}",
+        "MSSQL_MCP_PASSWORD": "${MSSQL_MCP_PASSWORD}"
       }
     },
     "azcloud": {
@@ -135,22 +135,22 @@
       "args": [
         "-y",
         "@azure-devops/mcp",
-        "${INTEGRATIONS_AZDEVOPS_ORG}",
+        "${AZDEVOPS_ORG}",
         "--authentication",
         "azcli"
       ],
       "env": {
-        "INTEGRATIONS_AZDEVOPS_ORG": "${INTEGRATIONS_AZDEVOPS_ORG}"
+        "AZDEVOPS_ORG": "${AZDEVOPS_ORG}"
       }
     },
     "azaks": {
-      "command": "${INTEGRATIONS_AZAKS_BIN}",
+      "command": "${AZAKS_BIN}",
       "args": [
         "--transport",
         "stdio"
       ],
       "env": {
-        "INTEGRATIONS_AZAKS_BIN": "${INTEGRATIONS_AZAKS_BIN}"
+        "AZAKS_BIN": "${AZAKS_BIN}"
       }
     },
     "azkusto": {
@@ -158,21 +158,21 @@
       "args": [
         "KUSTO_AUTH_METHOD=azure-identity",
         "KUSTO_ALLOW_WRITE_OPERATIONS=false",
-        "KUSTO_CLUSTER_URL=${INTEGRATIONS_AZKUSTO_CLUSTER_URL}",
-        "KUSTO_DEFAULT_DATABASE=${INTEGRATIONS_AZKUSTO_DATABASE}",
-        "AZURE_TENANT_ID=${INTEGRATIONS_AZKUSTO_TENANT_ID}",
-        "AZURE_CLIENT_ID=${INTEGRATIONS_AZKUSTO_CLIENT_ID}",
-        "AZURE_CLIENT_SECRET=${INTEGRATIONS_AZKUSTO_CLIENT_SECRET}",
+        "KUSTO_CLUSTER_URL=${AZKUSTO_CLUSTER_URL}",
+        "KUSTO_DEFAULT_DATABASE=${AZKUSTO_DATABASE}",
+        "AZURE_TENANT_ID=${AZKUSTO_TENANT_ID}",
+        "AZURE_CLIENT_ID=${AZKUSTO_CLIENT_ID}",
+        "AZURE_CLIENT_SECRET=${AZKUSTO_CLIENT_SECRET}",
         "npx",
         "-y",
         "kusto-mcp"
       ],
       "env": {
-        "INTEGRATIONS_AZKUSTO_CLUSTER_URL": "${INTEGRATIONS_AZKUSTO_CLUSTER_URL}",
-        "INTEGRATIONS_AZKUSTO_DATABASE": "${INTEGRATIONS_AZKUSTO_DATABASE}",
-        "INTEGRATIONS_AZKUSTO_TENANT_ID": "${INTEGRATIONS_AZKUSTO_TENANT_ID}",
-        "INTEGRATIONS_AZKUSTO_CLIENT_ID": "${INTEGRATIONS_AZKUSTO_CLIENT_ID}",
-        "INTEGRATIONS_AZKUSTO_CLIENT_SECRET": "${INTEGRATIONS_AZKUSTO_CLIENT_SECRET}"
+        "AZKUSTO_CLUSTER_URL": "${AZKUSTO_CLUSTER_URL}",
+        "AZKUSTO_DATABASE": "${AZKUSTO_DATABASE}",
+        "AZKUSTO_TENANT_ID": "${AZKUSTO_TENANT_ID}",
+        "AZKUSTO_CLIENT_ID": "${AZKUSTO_CLIENT_ID}",
+        "AZKUSTO_CLIENT_SECRET": "${AZKUSTO_CLIENT_SECRET}"
       }
     },
     "playwright": {

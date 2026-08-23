@@ -2,175 +2,153 @@
   {
     "name": "context7",
     "type": "mcp",
-    "group": "python",
-    "description": "Up-to-date, version-specific library documentation lookup, keyless on the free tier.",
     "env": []
   },
   {
     "name": "zotero",
     "type": "mcp",
-    "group": "research",
-    "description": "Zotero library search and reference lookup; defaults to local desktop-app mode needing zero credentials.",
     "env": [
-      "INTEGRATIONS_ZOTERO_API_KEY",
-      "INTEGRATIONS_ZOTERO_LIBRARY_ID",
-      "INTEGRATIONS_ZOTERO_LIBRARY_TYPE"
+      "ZOTERO_API_KEY",
+      "ZOTERO_LIBRARY_ID",
+      "ZOTERO_LIBRARY_TYPE"
     ]
   },
   {
     "name": "notebooklm",
     "type": "mcp",
-    "group": "research",
-    "description": "Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM); auth via a one-time `nlm login`.",
     "env": []
   },
   {
     "name": "exa",
     "type": "mcp",
-    "group": "web",
-    "description": "Semantic web search and page fetch via Exa's MCP server.",
     "env": [
-      "INTEGRATIONS_EXA_API_KEY"
+      "EXA_API_KEY"
     ]
   },
   {
     "name": "pgquery",
     "type": "mcp",
-    "group": "database",
-    "description": "Dedicated Postgres MCP server with query-plan analysis, index tuning, and a read-only validator.",
     "env": [
-      "INTEGRATIONS_PGQUERY_URI"
+      "PGQUERY_URI"
     ]
   },
   {
     "name": "dbtools",
     "type": "mcp",
-    "group": "database",
-    "description": "Multi-engine SQL server (Postgres/MySQL/MSSQL/BigQuery/...) driven by a user-supplied tools.yaml.",
     "env": [
-      "INTEGRATIONS_DBTOOLS_CONFIG_PATH"
+      "DBTOOLS_CONFIG_PATH"
     ]
   },
   {
     "name": "mysql-mcp",
     "type": "mcp",
-    "group": "database",
-    "description": "Dedicated MySQL MCP server with an app-level write gate independent of the DB grant.",
     "env": [
-      "INTEGRATIONS_MYSQL_MCP_HOST",
-      "INTEGRATIONS_MYSQL_MCP_USER",
-      "INTEGRATIONS_MYSQL_MCP_PASS",
-      "INTEGRATIONS_MYSQL_MCP_DB"
+      "MYSQL_MCP_HOST",
+      "MYSQL_MCP_USER",
+      "MYSQL_MCP_PASS",
+      "MYSQL_MCP_DB"
     ]
   },
   {
     "name": "mssql-mcp",
     "type": "mcp",
-    "group": "database",
-    "description": "Dedicated MSSQL MCP server; query_sql regex-gates to read-only statements, execute_sql stays unrestricted.",
     "env": [
-      "INTEGRATIONS_MSSQL_MCP_HOST",
-      "INTEGRATIONS_MSSQL_MCP_DATABASE",
-      "INTEGRATIONS_MSSQL_MCP_USER",
-      "INTEGRATIONS_MSSQL_MCP_PASSWORD"
+      "MSSQL_MCP_HOST",
+      "MSSQL_MCP_DATABASE",
+      "MSSQL_MCP_USER",
+      "MSSQL_MCP_PASSWORD"
     ]
   },
   {
     "name": "azcloud",
     "type": "mcp",
-    "group": "azure",
-    "description": "Official Azure MCP server covering 40+ Azure services, authenticated via an existing `az login` session.",
     "env": []
   },
   {
     "name": "azdevops",
     "type": "mcp",
-    "group": "azure",
-    "description": "Official Azure DevOps MCP server for the given organization.",
     "env": [
-      "INTEGRATIONS_AZDEVOPS_ORG"
+      "AZDEVOPS_ORG"
     ]
   },
   {
     "name": "azaks",
     "type": "mcp",
-    "group": "azure",
-    "description": "Official AKS MCP server \u2014 a locally-downloaded Go binary, readonly by default.",
     "env": [
-      "INTEGRATIONS_AZAKS_BIN"
+      "AZAKS_BIN"
     ]
   },
   {
     "name": "azkusto",
     "type": "mcp",
-    "group": "azure",
-    "description": "Azure Data Explorer / Kusto MCP server, forced read-only via KUSTO_ALLOW_WRITE_OPERATIONS=false.",
     "env": [
-      "INTEGRATIONS_AZKUSTO_CLUSTER_URL",
-      "INTEGRATIONS_AZKUSTO_DATABASE",
-      "INTEGRATIONS_AZKUSTO_TENANT_ID",
-      "INTEGRATIONS_AZKUSTO_CLIENT_ID",
-      "INTEGRATIONS_AZKUSTO_CLIENT_SECRET"
+      "AZKUSTO_CLUSTER_URL",
+      "AZKUSTO_DATABASE",
+      "AZKUSTO_TENANT_ID",
+      "AZKUSTO_CLIENT_ID",
+      "AZKUSTO_CLIENT_SECRET"
     ]
   },
   {
     "name": "playwright",
     "type": "mcp",
-    "group": "browser",
-    "description": "Live exploratory browser and DOM control via Playwright's MCP server.",
     "env": []
   },
   {
     "name": "firecrawl",
     "type": "skill",
-    "group": "web",
-    "description": "Firecrawl CLI for scraping and crawling, taught by its own skill.",
-    "env": [
-      "INTEGRATIONS_FIRECRAWL_API_KEY"
-    ]
+    "env": []
   },
   {
     "name": "last30days",
     "type": "skill",
-    "group": "web",
-    "description": "Recent public discussion lookup across social platforms and search APIs.",
     "env": [
-      "INTEGRATIONS_LAST30DAYS_SCRAPECREATORS_API_KEY"
+      "SCRAPECREATORS_API_KEY"
     ]
   },
   {
     "name": "yt-dlp",
     "type": "skill",
-    "group": "web",
-    "description": "YouTube search/lookup CLI primitive \u2014 query search, single-video lookup, optional transcript fetch.",
     "env": []
   },
   {
     "name": "playwright-cli",
     "type": "skill",
-    "group": "browser",
-    "description": "Playwright's own CLI + skill for general browser actions (open/click/fill/snapshot/...).",
     "env": []
   },
   {
     "name": "playwright-test-agents",
     "type": "skill",
-    "group": "browser",
-    "description": "Self-healing E2E test authoring via Planner/Generator/Healer subagents.",
     "env": []
   },
   {
     "name": "azure-devops-cli",
     "type": "skill",
-    "group": "azure",
-    "description": "Azure DevOps CLI skill (`az devops`) for boards/repos/pipelines from the command line.",
     "env": []
   },
   {
     "name": "gh (GitHub CLI)",
     "type": "cli",
-    "group": "vcs",
-    "description": "GitHub CLI for issues, PRs, and repo operations. Run `gh auth login` yourself after install.",
+    "env": []
+  },
+  {
+    "name": "yt-dlp",
+    "type": "cli",
+    "env": []
+  },
+  {
+    "name": "firecrawl",
+    "type": "cli",
+    "env": []
+  },
+  {
+    "name": "playwright-cli",
+    "type": "cli",
+    "env": []
+  },
+  {
+    "name": "az (Azure CLI)",
+    "type": "cli",
     "env": []
   }
 ]

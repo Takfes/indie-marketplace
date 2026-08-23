@@ -32,12 +32,6 @@
       "source": "./plugins/mattpocock"
     },
     {
-      "name": "research",
-      "description": "Research and knowledge-synthesis skills (WIP)",
-      "version": "0.1.0",
-      "source": "./plugins/research"
-    },
-    {
       "name": "office",
       "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
       "version": "0.1.0",
