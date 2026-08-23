@@ -1,0 +1,327 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "zotero-integrations_zotero_api_key",
+      "description": "INTEGRATIONS_ZOTERO_API_KEY",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "zotero-integrations_zotero_library_id",
+      "description": "INTEGRATIONS_ZOTERO_LIBRARY_ID",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "zotero-integrations_zotero_library_type",
+      "description": "INTEGRATIONS_ZOTERO_LIBRARY_TYPE",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "exa-integrations_exa_api_key",
+      "description": "INTEGRATIONS_EXA_API_KEY",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "pgquery-integrations_pgquery_uri",
+      "description": "INTEGRATIONS_PGQUERY_URI",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "dbtools-integrations_dbtools_config_path",
+      "description": "INTEGRATIONS_DBTOOLS_CONFIG_PATH",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-integrations_mysql_mcp_host",
+      "description": "INTEGRATIONS_MYSQL_MCP_HOST",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-integrations_mysql_mcp_user",
+      "description": "INTEGRATIONS_MYSQL_MCP_USER",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-integrations_mysql_mcp_pass",
+      "description": "INTEGRATIONS_MYSQL_MCP_PASS",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-integrations_mysql_mcp_db",
+      "description": "INTEGRATIONS_MYSQL_MCP_DB",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-integrations_mssql_mcp_host",
+      "description": "INTEGRATIONS_MSSQL_MCP_HOST",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-integrations_mssql_mcp_database",
+      "description": "INTEGRATIONS_MSSQL_MCP_DATABASE",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-integrations_mssql_mcp_user",
+      "description": "INTEGRATIONS_MSSQL_MCP_USER",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-integrations_mssql_mcp_password",
+      "description": "INTEGRATIONS_MSSQL_MCP_PASSWORD",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azdevops-integrations_azdevops_org",
+      "description": "INTEGRATIONS_AZDEVOPS_ORG",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azaks-integrations_azaks_bin",
+      "description": "INTEGRATIONS_AZAKS_BIN",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-integrations_azkusto_cluster_url",
+      "description": "INTEGRATIONS_AZKUSTO_CLUSTER_URL",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-integrations_azkusto_database",
+      "description": "INTEGRATIONS_AZKUSTO_DATABASE",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-integrations_azkusto_tenant_id",
+      "description": "INTEGRATIONS_AZKUSTO_TENANT_ID",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-integrations_azkusto_client_id",
+      "description": "INTEGRATIONS_AZKUSTO_CLIENT_ID",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "azkusto-integrations_azkusto_client_secret",
+      "description": "INTEGRATIONS_AZKUSTO_CLIENT_SECRET",
+      "password": true
+    }
+  ],
+  "servers": {
+    "context7": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp"
+      ]
+    },
+    "zotero": {
+      "type": "stdio",
+      "command": "env",
+      "args": [
+        "ZOTERO_LOCAL=true",
+        "ZOTERO_API_KEY=${INTEGRATIONS_ZOTERO_API_KEY}",
+        "ZOTERO_LIBRARY_ID=${INTEGRATIONS_ZOTERO_LIBRARY_ID}",
+        "ZOTERO_LIBRARY_TYPE=${INTEGRATIONS_ZOTERO_LIBRARY_TYPE}",
+        "zotero-mcp"
+      ],
+      "env": {
+        "INTEGRATIONS_ZOTERO_API_KEY": "${input:zotero-integrations_zotero_api_key}",
+        "INTEGRATIONS_ZOTERO_LIBRARY_ID": "${input:zotero-integrations_zotero_library_id}",
+        "INTEGRATIONS_ZOTERO_LIBRARY_TYPE": "${input:zotero-integrations_zotero_library_type}"
+      }
+    },
+    "notebooklm": {
+      "type": "stdio",
+      "command": "notebooklm-mcp",
+      "args": []
+    },
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "exa-mcp-server"
+      ],
+      "env": {
+        "INTEGRATIONS_EXA_API_KEY": "${input:exa-integrations_exa_api_key}"
+      }
+    },
+    "pgquery": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "DATABASE_URI=${INTEGRATIONS_PGQUERY_URI}",
+        "crystaldba/postgres-mcp",
+        "--access-mode=restricted",
+        "--transport=stdio"
+      ],
+      "env": {
+        "INTEGRATIONS_PGQUERY_URI": "${input:pgquery-integrations_pgquery_uri}"
+      }
+    },
+    "dbtools": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "${INTEGRATIONS_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+        "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
+        "--stdio",
+        "--config",
+        "/tools.yaml"
+      ],
+      "env": {
+        "INTEGRATIONS_DBTOOLS_CONFIG_PATH": "${input:dbtools-integrations_dbtools_config_path}"
+      }
+    },
+    "mysql-mcp": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "MYSQL_HOST=${INTEGRATIONS_MYSQL_MCP_HOST}",
+        "-e",
+        "MYSQL_USER=${INTEGRATIONS_MYSQL_MCP_USER}",
+        "-e",
+        "MYSQL_PASS=${INTEGRATIONS_MYSQL_MCP_PASS}",
+        "-e",
+        "MYSQL_DB=${INTEGRATIONS_MYSQL_MCP_DB}",
+        "-e",
+        "ALLOW_INSERT_OPERATION=false",
+        "-e",
+        "ALLOW_UPDATE_OPERATION=false",
+        "-e",
+        "ALLOW_DELETE_OPERATION=false",
+        "indie-marketplace-mysql-mcp:local"
+      ],
+      "env": {
+        "INTEGRATIONS_MYSQL_MCP_HOST": "${input:mysql-mcp-integrations_mysql_mcp_host}",
+        "INTEGRATIONS_MYSQL_MCP_USER": "${input:mysql-mcp-integrations_mysql_mcp_user}",
+        "INTEGRATIONS_MYSQL_MCP_PASS": "${input:mysql-mcp-integrations_mysql_mcp_pass}",
+        "INTEGRATIONS_MYSQL_MCP_DB": "${input:mysql-mcp-integrations_mysql_mcp_db}"
+      }
+    },
+    "mssql-mcp": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "MSSQL_HOST=${INTEGRATIONS_MSSQL_MCP_HOST}",
+        "-e",
+        "MSSQL_DATABASE=${INTEGRATIONS_MSSQL_MCP_DATABASE}",
+        "-e",
+        "MSSQL_USER=${INTEGRATIONS_MSSQL_MCP_USER}",
+        "-e",
+        "MSSQL_PASSWORD=${INTEGRATIONS_MSSQL_MCP_PASSWORD}",
+        "indie-marketplace-mssql-mcp:local"
+      ],
+      "env": {
+        "INTEGRATIONS_MSSQL_MCP_HOST": "${input:mssql-mcp-integrations_mssql_mcp_host}",
+        "INTEGRATIONS_MSSQL_MCP_DATABASE": "${input:mssql-mcp-integrations_mssql_mcp_database}",
+        "INTEGRATIONS_MSSQL_MCP_USER": "${input:mssql-mcp-integrations_mssql_mcp_user}",
+        "INTEGRATIONS_MSSQL_MCP_PASSWORD": "${input:mssql-mcp-integrations_mssql_mcp_password}"
+      }
+    },
+    "azcloud": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest",
+        "server",
+        "start"
+      ]
+    },
+    "azdevops": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "${INTEGRATIONS_AZDEVOPS_ORG}",
+        "--authentication",
+        "azcli"
+      ],
+      "env": {
+        "INTEGRATIONS_AZDEVOPS_ORG": "${input:azdevops-integrations_azdevops_org}"
+      }
+    },
+    "azaks": {
+      "type": "stdio",
+      "command": "${INTEGRATIONS_AZAKS_BIN}",
+      "args": [
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "INTEGRATIONS_AZAKS_BIN": "${input:azaks-integrations_azaks_bin}"
+      }
+    },
+    "azkusto": {
+      "type": "stdio",
+      "command": "env",
+      "args": [
+        "KUSTO_AUTH_METHOD=azure-identity",
+        "KUSTO_ALLOW_WRITE_OPERATIONS=false",
+        "KUSTO_CLUSTER_URL=${INTEGRATIONS_AZKUSTO_CLUSTER_URL}",
+        "KUSTO_DEFAULT_DATABASE=${INTEGRATIONS_AZKUSTO_DATABASE}",
+        "AZURE_TENANT_ID=${INTEGRATIONS_AZKUSTO_TENANT_ID}",
+        "AZURE_CLIENT_ID=${INTEGRATIONS_AZKUSTO_CLIENT_ID}",
+        "AZURE_CLIENT_SECRET=${INTEGRATIONS_AZKUSTO_CLIENT_SECRET}",
+        "npx",
+        "-y",
+        "kusto-mcp"
+      ],
+      "env": {
+        "INTEGRATIONS_AZKUSTO_CLUSTER_URL": "${input:azkusto-integrations_azkusto_cluster_url}",
+        "INTEGRATIONS_AZKUSTO_DATABASE": "${input:azkusto-integrations_azkusto_database}",
+        "INTEGRATIONS_AZKUSTO_TENANT_ID": "${input:azkusto-integrations_azkusto_tenant_id}",
+        "INTEGRATIONS_AZKUSTO_CLIENT_ID": "${input:azkusto-integrations_azkusto_client_id}",
+        "INTEGRATIONS_AZKUSTO_CLIENT_SECRET": "${input:azkusto-integrations_azkusto_client_secret}"
+      }
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}

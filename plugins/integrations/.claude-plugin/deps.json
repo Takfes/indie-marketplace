@@ -1,0 +1,8 @@
+[
+  {
+    "command": "gh",
+    "label": "gh (GitHub CLI)",
+    "install": "brew install gh",
+    "manual": "https://github.com/cli/cli#installation"
+  }
+]

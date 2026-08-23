@@ -38,24 +38,6 @@
       "source": "./plugins/research"
     },
     {
-      "name": "web-search",
-      "description": "Live web research \u2014 Exa semantic search, Firecrawl CLI scraping, and recent public discussion",
-      "version": "0.1.0",
-      "source": "./plugins/web-search"
-    },
-    {
-      "name": "browser",
-      "description": "Browser automation and E2E test authoring \u2014 Playwright CLI codegen plus self-healing Planner/Generator/Healer test agents. CLI + Skills only, no MCP server.",
-      "version": "0.1.0",
-      "source": "./plugins/browser"
-    },
-    {
-      "name": "browser-mcp",
-      "description": "Playwright MCP server (opt-in) \u2014 live exploratory browser and DOM control for whoever specifically needs it",
-      "version": "0.1.0",
-      "source": "./plugins/browser-mcp"
-    },
-    {
       "name": "office",
       "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
       "version": "0.1.0",
@@ -78,6 +60,12 @@
       "description": "DevOps and infrastructure skills \u2014 containers, Kubernetes, CI/CD, and Azure DevOps",
       "version": "0.1.0",
       "source": "./plugins/azdevops"
+    },
+    {
+      "name": "integrations",
+      "description": "Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place",
+      "version": "0.1.0",
+      "source": "./plugins/integrations"
     },
     {
       "name": "gitctrl",
