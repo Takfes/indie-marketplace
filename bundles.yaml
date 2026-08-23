@@ -152,12 +152,6 @@ plugins:
   - name: python
     description: Python development, packaging, testing, and refactoring skills
     version: "0.1.0"
-    mcp:
-      # Up-to-date, version-specific library docs. Works fully keyless on
-      # the free tier (lower rate limits); no env var is required.
-      - name: context7
-        command: npx
-        args: ["-y", "@upstash/context7-mcp"]
     skills:
       - name: python-packaging
         source: community
@@ -255,65 +249,10 @@ plugins:
 
   # ---------------------------------------------------------------------------
   # research — research and knowledge-synthesis skills.
-  #
-  # zotero (54yyyu/zotero-mcp, PyPI zotero-mcp, MIT) — Zotero library search
-  # and reference lookup. Defaults to local mode: ZOTERO_LOCAL=true is
-  # hardcoded in args, the same way azkusto hardcodes
-  # KUSTO_ALLOW_WRITE_OPERATIONS=false above — it's a mode flag, not a
-  # secret, so it skips .env.example. Local mode talks to a Zotero 7+
-  # desktop app's local API on the same machine and needs zero credentials,
-  # which is why it's the default over the Web API mode. The three Web API
-  # vars below are only for remote/no-desktop-app setups; they're optional
-  # and blank is safe, since a hardcoded ZOTERO_LOCAL=true makes zotero-mcp
-  # use the local client regardless of whether they're set.
-  #
-  # zotero-mcp also has an optional semantic-search extra (embedding-based
-  # library search) that needs OPENAI_API_KEY or GEMINI_API_KEY — out of
-  # scope for now, not wired into this entry.
-  #
-  # notebooklm — unified CLI + MCP server for Google's Gemini Notebook
-  # (product formerly branded NotebookLM). PyPI package `notebooklm-mcp-cli`,
-  # MIT license, actively maintained (5k+ stars). Its GitHub repo has since
-  # been renamed jacob-bd/gemini-notebook-mcp-cli, following the product
-  # rename — the PyPI package name is unchanged. `uv tool install
-  # notebooklm-mcp-cli` installs both an `nlm` CLI and this `notebooklm-mcp`
-  # MCP server binary from one package — NOT the separate, stale
-  # `notebooklm-mcp-server` package.
-  #
-  # Fragility caveat, straight from the project's own README: it "uses
-  # internal APIs that are undocumented and may change without notice,
-  # require cookie extraction from your browser." It works today, but it is
-  # not a stable, officially-supported integration and could break on a
-  # Google-side change with no warning.
-  #
-  # No env var: auth is entirely external-session-based, the same pattern
-  # as azcloud/azaks. Run `nlm login` once (opens a browser, extracts
-  # session cookies) — the CLI persists them itself via `platformdirs` (a
-  # declared PyPI dependency, confirmed against the package metadata), not
-  # through anything this repo declares or reads. Re-run `nlm login` if
-  # cookies expire (~2-4 weeks).
   # ---------------------------------------------------------------------------
   - name: research
     description: Research and knowledge-synthesis skills (WIP)
     version: "0.1.0"
-    mcp:
-      - name: zotero
-        command: env
-        args:
-          [
-            "ZOTERO_LOCAL=true",
-            "ZOTERO_API_KEY=${RESEARCH_ZOTERO_API_KEY}",
-            "ZOTERO_LIBRARY_ID=${RESEARCH_ZOTERO_LIBRARY_ID}",
-            "ZOTERO_LIBRARY_TYPE=${RESEARCH_ZOTERO_LIBRARY_TYPE}",
-            "zotero-mcp",
-          ]
-        env:
-          RESEARCH_ZOTERO_API_KEY:
-          RESEARCH_ZOTERO_LIBRARY_ID:
-          RESEARCH_ZOTERO_LIBRARY_TYPE:
-
-      - name: notebooklm
-        command: notebooklm-mcp
     skills:
       - name: teach
         source: community
@@ -321,9 +260,9 @@ plugins:
         path: "skills/productivity/teach"
 
   # ---------------------------------------------------------------------------
-  # web-search — reaching the live web: Exa for semantic search and page
-  # fetch, Firecrawl for scraping and crawling, last30days for what people
-  # have actually been saying lately.
+  # web-search — reaching the live web: Firecrawl for scraping and crawling,
+  # last30days for what people have actually been saying lately. (exa moved
+  # to `integrations` — see that plugin's mcp: block.)
   #
   # Firecrawl ships an MCP server too; this deliberately takes its CLI plus
   # the CLI's own skill instead — the skill teaches the flags and the CLI
@@ -342,19 +281,11 @@ plugins:
   # if a skill actually needs it.
   # ---------------------------------------------------------------------------
   - name: web-search
-    description: Live web research — Exa semantic search, Firecrawl CLI scraping, and recent public discussion
+    description: Live web research — Firecrawl CLI scraping and recent public discussion
     version: "0.1.0"
     env:
       WEB_SEARCH_FIRECRAWL_API_KEY:
       WEB_SEARCH_SCRAPECREATORS_API_KEY:
-    mcp:
-      # Semantic web search and page fetch, via the stdio package rather than
-      # Exa's hosted endpoint — .mcp.json only knows how to spawn a command.
-      - name: exa
-        command: npx
-        args: ["-y", "exa-mcp-server"]
-        env:
-          WEB_SEARCH_EXA_API_KEY:
     skills:
       # The Firecrawl CLI's own umbrella skill — SKILL.md plus rules/.
       - name: firecrawl
@@ -400,18 +331,13 @@ plugins:
         source: local
 
   # ---------------------------------------------------------------------------
-  # browser-mcp — Playwright MCP server only, opt-in. Kept as its own plugin
-  # (not folded into `browser`) specifically so installing `browser` never
-  # pulls in live MCP-driven browser/DOM control — only whoever specifically
-  # wants that installs this too. Neither plugin depends on the other.
+  # browser-mcp — emptied by the integrations migration (its playwright MCP
+  # server moved to `integrations`). Deleted outright once `browser` is also
+  # emptied by the CLI migration — see docs/spec-integrations-bundle.md.
   # ---------------------------------------------------------------------------
   - name: browser-mcp
     description: Playwright MCP server (opt-in) — live exploratory browser and DOM control for whoever specifically needs it
     version: "0.1.0"
-    mcp:
-      - name: playwright
-        command: npx
-        args: ["-y", "@playwright/mcp@latest"]
 
   # ---------------------------------------------------------------------------
   # office — Anthropic's document-format skills for creating and editing
@@ -473,66 +399,6 @@ plugins:
   - name: database
     description: SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
     version: "0.1.0"
-    mcp:
-      # Postgres-only server with query-plan analysis and index tuning.
-      # Docker is the only working distribution — `uvx postgres-mcp` has an
-      # upstream bug (see NEXTME.md), so there is no non-container path.
-      #
-      # --access-mode=restricted is load-bearing, not decoration: the server
-      # runs its own SQL validator that rejects writes before they ever reach
-      # Postgres, independent of whatever the DB role happens to grant. That
-      # second layer is the reason to use this over a plain DB client.
-      #
-      # The container expects its connection string in DATABASE_URI, a fixed
-      # internal name that cannot carry this repo's mandatory DATABASE_ prefix
-      # convention as its own. Rather than fight the prefix rule, the rename
-      # happens inline in args: Claude Code expands ${...} inside args before
-      # exec'ing docker, so the container receives DATABASE_URI while this repo
-      # only ever declares the prefixed DATABASE_PGQUERY_URI.
-      - name: pgquery
-        command: docker
-        args:
-          [
-            "run",
-            "-i",
-            "--rm",
-            "-e",
-            "DATABASE_URI=${DATABASE_PGQUERY_URI}",
-            "crystaldba/postgres-mcp",
-            "--access-mode=restricted",
-            "--transport=stdio",
-          ]
-        env:
-          DATABASE_PGQUERY_URI:
-
-      # Multi-engine server (Postgres, MySQL, SQL Server, BigQuery, ...).
-      # Unlike pgquery it takes no per-database env vars at all: every source
-      # and every exposed SQL tool is declared in a tools.yaml config file
-      # mounted into the container.
-      #
-      # That file is inherently user-specific — it names the databases you
-      # personally query and the tools you want exposed over them — so this
-      # repo cannot ship one. The single declared env var is therefore a
-      # filesystem path, not a credential: point DATABASE_DBTOOLS_CONFIG_PATH
-      # at a tools.yaml you write yourself. It must be an absolute path;
-      # docker bind mounts reject relative ones.
-      # Format reference: https://googleapis.github.io/genai-toolbox/
-      - name: dbtools
-        command: docker
-        args:
-          [
-            "run",
-            "-i",
-            "--rm",
-            "-v",
-            "${DATABASE_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
-            "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
-            "--stdio",
-            "--config",
-            "/tools.yaml",
-          ]
-        env:
-          DATABASE_DBTOOLS_CONFIG_PATH:
     skills:
       - name: sql-code-review
         source: community
@@ -560,107 +426,6 @@ plugins:
   - name: azdevops
     description: DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
     version: "0.1.0"
-    mcp:
-      # Official Azure MCP Server (microsoft/mcp, servers/Azure.Mcp.Server —
-      # the archived Azure/azure-mcp repo folded into that monorepo). Covers
-      # 40+ Azure services for resource management. Authenticates through the
-      # Azure Identity SDK off an existing `az login` session, so no
-      # credential is ever passed to the server and it declares no env var.
-      - name: azcloud
-        command: npx
-        args: ["-y", "@azure/mcp@latest", "server", "start"]
-
-      # Official Microsoft Azure DevOps MCP Server (microsoft/azure-devops-mcp),
-      # not one of the older community forks. The organization name is a
-      # required positional arg with no env-var equivalent upstream, so it is
-      # injected via ${...} in args — Claude Code expands those before spawning
-      # the server. `--authentication azcli` reuses the same `az login` session
-      # as the other two servers; the upstream default is `interactive`, a
-      # browser sign-in that suits a stdio subprocess poorly.
-      - name: azdevops
-        command: npx
-        args:
-          [
-            "-y",
-            "@azure-devops/mcp",
-            "${AZDEVOPS_AZDEVOPS_ORG}",
-            "--authentication",
-            "azcli",
-          ]
-        env:
-          AZDEVOPS_AZDEVOPS_ORG:
-
-      # Official AKS MCP server (Azure/aks-mcp). A Go binary with no npm
-      # package, and upstream supports only a locally-spawned stdio process —
-      # it explicitly rules out running behind a container service — so the
-      # user downloads a release binary from
-      # https://github.com/Azure/aks-mcp/releases/latest and points the env var
-      # below at it. Auth is the user's own `az login` plus kubeconfig; the
-      # access level defaults to readonly upstream.
-      - name: azaks
-        command: "${AZDEVOPS_AZAKS_BIN}"
-        args: ["--transport", "stdio"]
-        env:
-          AZDEVOPS_AZAKS_BIN:
-
-      # Azure Data Explorer / Kusto (johnib/kusto-mcp, npm). Picked over the
-      # better-known pab1it0/adx-mcp-server because that one hands the raw
-      # query string straight to the Kusto SDK's execute(), which routes
-      # anything starting with "." to the management endpoint — .drop,
-      # .ingest and .set-or-replace all go through. It has no read-only layer
-      # at all, only whatever the Azure role happens to deny. The npm
-      # @mcp-apps/kusto-mcp-server publishes no source repo, so its read-only
-      # claim cannot be audited either.
-      #
-      # KUSTO_ALLOW_WRITE_OPERATIONS=false is this entry's equivalent of
-      # pgquery's --access-mode=restricted, and is load-bearing for the same
-      # reason: upstream defaults it to *true*, and setting it false enables a
-      # real validator that rejects every dot-command except the introspective
-      # .show family before it reaches the cluster. Plain KQL cannot mutate,
-      # so that pair is the whole write surface. Verified live — with this set
-      # the server logs "Running in READ-ONLY mode" on startup.
-      #
-      # Auth is the third distinct credential style in this plugin: not
-      # azdevops' org string, not azaks' local binary, but the Azure
-      # Identity chain (KUSTO_AUTH_METHOD=azure-identity →
-      # DefaultAzureCredential). Fill in the three service-principal vars for
-      # an unattended identity; leave them blank and the chain falls through
-      # to managed identity and then to the same `az login` session this
-      # plugin's other servers use. Blank is safe — the SDK gates the service
-      # principal on a plain truthiness check, so empty strings read as unset.
-      #
-      # The server takes no CLI flags (everything is env) and its internal
-      # names carry no AZDEVOPS_ prefix, so `env` does the rename inline, the
-      # way pgquery's `docker -e` does in the database plugin. Claude Code
-      # expands ${...} in args. Cluster URL and database are both required
-      # for auto-connect; without them every session has to call
-      # initialize-connection by hand.
-      #
-      # Caveat: kusto-mcp reports anonymous usage telemetry to the maintainer
-      # (tool names, latency, error classes, salted tenant/user hashes — never
-      # query text, results, or cluster/table names). It cannot be disabled,
-      # only redirected to your own OTLP collector.
-      - name: azkusto
-        command: env
-        args:
-          [
-            "KUSTO_AUTH_METHOD=azure-identity",
-            "KUSTO_ALLOW_WRITE_OPERATIONS=false",
-            "KUSTO_CLUSTER_URL=${AZDEVOPS_AZKUSTO_CLUSTER_URL}",
-            "KUSTO_DEFAULT_DATABASE=${AZDEVOPS_AZKUSTO_DATABASE}",
-            "AZURE_TENANT_ID=${AZDEVOPS_AZKUSTO_TENANT_ID}",
-            "AZURE_CLIENT_ID=${AZDEVOPS_AZKUSTO_CLIENT_ID}",
-            "AZURE_CLIENT_SECRET=${AZDEVOPS_AZKUSTO_CLIENT_SECRET}",
-            "npx",
-            "-y",
-            "kusto-mcp",
-          ]
-        env:
-          AZDEVOPS_AZKUSTO_CLUSTER_URL:
-          AZDEVOPS_AZKUSTO_DATABASE:
-          AZDEVOPS_AZKUSTO_TENANT_ID:
-          AZDEVOPS_AZKUSTO_CLIENT_ID:
-          AZDEVOPS_AZKUSTO_CLIENT_SECRET:
     skills:
       - name: multi-stage-dockerfile
         source: community
@@ -706,7 +471,351 @@ plugins:
     description: Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place
     version: "0.1.0"
     catalog: true
-    mcp: []
+    mcp:
+      # Up-to-date, version-specific library docs. Works fully keyless on
+      # the free tier (lower rate limits); no env var is required.
+      - name: context7
+        command: npx
+        args: ["-y", "@upstash/context7-mcp"]
+        group: python
+        description: Up-to-date, version-specific library documentation lookup, keyless on the free tier.
+
+      # zotero (54yyyu/zotero-mcp, PyPI zotero-mcp, MIT) — Zotero library
+      # search and reference lookup. Defaults to local mode: ZOTERO_LOCAL=true
+      # is hardcoded in args, the same way azkusto hardcodes
+      # KUSTO_ALLOW_WRITE_OPERATIONS=false below — it's a mode flag, not a
+      # secret, so it skips .env.example. Local mode talks to a Zotero 7+
+      # desktop app's local API on the same machine and needs zero
+      # credentials, which is why it's the default over the Web API mode.
+      # The three Web API vars below are only for remote/no-desktop-app
+      # setups; they're optional and blank is safe, since a hardcoded
+      # ZOTERO_LOCAL=true makes zotero-mcp use the local client regardless of
+      # whether they're set.
+      #
+      # zotero-mcp also has an optional semantic-search extra (embedding-
+      # based library search) that needs OPENAI_API_KEY or GEMINI_API_KEY —
+      # out of scope for now, not wired into this entry.
+      - name: zotero
+        command: env
+        args:
+          [
+            "ZOTERO_LOCAL=true",
+            "ZOTERO_API_KEY=${INTEGRATIONS_ZOTERO_API_KEY}",
+            "ZOTERO_LIBRARY_ID=${INTEGRATIONS_ZOTERO_LIBRARY_ID}",
+            "ZOTERO_LIBRARY_TYPE=${INTEGRATIONS_ZOTERO_LIBRARY_TYPE}",
+            "zotero-mcp",
+          ]
+        env:
+          INTEGRATIONS_ZOTERO_API_KEY:
+          INTEGRATIONS_ZOTERO_LIBRARY_ID:
+          INTEGRATIONS_ZOTERO_LIBRARY_TYPE:
+        group: research
+        description: Zotero library search and reference lookup; defaults to local desktop-app mode needing zero credentials.
+
+      # notebooklm — unified CLI + MCP server for Google's Gemini Notebook
+      # (product formerly branded NotebookLM). PyPI package
+      # `notebooklm-mcp-cli`, MIT license, actively maintained (5k+ stars).
+      # Its GitHub repo has since been renamed jacob-bd/gemini-notebook-mcp-
+      # cli, following the product rename — the PyPI package name is
+      # unchanged. `uv tool install notebooklm-mcp-cli` installs both an
+      # `nlm` CLI and this `notebooklm-mcp` MCP server binary from one
+      # package — NOT the separate, stale `notebooklm-mcp-server` package.
+      #
+      # Fragility caveat, straight from the project's own README: it "uses
+      # internal APIs that are undocumented and may change without notice,
+      # require cookie extraction from your browser." It works today, but it
+      # is not a stable, officially-supported integration and could break on
+      # a Google-side change with no warning.
+      #
+      # No env var: auth is entirely external-session-based, the same
+      # pattern as azcloud/azaks below. Run `nlm login` once (opens a
+      # browser, extracts session cookies) — the CLI persists them itself
+      # via `platformdirs` (a declared PyPI dependency), not through
+      # anything this repo declares or reads. Re-run `nlm login` if cookies
+      # expire (~2-4 weeks).
+      - name: notebooklm
+        command: notebooklm-mcp
+        group: research
+        description: Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM); auth via a one-time `nlm login`.
+
+      # Semantic web search and page fetch, via the stdio package rather than
+      # Exa's hosted endpoint — .mcp.json only knows how to spawn a command.
+      - name: exa
+        command: npx
+        args: ["-y", "exa-mcp-server"]
+        env:
+          INTEGRATIONS_EXA_API_KEY:
+        group: web
+        description: Semantic web search and page fetch via Exa's MCP server.
+
+      # Postgres-only server with query-plan analysis and index tuning.
+      # Docker is the only working distribution — `uvx postgres-mcp` has an
+      # upstream bug, so there is no non-container path.
+      #
+      # --access-mode=restricted is load-bearing, not decoration: the server
+      # runs its own SQL validator that rejects writes before they ever
+      # reach Postgres, independent of whatever the DB role happens to
+      # grant. That second layer is the reason to use this over a plain DB
+      # client.
+      #
+      # The container expects its connection string in DATABASE_URI, a
+      # fixed internal name that cannot carry this repo's mandatory
+      # INTEGRATIONS_ prefix as its own. Rather than fight the prefix rule,
+      # the rename happens inline in args: Claude Code expands ${...} inside
+      # args before exec'ing docker, so the container receives DATABASE_URI
+      # while this repo only ever declares the prefixed
+      # INTEGRATIONS_PGQUERY_URI.
+      - name: pgquery
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "DATABASE_URI=${INTEGRATIONS_PGQUERY_URI}",
+            "crystaldba/postgres-mcp",
+            "--access-mode=restricted",
+            "--transport=stdio",
+          ]
+        env:
+          INTEGRATIONS_PGQUERY_URI:
+        group: database
+        description: Dedicated Postgres MCP server with query-plan analysis, index tuning, and a read-only validator.
+
+      # Multi-engine server (Postgres, MySQL, SQL Server, BigQuery, ...).
+      # Unlike pgquery it takes no per-database env vars at all: every
+      # source and every exposed SQL tool is declared in a tools.yaml config
+      # file mounted into the container.
+      #
+      # That file is inherently user-specific — it names the databases you
+      # personally query and the tools you want exposed over them — so this
+      # repo cannot ship one. The single declared env var is therefore a
+      # filesystem path, not a credential: point
+      # INTEGRATIONS_DBTOOLS_CONFIG_PATH at a tools.yaml you write yourself.
+      # It must be an absolute path; docker bind mounts reject relative
+      # ones. Format reference: https://googleapis.github.io/genai-toolbox/
+      - name: dbtools
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-v",
+            "${INTEGRATIONS_DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+            "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
+            "--stdio",
+            "--config",
+            "/tools.yaml",
+          ]
+        env:
+          INTEGRATIONS_DBTOOLS_CONFIG_PATH:
+        group: database
+        description: Multi-engine SQL server (Postgres/MySQL/MSSQL/BigQuery/...) driven by a user-supplied tools.yaml.
+
+      # Dedicated MySQL server (benborla/mcp-server-mysql, MIT) — a real
+      # app-level write gate (ALLOW_INSERT/UPDATE/DELETE_OPERATION),
+      # independent of the DB grant, the same second-layer pattern pgquery
+      # gives Postgres. No published image; Dockerfile vendored here
+      # (docker/mysql-mcp/, pinned commit — see that file). Build once
+      # locally:
+      #   docker build -t indie-marketplace-mysql-mcp:local plugins/integrations/docker/mysql-mcp
+      #
+      # The image's own defaults are ALLOW_INSERT/UPDATE_OPERATION=true —
+      # this entry overrides all three to false, non-configurably, the same
+      # way pgquery hardcodes --access-mode=restricted. Only the connection
+      # details are user-supplied.
+      - name: mysql-mcp
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "MYSQL_HOST=${INTEGRATIONS_MYSQL_MCP_HOST}",
+            "-e",
+            "MYSQL_USER=${INTEGRATIONS_MYSQL_MCP_USER}",
+            "-e",
+            "MYSQL_PASS=${INTEGRATIONS_MYSQL_MCP_PASS}",
+            "-e",
+            "MYSQL_DB=${INTEGRATIONS_MYSQL_MCP_DB}",
+            "-e",
+            "ALLOW_INSERT_OPERATION=false",
+            "-e",
+            "ALLOW_UPDATE_OPERATION=false",
+            "-e",
+            "ALLOW_DELETE_OPERATION=false",
+            "indie-marketplace-mysql-mcp:local",
+          ]
+        env:
+          INTEGRATIONS_MYSQL_MCP_HOST:
+          INTEGRATIONS_MYSQL_MCP_USER:
+          INTEGRATIONS_MYSQL_MCP_PASS:
+          INTEGRATIONS_MYSQL_MCP_DB:
+        group: database
+        description: Dedicated MySQL MCP server with an app-level write gate independent of the DB grant.
+
+      # Dedicated MSSQL server (JexinSam/mssql_mcp_server, MIT) — its
+      # query_sql tool regex-gates to SELECT/WITH/SHOW only (verified in
+      # source); execute_sql stays unrestricted by upstream design, so treat
+      # this as read-mostly, not read-only. No published image; Dockerfile
+      # vendored here (docker/mssql-mcp/, pinned commit — see that file,
+      # which also fixes an upstream build bug: their own Dockerfile never
+      # copies README.md into the build context, which the pip build
+      # backend requires). Build once locally:
+      #   docker build -t indie-marketplace-mssql-mcp:local plugins/integrations/docker/mssql-mcp
+      #
+      # MSSQL_DRIVER and MCP_TRANSPORT are baked into the image; only the
+      # connection details are user-supplied.
+      - name: mssql-mcp
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "MSSQL_HOST=${INTEGRATIONS_MSSQL_MCP_HOST}",
+            "-e",
+            "MSSQL_DATABASE=${INTEGRATIONS_MSSQL_MCP_DATABASE}",
+            "-e",
+            "MSSQL_USER=${INTEGRATIONS_MSSQL_MCP_USER}",
+            "-e",
+            "MSSQL_PASSWORD=${INTEGRATIONS_MSSQL_MCP_PASSWORD}",
+            "indie-marketplace-mssql-mcp:local",
+          ]
+        env:
+          INTEGRATIONS_MSSQL_MCP_HOST:
+          INTEGRATIONS_MSSQL_MCP_DATABASE:
+          INTEGRATIONS_MSSQL_MCP_USER:
+          INTEGRATIONS_MSSQL_MCP_PASSWORD:
+        group: database
+        description: Dedicated MSSQL MCP server; query_sql regex-gates to read-only statements, execute_sql stays unrestricted.
+
+      # Official Azure MCP Server (microsoft/mcp, servers/Azure.Mcp.Server —
+      # the archived Azure/azure-mcp repo folded into that monorepo). Covers
+      # 40+ Azure services for resource management. Authenticates through
+      # the Azure Identity SDK off an existing `az login` session, so no
+      # credential is ever passed to the server and it declares no env var.
+      - name: azcloud
+        command: npx
+        args: ["-y", "@azure/mcp@latest", "server", "start"]
+        group: azure
+        description: Official Azure MCP server covering 40+ Azure services, authenticated via an existing `az login` session.
+
+      # Official Microsoft Azure DevOps MCP Server (microsoft/azure-devops-mcp),
+      # not one of the older community forks. The organization name is a
+      # required positional arg with no env-var equivalent upstream, so it
+      # is injected via ${...} in args — Claude Code expands those before
+      # spawning the server. `--authentication azcli` reuses the same
+      # `az login` session as azcloud; the upstream default is
+      # `interactive`, a browser sign-in that suits a stdio subprocess
+      # poorly.
+      - name: azdevops
+        command: npx
+        args:
+          [
+            "-y",
+            "@azure-devops/mcp",
+            "${INTEGRATIONS_AZDEVOPS_ORG}",
+            "--authentication",
+            "azcli",
+          ]
+        env:
+          INTEGRATIONS_AZDEVOPS_ORG:
+        group: azure
+        description: Official Azure DevOps MCP server for the given organization.
+
+      # Official AKS MCP server (Azure/aks-mcp). A Go binary with no npm
+      # package, and upstream supports only a locally-spawned stdio
+      # process — it explicitly rules out running behind a container
+      # service — so the user downloads a release binary from
+      # https://github.com/Azure/aks-mcp/releases/latest and points the env
+      # var below at it. Auth is the user's own `az login` plus kubeconfig;
+      # the access level defaults to readonly upstream.
+      - name: azaks
+        command: "${INTEGRATIONS_AZAKS_BIN}"
+        args: ["--transport", "stdio"]
+        env:
+          INTEGRATIONS_AZAKS_BIN:
+        group: azure
+        description: Official AKS MCP server — a locally-downloaded Go binary, readonly by default.
+
+      # Azure Data Explorer / Kusto (johnib/kusto-mcp, npm). Picked over the
+      # better-known pab1it0/adx-mcp-server because that one hands the raw
+      # query string straight to the Kusto SDK's execute(), which routes
+      # anything starting with "." to the management endpoint — .drop,
+      # .ingest and .set-or-replace all go through. It has no read-only
+      # layer at all, only whatever the Azure role happens to deny. The npm
+      # @mcp-apps/kusto-mcp-server publishes no source repo, so its
+      # read-only claim cannot be audited either.
+      #
+      # KUSTO_ALLOW_WRITE_OPERATIONS=false is this entry's equivalent of
+      # pgquery's --access-mode=restricted, and is load-bearing for the same
+      # reason: upstream defaults it to *true*, and setting it false enables
+      # a real validator that rejects every dot-command except the
+      # introspective .show family before it reaches the cluster. Plain KQL
+      # cannot mutate, so that pair is the whole write surface. Verified
+      # live — with this set the server logs "Running in READ-ONLY mode" on
+      # startup.
+      #
+      # Auth is a third distinct credential style alongside azdevops' org
+      # string and azaks' local binary: the Azure Identity chain
+      # (KUSTO_AUTH_METHOD=azure-identity → DefaultAzureCredential). Fill in
+      # the three service-principal vars for an unattended identity; leave
+      # them blank and the chain falls through to managed identity and then
+      # to the same `az login` session azcloud/azdevops use. Blank is safe —
+      # the SDK gates the service principal on a plain truthiness check, so
+      # empty strings read as unset.
+      #
+      # The server takes no CLI flags (everything is env) and its internal
+      # names carry no INTEGRATIONS_ prefix, so `env` does the rename
+      # inline, the way pgquery's `docker -e` does above. Claude Code
+      # expands ${...} in args. Cluster URL and database are both required
+      # for auto-connect; without them every session has to call
+      # initialize-connection by hand.
+      #
+      # Caveat: kusto-mcp reports anonymous usage telemetry to the
+      # maintainer (tool names, latency, error classes, salted tenant/user
+      # hashes — never query text, results, or cluster/table names). It
+      # cannot be disabled, only redirected to your own OTLP collector.
+      - name: azkusto
+        command: env
+        args:
+          [
+            "KUSTO_AUTH_METHOD=azure-identity",
+            "KUSTO_ALLOW_WRITE_OPERATIONS=false",
+            "KUSTO_CLUSTER_URL=${INTEGRATIONS_AZKUSTO_CLUSTER_URL}",
+            "KUSTO_DEFAULT_DATABASE=${INTEGRATIONS_AZKUSTO_DATABASE}",
+            "AZURE_TENANT_ID=${INTEGRATIONS_AZKUSTO_TENANT_ID}",
+            "AZURE_CLIENT_ID=${INTEGRATIONS_AZKUSTO_CLIENT_ID}",
+            "AZURE_CLIENT_SECRET=${INTEGRATIONS_AZKUSTO_CLIENT_SECRET}",
+            "npx",
+            "-y",
+            "kusto-mcp",
+          ]
+        env:
+          INTEGRATIONS_AZKUSTO_CLUSTER_URL:
+          INTEGRATIONS_AZKUSTO_DATABASE:
+          INTEGRATIONS_AZKUSTO_TENANT_ID:
+          INTEGRATIONS_AZKUSTO_CLIENT_ID:
+          INTEGRATIONS_AZKUSTO_CLIENT_SECRET:
+        group: azure
+        description: Azure Data Explorer / Kusto MCP server, forced read-only via KUSTO_ALLOW_WRITE_OPERATIONS=false.
+
+      # Playwright MCP server for live exploratory browser/DOM control.
+      # Opt-in by nature (not bundled with playwright-cli below) — a
+      # plugin's .mcp.json servers all activate together on install, so this
+      # used to need its own plugin (browser-mcp) just to keep "opt-in
+      # Playwright MCP" separate from the always-on browser CLI skills. The
+      # catalog panel now does that separation instead.
+      - name: playwright
+        command: npx
+        args: ["-y", "@playwright/mcp@latest"]
+        group: browser
+        description: Live exploratory browser and DOM control via Playwright's MCP server.
     skills: []
     deps: []
 
