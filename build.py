@@ -339,9 +339,9 @@ def validate_env_names(plugin: dict) -> None:
 
     Every declared var ultimately resolves against Claude Code's single
     process environment, so a bare name like API_KEY declared by two plugins
-    would silently collide there no matter which file it came from. The prefix
-    keeps each plugin in its own namespace; essentials' load-env.sh is the
-    runtime backstop for anything that still slips through.
+    would silently collide there no matter which file it came from. The
+    prefix keeps each plugin in its own namespace and its owner obvious at a
+    glance.
     """
     prefix = env_prefix(plugin["name"])
     declared = [
