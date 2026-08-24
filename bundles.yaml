@@ -525,6 +525,105 @@ plugins:
         path: "skills/azure-devops-cli"
 
   # ---------------------------------------------------------------------------
+  # research — reference-library and notebook MCP servers: Zotero library
+  # search and Google's NotebookLM.
+  # ---------------------------------------------------------------------------
+  - name: research
+    description: Research and reference MCP servers — Zotero library search and Google NotebookLM
+    version: "0.1.0"
+    catalog: true
+    mcp:
+      # zotero-mcp (PyPI zotero-mcp, MIT). Defaults to local mode
+      # (ZOTERO_LOCAL=true hardcoded — a mode flag, not a secret) talking to
+      # a Zotero 7+ desktop app locally, needing zero credentials. The Web
+      # API vars below are only for remote/no-desktop-app setups; blank is
+      # safe since local mode wins regardless.
+      - name: zotero
+        command: env
+        args:
+          [
+            "ZOTERO_LOCAL=true",
+            "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
+            "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
+            "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
+            "zotero-mcp",
+          ]
+        env:
+          ZOTERO_API_KEY:
+          ZOTERO_LIBRARY_ID:
+          ZOTERO_LIBRARY_TYPE:
+
+      # Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM).
+      # `uv tool install notebooklm-mcp-cli` installs both an `nlm` CLI and
+      # this server binary. Uses undocumented internal APIs — can break on a
+      # Google-side change with no warning.
+      #
+      # No env var: run `nlm login` once (browser session, cookies persisted
+      # by the CLI itself); re-run if cookies expire (~2-4 weeks).
+      - name: notebooklm
+        command: notebooklm-mcp
+
+  # ---------------------------------------------------------------------------
+  # web-search — semantic web search and page fetch, scraping, recent
+  # public discussion, and YouTube search/lookup.
+  # ---------------------------------------------------------------------------
+  - name: web-search
+    description: Web search, scraping, and discovery skills — Exa semantic search, Firecrawl, recent social discussion, and YouTube lookup
+    version: "0.1.0"
+    catalog: true
+    mcp:
+      # Semantic web search and page fetch via Exa's stdio MCP package.
+      - name: exa
+        command: npx
+        args: ["-y", "exa-mcp-server"]
+        env:
+          EXA_API_KEY:
+    skills:
+      # Firecrawl's own umbrella skill — SKILL.md plus rules/. Deliberately
+      # CLI + skill instead of Firecrawl's own MCP server: the skill teaches
+      # the flags and the CLI returns markdown sized for a context window,
+      # where an MCP server would sit in every session's tool list.
+      #
+      # Auth is `firecrawl login --browser` (or --api-key), a one-time
+      # interactive step like `gh auth login` — no env var to wire here.
+      - name: firecrawl
+        source: community
+        repo: "https://github.com/firecrawl/cli"
+        path: "skills/firecrawl"
+
+      # Its own script reads the bare SCRAPECREATORS_API_KEY straight from
+      # the process environment (not through Claude Code's ${VAR}
+      # substitution, which only applies to mcp: entries) — the name below
+      # must match exactly, no prefix. SKILL.md documents 13 more optional
+      # provider keys beyond this primary one; add one here only if needed.
+      - name: last30days
+        source: community
+        repo: "https://github.com/mvanhorn/last30days-skill"
+        path: "skills/last30days"
+        env:
+          SCRAPECREATORS_API_KEY:
+
+      # Generic YouTube search/channel-fetch primitive via the yt-dlp CLI —
+      # see the yt-dlp CLI itself, installed separately (not tracked in
+      # bundles.yaml this round).
+      - name: search-yt-dlp
+        source: local
+
+  # ---------------------------------------------------------------------------
+  # browser — general browser automation via the Playwright CLI's own
+  # plan/generate/heal workflow. CLI-driven, not an always-on MCP server —
+  # live exploratory browser/DOM control stays opt-in by nature.
+  # ---------------------------------------------------------------------------
+  - name: browser
+    description: Browser automation skill — general actions via the Playwright CLI
+    version: "0.1.0"
+    skills:
+      - name: playwright-cli
+        source: community
+        repo: "https://github.com/microsoft/playwright-cli"
+        path: "skills/playwright-cli"
+
+  # ---------------------------------------------------------------------------
   # integrations — every MCP server, every CLI that substitutes for one (with
   # its own skill), and every skill needing an externally-sourced credential,
   # in one place — so a config panel (not plugin install/uninstall) can be
