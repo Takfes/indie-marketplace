@@ -1,9 +1,0 @@
-{
-  "name": "integrations",
-  "description": "Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place",
-  "version": "0.1.0",
-  "author": {
-    "name": "Takis Fessas",
-    "url": "https://github.com/Takfes"
-  }
-}

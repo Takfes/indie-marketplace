@@ -74,12 +74,6 @@
       "source": "./plugins/browser"
     },
     {
-      "name": "integrations",
-      "description": "Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place",
-      "version": "0.1.0",
-      "source": "./plugins/integrations"
-    },
-    {
       "name": "codementor",
       "description": "Git workflow and code review skills \u2014 cleanup, commit hygiene, and review excellence",
       "version": "0.1.0",

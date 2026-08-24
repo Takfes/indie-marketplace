@@ -8,7 +8,7 @@
 # Source: https://github.com/JexinSam/mssql_mcp_server/blob/main/Dockerfile
 #
 # Build once locally:
-#   docker build -t indie-marketplace-mssql-mcp:local plugins/integrations/docker/mssql-mcp
+#   docker build -t indie-marketplace-mssql-mcp:local plugins/database/docker/mssql-mcp
 
 FROM python:3.12-slim AS source
 RUN apt-get update && apt-get install -y --no-install-recommends git \
