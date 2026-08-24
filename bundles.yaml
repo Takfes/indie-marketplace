@@ -586,6 +586,8 @@ plugins:
       #
       # Auth is `firecrawl login --browser` (or --api-key), a one-time
       # interactive step like `gh auth login` — no env var to wire here.
+      # Needs the `firecrawl` CLI itself, installed separately (not
+      # tracked in bundles.yaml this round).
       - name: firecrawl
         source: community
         repo: "https://github.com/firecrawl/cli"
@@ -618,6 +620,10 @@ plugins:
     description: Browser automation skill — general actions via the Playwright CLI
     version: "0.1.0"
     skills:
+      # Upstream's own CLI + skill: general browser actions plus its own
+      # CLI-driven plan/generate/heal workflow. Needs the `playwright-cli`
+      # CLI itself, installed separately (not tracked in bundles.yaml this
+      # round).
       - name: playwright-cli
         source: community
         repo: "https://github.com/microsoft/playwright-cli"
