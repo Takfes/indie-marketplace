@@ -33,7 +33,9 @@ Available plugins:
 | `frontend` | `/plugin install frontend@indie-marketplace` |
 | `database` | `/plugin install database@indie-marketplace` |
 | `azdevops` | `/plugin install azdevops@indie-marketplace` |
-| `integrations` | `/plugin install integrations@indie-marketplace` |
+| `research` | `/plugin install research@indie-marketplace` |
+| `web-search` | `/plugin install web-search@indie-marketplace` |
+| `browser` | `/plugin install browser@indie-marketplace` |
 | `codementor` | `/plugin install codementor@indie-marketplace` |
 | `superpowers` | `/plugin install superpowers@indie-marketplace` |
 
@@ -66,7 +68,9 @@ copilot plugin install skillcraft@indie-marketplace
 - [frontend](#plugin-frontend) — frontend design and UI craft skills — design, iterate, and critique frontend interfaces
 - [database](#plugin-database) — SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
 - [azdevops](#plugin-azdevops) — DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
-- [integrations](#plugin-integrations) — every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place
+- [research](#plugin-research) — research and reference MCP servers — Zotero library search and Google NotebookLM
+- [web-search](#plugin-web-search) — web search, scraping, and discovery skills — Exa semantic search, Firecrawl, recent social discussion, and YouTube lookup
+- [browser](#plugin-browser) — browser automation skill — general actions via the Playwright CLI
 - [codementor](#plugin-codementor) — git workflow and code review skills — cleanup, commit hygiene, and review excellence
 - [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
 
@@ -104,6 +108,14 @@ copilot plugin install skillcraft@indie-marketplace
 <a id="plugin-pythonista"></a>
 <details>
 <summary><strong>pythonista</strong> — Python development, packaging, testing, and refactoring skills</summary>
+
+**MCP servers:**
+
+| Server | Credential(s) | Description |
+|---|---|---|
+| `context7` | none | Up-to-date, version-specific library documentation lookup |
+
+**Skills:**
 
 | Skill | Source | Description |
 |---|---|---|
@@ -188,6 +200,17 @@ copilot plugin install skillcraft@indie-marketplace
 <details>
 <summary><strong>database</strong> — SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling</summary>
 
+**MCP servers:**
+
+| Server | Credential(s) | Description |
+|---|---|---|
+| `pgquery` | `PGQUERY_URI` | Dedicated Postgres MCP server, read-only validator |
+| `dbtools` | `DBTOOLS_CONFIG_PATH` | Multi-engine SQL server (Postgres/MySQL/MSSQL/BigQuery/...) |
+| `mysql-mcp` | `MYSQL_MCP_HOST`/`USER`/`PASS`/`DB` | Dedicated MySQL server, app-level write gate |
+| `mssql-mcp` | `MSSQL_MCP_HOST`/`DATABASE`/`USER`/`PASSWORD` | Dedicated MSSQL server, read-mostly |
+
+**Skills:**
+
 | Skill | Source | Description |
 |---|---|---|
 | `sql-code-review` | community | Review SQL for security, maintainability, and anti-patterns across MySQL, PostgreSQL, SQL Server, Oracle |
@@ -201,6 +224,17 @@ copilot plugin install skillcraft@indie-marketplace
 <details>
 <summary><strong>azdevops</strong> — DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps</summary>
 
+**MCP servers:**
+
+| Server | Credential(s) | Description |
+|---|---|---|
+| `azcloud` | none (`az login`) | Official Azure MCP server, 40+ services |
+| `azdevops` | `AZDEVOPS_ORG` | Official Azure DevOps MCP server |
+| `azaks` | `AZAKS_BIN` | Official AKS MCP server (downloaded binary) |
+| `azkusto` | `AZKUSTO_*` (5 vars) | Azure Data Explorer / Kusto, forced read-only |
+
+**Skills:**
+
 | Skill | Source | Description |
 |---|---|---|
 | `multi-stage-dockerfile` | community | Create optimized multi-stage Dockerfiles for any language or framework |
@@ -208,34 +242,32 @@ copilot plugin install skillcraft@indie-marketplace
 | `helm-chart-scaffolding` | community | Design, organize, and manage Helm charts for templating Kubernetes applications |
 | `kubernetes-specialist` | community | Deploy and manage Kubernetes workloads — manifests, RBAC, NetworkPolicies, GitOps |
 | `ci-cd-and-automation` | community | Set up CI/CD pipelines, quality gates, test runners, and deployment strategies |
-
-Its Azure DevOps MCP server and `azure-devops-cli` skill live in [integrations](#plugin-integrations) instead — see there for anything credential- or CLI-related.
+| `azure-devops-cli` | community | Azure DevOps CLI — repos, pipelines, builds, PRs, work items |
 
 </details>
 
-<a id="plugin-integrations"></a>
+<a id="plugin-research"></a>
 <details>
-<summary><strong>integrations</strong> — every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place</summary>
-
-Consolidates every MCP server, every CLI that substitutes for one, and every skill needing an externally-sourced credential — so a single plugin, not several, is the unit a future config panel opts in/out of per integration.
+<summary><strong>research</strong> — research and reference MCP servers — Zotero library search and Google NotebookLM</summary>
 
 **MCP servers:**
 
 | Server | Credential(s) | Description |
 |---|---|---|
-| `context7` | none | Up-to-date, version-specific library documentation lookup |
 | `zotero` | optional (local mode needs none) | Zotero library search and reference lookup |
 | `notebooklm` | none (`nlm login`) | CLI + MCP server for Google's Gemini Notebook (NotebookLM) |
+
+</details>
+
+<a id="plugin-web-search"></a>
+<details>
+<summary><strong>web-search</strong> — web search, scraping, and discovery skills — Exa semantic search, Firecrawl, recent social discussion, and YouTube lookup</summary>
+
+**MCP servers:**
+
+| Server | Credential(s) | Description |
+|---|---|---|
 | `exa` | `EXA_API_KEY` | Semantic web search and page fetch |
-| `pgquery` | `PGQUERY_URI` | Dedicated Postgres MCP server, read-only validator |
-| `dbtools` | `DBTOOLS_CONFIG_PATH` | Multi-engine SQL server (Postgres/MySQL/MSSQL/BigQuery/...) |
-| `mysql-mcp` | `MYSQL_MCP_HOST`/`USER`/`PASS`/`DB` | Dedicated MySQL server, app-level write gate |
-| `mssql-mcp` | `MSSQL_MCP_HOST`/`DATABASE`/`USER`/`PASSWORD` | Dedicated MSSQL server, read-mostly |
-| `azcloud` | none (`az login`) | Official Azure MCP server, 40+ services |
-| `azdevops` | `AZDEVOPS_ORG` | Official Azure DevOps MCP server |
-| `azaks` | `AZAKS_BIN` | Official AKS MCP server (downloaded binary) |
-| `azkusto` | `AZKUSTO_*` (5 vars) | Azure Data Explorer / Kusto, forced read-only |
-| `playwright` | none | Live exploratory browser/DOM control, opt-in |
 
 **Skills:**
 
@@ -243,19 +275,17 @@ Consolidates every MCP server, every CLI that substitutes for one, and every ski
 |---|---|---|---|
 | `firecrawl` | community | none (`firecrawl login`) | Firecrawl CLI for scraping and crawling |
 | `last30days` | community | `SCRAPECREATORS_API_KEY` | Recent public discussion across social platforms |
-| `yt-dlp` | local | none | YouTube search/lookup CLI primitive |
-| `playwright-cli` | community | none | General browser actions via the Playwright CLI |
-| `azure-devops-cli` | community | none (`az login`) | Azure DevOps CLI — repos, pipelines, builds, PRs, work items |
+| `search-yt-dlp` | local | none | YouTube search/channel-fetch CLI primitive |
 
-**CLI dependencies** (`deps:`):
+</details>
 
-| CLI | Install |
-|---|---|
-| `gh` | `brew install gh` |
-| `yt-dlp` | `brew install yt-dlp` |
-| `firecrawl` | `npm install -g firecrawl-cli@latest` |
-| `playwright-cli` | `npm install -g @playwright/cli@latest` |
-| `az` | `brew install azure-cli` |
+<a id="plugin-browser"></a>
+<details>
+<summary><strong>browser</strong> — browser automation skill — general actions via the Playwright CLI</summary>
+
+| Skill | Source | Description |
+|---|---|---|
+| `playwright-cli` | community | General browser actions via the Playwright CLI |
 
 </details>
 
@@ -313,7 +343,7 @@ Every plugin and every skill in this marketplace is declared in `bundles.yaml`. 
 - `source: local` — the skill lives in `skills/<name>/` in this repo, and you own it
 - `source: community` — the skill is fetched at build time from a `repo:` (git URL) and `path:` (subdirectory inside that repo)
 
-A plugin can also declare `mcp:` (hand-authored MCP servers), `env:` (credentials for a CLI a skill drives, with no server behind it), `deps:` (CLI tools tracked for install-status reporting), and `catalog: true` (generates a machine-readable summary of a plugin's `mcp:`/`skills:`/`deps:` entries). See `bundles.yaml`'s own header comments for the full field-by-field reference — `integrations` is the one plugin currently using all of these.
+A plugin can also declare `mcp:` (hand-authored MCP servers), `env:` (credentials for a CLI a skill drives, with no server behind it), `deps:` (CLI tools tracked for install-status reporting), and `catalog: true` (generates a machine-readable summary of a plugin's `mcp:`/`skills:`/`deps:` entries). See `bundles.yaml`'s own header comments for the full field-by-field reference — `pythonista`, `database`, `azdevops`, `research`, and `web-search` all declare `mcp:` and `catalog: true` today.
 
 Nothing outside `bundles.yaml` needs to be hand-edited to add, remove, or move a skill — `build.py` regenerates everything else from it.
 
