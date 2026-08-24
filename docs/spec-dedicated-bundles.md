@@ -1,7 +1,7 @@
 # Spec: Secrets & MCP/CLI Management — Dedicated Per-Plugin Bundles (Design A)
 
-> Alternative design, kept for comparison against `spec-integrations-bundle.md`. Not filed to
-> the issue tracker — local reference only.
+> Alternative design, kept for comparison against the integrations-bundle design that was
+> ultimately implemented. Not filed to the issue tracker — local reference only.
 
 ## Problem Statement
 

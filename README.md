@@ -26,15 +26,15 @@ Available plugins:
 |---|---|
 | `essentials` | `/plugin install essentials@indie-marketplace` |
 | `skillcraft` | `/plugin install skillcraft@indie-marketplace` |
-| `python` | `/plugin install python@indie-marketplace` |
-| `steering` | `/plugin install steering@indie-marketplace` |
+| `pythonista` | `/plugin install pythonista@indie-marketplace` |
+| `thinktank` | `/plugin install thinktank@indie-marketplace` |
 | `mattpocock` | `/plugin install mattpocock@indie-marketplace` |
-| `office` | `/plugin install office@indie-marketplace` |
+| `officetools` | `/plugin install officetools@indie-marketplace` |
 | `frontend` | `/plugin install frontend@indie-marketplace` |
 | `database` | `/plugin install database@indie-marketplace` |
 | `azdevops` | `/plugin install azdevops@indie-marketplace` |
 | `integrations` | `/plugin install integrations@indie-marketplace` |
-| `gitctrl` | `/plugin install gitctrl@indie-marketplace` |
+| `codementor` | `/plugin install codementor@indie-marketplace` |
 | `superpowers` | `/plugin install superpowers@indie-marketplace` |
 
 ### Other Agents
@@ -59,15 +59,15 @@ copilot plugin install skillcraft@indie-marketplace
 
 - [essentials](#plugin-essentials) — always-on baseline: session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills
 - [skillcraft](#plugin-skillcraft) — meta-skills for managing, creating, and distributing skills and agents
-- [python](#plugin-python) — Python development, packaging, testing, and refactoring skills
-- [steering](#plugin-steering) — thinking, planning, and ideation skills
+- [pythonista](#plugin-pythonista) — Python development, packaging, testing, and refactoring skills
+- [thinktank](#plugin-thinktank) — thinking, planning, and ideation skills
 - [mattpocock](#plugin-mattpocock) — Matt Pocock's engineering skills — spec-driven development, TDD, code review, architecture
-- [office](#plugin-office) — create and edit Office documents — docx, pdf, pptx, and xlsx
+- [officetools](#plugin-officetools) — create and edit Office documents — docx, pdf, pptx, and xlsx
 - [frontend](#plugin-frontend) — frontend design and UI craft skills — design, iterate, and critique frontend interfaces
 - [database](#plugin-database) — SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
 - [azdevops](#plugin-azdevops) — DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
 - [integrations](#plugin-integrations) — every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place
-- [gitctrl](#plugin-gitctrl) — git workflow and code review skills — cleanup, commit hygiene, and review excellence
+- [codementor](#plugin-codementor) — git workflow and code review skills — cleanup, commit hygiene, and review excellence
 - [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
 
 <a id="plugin-essentials"></a>
@@ -101,9 +101,9 @@ copilot plugin install skillcraft@indie-marketplace
 
 </details>
 
-<a id="plugin-python"></a>
+<a id="plugin-pythonista"></a>
 <details>
-<summary><strong>python</strong> — Python development, packaging, testing, and refactoring skills</summary>
+<summary><strong>pythonista</strong> — Python development, packaging, testing, and refactoring skills</summary>
 
 | Skill | Source | Description |
 |---|---|---|
@@ -116,9 +116,9 @@ copilot plugin install skillcraft@indie-marketplace
 
 </details>
 
-<a id="plugin-steering"></a>
+<a id="plugin-thinktank"></a>
 <details>
-<summary><strong>steering</strong> — Thinking, planning, and ideation skills</summary>
+<summary><strong>thinktank</strong> — Thinking, planning, and ideation skills</summary>
 
 | Skill | Source | Description |
 |---|---|---|
@@ -159,9 +159,9 @@ copilot plugin install skillcraft@indie-marketplace
 
 </details>
 
-<a id="plugin-office"></a>
+<a id="plugin-officetools"></a>
 <details>
-<summary><strong>office</strong> — create and edit Office documents — docx, pdf, pptx, and xlsx</summary>
+<summary><strong>officetools</strong> — create and edit Office documents — docx, pdf, pptx, and xlsx</summary>
 
 | Skill | Source | Description |
 |---|---|---|
@@ -217,7 +217,7 @@ Its Azure DevOps MCP server and `azure-devops-cli` skill live in [integrations](
 <details>
 <summary><strong>integrations</strong> — every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place</summary>
 
-Consolidates every MCP server, every CLI that substitutes for one, and every skill needing an externally-sourced credential — so a single plugin, not several, is the unit a future config panel opts in/out of per integration (see `docs/spec-integrations-bundle.md`).
+Consolidates every MCP server, every CLI that substitutes for one, and every skill needing an externally-sourced credential — so a single plugin, not several, is the unit a future config panel opts in/out of per integration.
 
 **MCP servers:**
 
@@ -259,9 +259,9 @@ Consolidates every MCP server, every CLI that substitutes for one, and every ski
 
 </details>
 
-<a id="plugin-gitctrl"></a>
+<a id="plugin-codementor"></a>
 <details>
-<summary><strong>gitctrl</strong> — git workflow and code review skills — cleanup, commit hygiene, and review excellence</summary>
+<summary><strong>codementor</strong> — git workflow and code review skills — cleanup, commit hygiene, and review excellence</summary>
 
 | Skill | Source | Description |
 |---|---|---|
