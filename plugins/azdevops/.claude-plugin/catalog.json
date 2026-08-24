@@ -58,5 +58,10 @@
     "name": "azure-devops-cli",
     "type": "skill",
     "env": []
+  },
+  {
+    "name": "az",
+    "type": "cli",
+    "env": []
   }
 ]

@@ -22,5 +22,15 @@
     "name": "search-yt-dlp",
     "type": "skill",
     "env": []
+  },
+  {
+    "name": "yt-dlp",
+    "type": "cli",
+    "env": []
+  },
+  {
+    "name": "firecrawl",
+    "type": "cli",
+    "env": []
   }
 ]

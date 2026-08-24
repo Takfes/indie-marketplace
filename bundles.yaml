@@ -517,12 +517,19 @@ plugins:
         repo: "https://github.com/addyosmani/agent-skills"
         path: "skills/ci-cd-and-automation"
 
-      # Needs the `az` CLI plus `az extension add --name azure-devops`
-      # (one-time, not tracked in bundles.yaml).
+      # Needs `az extension add --name azure-devops` (one-time, not tracked
+      # here) on top of the az CLI itself — see deps: below.
       - name: azure-devops-cli
         source: community
         repo: "https://github.com/github/awesome-copilot"
         path: "skills/azure-devops-cli"
+    deps:
+      # Shared by azcloud/azdevops/azaks/azkusto above (their MCP servers
+      # reuse an existing `az login` session) and azure-devops-cli's own
+      # skill.
+      - command: az
+        install: brew install azure-cli
+        manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
 
   # ---------------------------------------------------------------------------
   # research — reference-library and notebook MCP servers: Zotero library
@@ -586,8 +593,6 @@ plugins:
       #
       # Auth is `firecrawl login --browser` (or --api-key), a one-time
       # interactive step like `gh auth login` — no env var to wire here.
-      # Needs the `firecrawl` CLI itself, installed separately (not
-      # tracked in bundles.yaml this round).
       - name: firecrawl
         source: community
         repo: "https://github.com/firecrawl/cli"
@@ -606,10 +611,17 @@ plugins:
           SCRAPECREATORS_API_KEY:
 
       # Generic YouTube search/channel-fetch primitive via the yt-dlp CLI —
-      # see the yt-dlp CLI itself, installed separately (not tracked in
-      # bundles.yaml this round).
+      # see deps: below for the CLI itself.
       - name: search-yt-dlp
         source: local
+    deps:
+      - command: yt-dlp
+        install: brew install yt-dlp
+        manual: "https://github.com/yt-dlp/yt-dlp#installation"
+
+      - command: firecrawl
+        install: npm install -g firecrawl-cli@latest
+        manual: "https://docs.firecrawl.dev/sdks/cli"
 
   # ---------------------------------------------------------------------------
   # browser — general browser automation via the Playwright CLI's own
@@ -619,15 +631,19 @@ plugins:
   - name: browser
     description: Browser automation skill — general actions via the Playwright CLI
     version: "0.1.0"
+    catalog: true
     skills:
       # Upstream's own CLI + skill: general browser actions plus its own
-      # CLI-driven plan/generate/heal workflow. Needs the `playwright-cli`
-      # CLI itself, installed separately (not tracked in bundles.yaml this
-      # round).
+      # CLI-driven plan/generate/heal workflow — see deps: below for the
+      # CLI itself.
       - name: playwright-cli
         source: community
         repo: "https://github.com/microsoft/playwright-cli"
         path: "skills/playwright-cli"
+    deps:
+      - command: playwright-cli
+        install: npm install -g @playwright/cli@latest
+        manual: "https://github.com/microsoft/playwright-cli"
 
   # ---------------------------------------------------------------------------
   # codementor — git workflow and code review hygiene skills.
@@ -681,6 +697,7 @@ plugins:
   - name: essentials
     description: Always-on baseline — session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills
     version: "0.1.0"
+    catalog: true
     skills:
       # Custom skills (source of truth is skills/ in this repo)
       - name: onboard-project
@@ -711,3 +728,9 @@ plugins:
         source: community
         repo: "https://github.com/mattpocock/skills"
         path: "skills/productivity/teach"
+    deps:
+      # gh has no skill of its own in this marketplace — a bare catalog
+      # entry instead of a hand-authored one. `gh auth login` stays manual.
+      - command: gh
+        install: brew install gh
+        manual: "https://github.com/cli/cli#installation"

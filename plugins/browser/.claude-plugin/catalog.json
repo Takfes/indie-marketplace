@@ -1,0 +1,12 @@
+[
+  {
+    "name": "playwright-cli",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "playwright-cli",
+    "type": "cli",
+    "env": []
+  }
+]

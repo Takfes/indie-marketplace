@@ -1,0 +1,12 @@
+[
+  {
+    "command": "yt-dlp",
+    "install": "brew install yt-dlp",
+    "manual": "https://github.com/yt-dlp/yt-dlp#installation"
+  },
+  {
+    "command": "firecrawl",
+    "install": "npm install -g firecrawl-cli@latest",
+    "manual": "https://docs.firecrawl.dev/sdks/cli"
+  }
+]

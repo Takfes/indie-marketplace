@@ -1,0 +1,7 @@
+[
+  {
+    "command": "az",
+    "install": "brew install azure-cli",
+    "manual": "https://learn.microsoft.com/cli/azure/install-azure-cli"
+  }
+]
