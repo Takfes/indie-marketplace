@@ -1,0 +1,58 @@
+{
+  "mcpServers": {
+    "azcloud": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure/mcp@latest",
+        "server",
+        "start"
+      ]
+    },
+    "azdevops": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@azure-devops/mcp",
+        "${AZDEVOPS_ORG}",
+        "--authentication",
+        "azcli"
+      ],
+      "env": {
+        "AZDEVOPS_ORG": "${AZDEVOPS_ORG}"
+      }
+    },
+    "azaks": {
+      "command": "${AZAKS_BIN}",
+      "args": [
+        "--transport",
+        "stdio"
+      ],
+      "env": {
+        "AZAKS_BIN": "${AZAKS_BIN}"
+      }
+    },
+    "azkusto": {
+      "command": "env",
+      "args": [
+        "KUSTO_AUTH_METHOD=azure-identity",
+        "KUSTO_ALLOW_WRITE_OPERATIONS=false",
+        "KUSTO_CLUSTER_URL=${AZKUSTO_CLUSTER_URL}",
+        "KUSTO_DEFAULT_DATABASE=${AZKUSTO_DATABASE}",
+        "AZURE_TENANT_ID=${AZKUSTO_TENANT_ID}",
+        "AZURE_CLIENT_ID=${AZKUSTO_CLIENT_ID}",
+        "AZURE_CLIENT_SECRET=${AZKUSTO_CLIENT_SECRET}",
+        "npx",
+        "-y",
+        "kusto-mcp"
+      ],
+      "env": {
+        "AZKUSTO_CLUSTER_URL": "${AZKUSTO_CLUSTER_URL}",
+        "AZKUSTO_DATABASE": "${AZKUSTO_DATABASE}",
+        "AZKUSTO_TENANT_ID": "${AZKUSTO_TENANT_ID}",
+        "AZKUSTO_CLIENT_ID": "${AZKUSTO_CLIENT_ID}",
+        "AZKUSTO_CLIENT_SECRET": "${AZKUSTO_CLIENT_SECRET}"
+      }
+    }
+  }
+}

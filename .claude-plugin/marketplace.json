@@ -56,10 +56,22 @@
       "source": "./plugins/azdevops"
     },
     {
-      "name": "integrations",
-      "description": "Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place",
+      "name": "research",
+      "description": "Research and reference MCP servers \u2014 Zotero library search and Google NotebookLM",
       "version": "0.1.0",
-      "source": "./plugins/integrations"
+      "source": "./plugins/research"
+    },
+    {
+      "name": "web-search",
+      "description": "Web search, scraping, and discovery skills \u2014 Exa semantic search, Firecrawl, recent social discussion, and YouTube lookup",
+      "version": "0.1.0",
+      "source": "./plugins/web-search"
+    },
+    {
+      "name": "browser",
+      "description": "Browser automation skill \u2014 general actions via the Playwright CLI",
+      "version": "0.1.0",
+      "source": "./plugins/browser"
     },
     {
       "name": "codementor",

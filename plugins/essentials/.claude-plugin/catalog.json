@@ -1,0 +1,37 @@
+[
+  {
+    "name": "onboard-project",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "grill-me",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "grilling",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "handoff",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "caveman",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "teach",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "gh",
+    "type": "cli",
+    "env": []
+  }
+]

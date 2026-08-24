@@ -118,6 +118,12 @@ plugins:
   - name: pythonista
     description: Python development, packaging, testing, and refactoring skills
     version: "0.1.0"
+    catalog: true
+    mcp:
+      # Keyless on the free tier (lower rate limits); no env var required.
+      - name: context7
+        command: npx
+        args: ["-y", "@upstash/context7-mcp"]
     skills:
       - name: python-packaging
         source: community
@@ -273,115 +279,8 @@ plugins:
   - name: database
     description: SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
     version: "0.1.0"
-    skills:
-      - name: sql-code-review
-        source: community
-        repo: "https://github.com/github/awesome-copilot"
-        path: "skills/sql-code-review"
-
-      - name: sql-optimization
-        source: community
-        repo: "https://github.com/github/awesome-copilot"
-        path: "skills/sql-optimization"
-
-      - name: azure-kusto
-        source: community
-        repo: "https://github.com/microsoft/azure-skills"
-        path: "skills/azure-kusto"
-
-      - name: profiling-tables
-        source: community
-        repo: "https://github.com/astronomer/agents"
-        path: "skills/profiling-tables"
-
-  # ---------------------------------------------------------------------------
-  # azdevops — containers, Kubernetes, CI/CD, and Azure DevOps skills.
-  # ---------------------------------------------------------------------------
-  - name: azdevops
-    description: DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
-    version: "0.1.0"
-    skills:
-      - name: multi-stage-dockerfile
-        source: community
-        repo: "https://github.com/github/awesome-copilot"
-        path: "skills/multi-stage-dockerfile"
-
-      - name: devcontainer-setup
-        source: community
-        repo: "https://github.com/trailofbits/skills"
-        path: "plugins/devcontainer-setup/skills/devcontainer-setup"
-
-      - name: helm-chart-scaffolding
-        source: community
-        repo: "https://github.com/wshobson/agents"
-        path: "plugins/kubernetes-operations/skills/helm-chart-scaffolding"
-
-      - name: kubernetes-specialist
-        source: community
-        repo: "https://github.com/jeffallan/claude-skills"
-        path: "skills/kubernetes-specialist"
-
-      - name: ci-cd-and-automation
-        source: community
-        repo: "https://github.com/addyosmani/agent-skills"
-        path: "skills/ci-cd-and-automation"
-
-  # ---------------------------------------------------------------------------
-  # integrations — every MCP server, every CLI that substitutes for one (with
-  # its own skill), and every skill needing an externally-sourced credential,
-  # in one place — so a config panel (not plugin install/uninstall) can be
-  # the unit of opt-in/opt-out per integration. See
-  # docs/spec-integrations-bundle.md. gh, yt-dlp, firecrawl, and
-  # playwright-cli are real global CLI installs tracked via deps: below,
-  # alongside az (shared by azcloud/azdevops/azaks/azure-devops-cli).
-  # ---------------------------------------------------------------------------
-  - name: integrations
-    description: Every MCP server, CLI-as-MCP tool, and credentialed integration in the marketplace, in one opt-in-able place
-    version: "0.1.0"
     catalog: true
     mcp:
-      # Keyless on the free tier (lower rate limits); no env var required.
-      - name: context7
-        command: npx
-        args: ["-y", "@upstash/context7-mcp"]
-
-      # zotero-mcp (PyPI zotero-mcp, MIT). Defaults to local mode
-      # (ZOTERO_LOCAL=true hardcoded — a mode flag, not a secret) talking to
-      # a Zotero 7+ desktop app locally, needing zero credentials. The Web
-      # API vars below are only for remote/no-desktop-app setups; blank is
-      # safe since local mode wins regardless.
-      - name: zotero
-        command: env
-        args:
-          [
-            "ZOTERO_LOCAL=true",
-            "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
-            "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
-            "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
-            "zotero-mcp",
-          ]
-        env:
-          ZOTERO_API_KEY:
-          ZOTERO_LIBRARY_ID:
-          ZOTERO_LIBRARY_TYPE:
-
-      # Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM).
-      # `uv tool install notebooklm-mcp-cli` installs both an `nlm` CLI and
-      # this server binary. Uses undocumented internal APIs — can break on a
-      # Google-side change with no warning.
-      #
-      # No env var: run `nlm login` once (browser session, cookies persisted
-      # by the CLI itself); re-run if cookies expire (~2-4 weeks).
-      - name: notebooklm
-        command: notebooklm-mcp
-
-      # Semantic web search and page fetch via Exa's stdio MCP package.
-      - name: exa
-        command: npx
-        args: ["-y", "exa-mcp-server"]
-        env:
-          EXA_API_KEY:
-
       # Postgres-only, query-plan analysis + index tuning. Docker-only —
       # `uvx postgres-mcp` has an upstream bug.
       #
@@ -433,7 +332,7 @@ plugins:
       # write gate independent of the DB grant, same pattern as pgquery's
       # --access-mode. No published image; Dockerfile vendored at
       # docker/mysql-mcp/ (pinned commit — see that file). Build once:
-      #   docker build -t indie-marketplace-mysql-mcp:local plugins/integrations/docker/mysql-mcp
+      #   docker build -t indie-marketplace-mysql-mcp:local plugins/database/docker/mysql-mcp
       #
       # ALLOW_*_OPERATION flags are hardcoded false here, overriding the
       # image's own true defaults — non-configurable by design.
@@ -471,7 +370,7 @@ plugins:
       # so treat this as read-mostly, not read-only. No published image;
       # Dockerfile vendored at docker/mssql-mcp/ (pinned commit, also fixes
       # an upstream build bug). Build once:
-      #   docker build -t indie-marketplace-mssql-mcp:local plugins/integrations/docker/mssql-mcp
+      #   docker build -t indie-marketplace-mssql-mcp:local plugins/database/docker/mssql-mcp
       - name: mssql-mcp
         command: docker
         args:
@@ -494,7 +393,35 @@ plugins:
           MSSQL_MCP_DATABASE:
           MSSQL_MCP_USER:
           MSSQL_MCP_PASSWORD:
+    skills:
+      - name: sql-code-review
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/sql-code-review"
 
+      - name: sql-optimization
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/sql-optimization"
+
+      - name: azure-kusto
+        source: community
+        repo: "https://github.com/microsoft/azure-skills"
+        path: "skills/azure-kusto"
+
+      - name: profiling-tables
+        source: community
+        repo: "https://github.com/astronomer/agents"
+        path: "skills/profiling-tables"
+
+  # ---------------------------------------------------------------------------
+  # azdevops — containers, Kubernetes, CI/CD, and Azure DevOps skills.
+  # ---------------------------------------------------------------------------
+  - name: azdevops
+    description: DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
+    version: "0.1.0"
+    catalog: true
+    mcp:
       # Official Azure MCP server (microsoft/mcp), 40+ services. Auth via
       # an existing `az login` session — no env var.
       - name: azcloud
@@ -564,14 +491,100 @@ plugins:
           AZKUSTO_TENANT_ID:
           AZKUSTO_CLIENT_ID:
           AZKUSTO_CLIENT_SECRET:
+    skills:
+      - name: multi-stage-dockerfile
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/multi-stage-dockerfile"
 
-      # Live exploratory browser/DOM control — opt-in by nature. A plugin's
-      # .mcp.json servers all activate together on install, so this used to
-      # need its own plugin (browser-mcp) to stay separate from the
-      # always-on browser CLI skills below.
-      - name: playwright
+      - name: devcontainer-setup
+        source: community
+        repo: "https://github.com/trailofbits/skills"
+        path: "plugins/devcontainer-setup/skills/devcontainer-setup"
+
+      - name: helm-chart-scaffolding
+        source: community
+        repo: "https://github.com/wshobson/agents"
+        path: "plugins/kubernetes-operations/skills/helm-chart-scaffolding"
+
+      - name: kubernetes-specialist
+        source: community
+        repo: "https://github.com/jeffallan/claude-skills"
+        path: "skills/kubernetes-specialist"
+
+      - name: ci-cd-and-automation
+        source: community
+        repo: "https://github.com/addyosmani/agent-skills"
+        path: "skills/ci-cd-and-automation"
+
+      # Needs `az extension add --name azure-devops` (one-time, not tracked
+      # here) on top of the az CLI itself — see deps: below.
+      - name: azure-devops-cli
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/azure-devops-cli"
+    deps:
+      # Shared by azcloud/azdevops/azaks/azkusto above (their MCP servers
+      # reuse an existing `az login` session) and azure-devops-cli's own
+      # skill.
+      - command: az
+        install: brew install azure-cli
+        manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
+
+  # ---------------------------------------------------------------------------
+  # research — reference-library and notebook MCP servers: Zotero library
+  # search and Google's NotebookLM.
+  # ---------------------------------------------------------------------------
+  - name: research
+    description: Research and reference MCP servers — Zotero library search and Google NotebookLM
+    version: "0.1.0"
+    catalog: true
+    mcp:
+      # zotero-mcp (PyPI zotero-mcp, MIT). Defaults to local mode
+      # (ZOTERO_LOCAL=true hardcoded — a mode flag, not a secret) talking to
+      # a Zotero 7+ desktop app locally, needing zero credentials. The Web
+      # API vars below are only for remote/no-desktop-app setups; blank is
+      # safe since local mode wins regardless.
+      - name: zotero
+        command: env
+        args:
+          [
+            "ZOTERO_LOCAL=true",
+            "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
+            "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
+            "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
+            "zotero-mcp",
+          ]
+        env:
+          ZOTERO_API_KEY:
+          ZOTERO_LIBRARY_ID:
+          ZOTERO_LIBRARY_TYPE:
+
+      # Unified CLI + MCP server for Google's Gemini Notebook (NotebookLM).
+      # `uv tool install notebooklm-mcp-cli` installs both an `nlm` CLI and
+      # this server binary. Uses undocumented internal APIs — can break on a
+      # Google-side change with no warning.
+      #
+      # No env var: run `nlm login` once (browser session, cookies persisted
+      # by the CLI itself); re-run if cookies expire (~2-4 weeks).
+      - name: notebooklm
+        command: notebooklm-mcp
+
+  # ---------------------------------------------------------------------------
+  # web-search — semantic web search and page fetch, scraping, recent
+  # public discussion, and YouTube search/lookup.
+  # ---------------------------------------------------------------------------
+  - name: web-search
+    description: Web search, scraping, and discovery skills — Exa semantic search, Firecrawl, recent social discussion, and YouTube lookup
+    version: "0.1.0"
+    catalog: true
+    mcp:
+      # Semantic web search and page fetch via Exa's stdio MCP package.
+      - name: exa
         command: npx
-        args: ["-y", "@playwright/mcp@latest"]
+        args: ["-y", "exa-mcp-server"]
+        env:
+          EXA_API_KEY:
     skills:
       # Firecrawl's own umbrella skill — SKILL.md plus rules/. Deliberately
       # CLI + skill instead of Firecrawl's own MCP server: the skill teaches
@@ -597,33 +610,11 @@ plugins:
         env:
           SCRAPECREATORS_API_KEY:
 
-      # YouTube search/lookup primitive via the yt-dlp CLI (query search,
-      # single-video lookup, optional transcript fetch) — see deps: below
-      # for the CLI itself.
-      - name: yt-dlp
+      # Generic YouTube search/channel-fetch primitive via the yt-dlp CLI —
+      # see deps: below for the CLI itself.
+      - name: search-yt-dlp
         source: local
-
-      # Upstream's own CLI + skill: general browser actions plus its own
-      # CLI-driven plan/generate/heal workflow — see deps: below for the
-      # CLI itself.
-      - name: playwright-cli
-        source: community
-        repo: "https://github.com/microsoft/playwright-cli"
-        path: "skills/playwright-cli"
-
-      # See deps: below (az) for the CLI itself, plus
-      # `az extension add --name azure-devops` (one-time, not tracked here).
-      - name: azure-devops-cli
-        source: community
-        repo: "https://github.com/github/awesome-copilot"
-        path: "skills/azure-devops-cli"
     deps:
-      # gh has no skill of its own — a bare catalog entry instead of a
-      # hand-authored one. `gh auth login` stays manual.
-      - command: gh
-        install: brew install gh
-        manual: "https://github.com/cli/cli#installation"
-
       - command: yt-dlp
         install: brew install yt-dlp
         manual: "https://github.com/yt-dlp/yt-dlp#installation"
@@ -632,15 +623,27 @@ plugins:
         install: npm install -g firecrawl-cli@latest
         manual: "https://docs.firecrawl.dev/sdks/cli"
 
+  # ---------------------------------------------------------------------------
+  # browser — general browser automation via the Playwright CLI's own
+  # plan/generate/heal workflow. CLI-driven, not an always-on MCP server —
+  # live exploratory browser/DOM control stays opt-in by nature.
+  # ---------------------------------------------------------------------------
+  - name: browser
+    description: Browser automation skill — general actions via the Playwright CLI
+    version: "0.1.0"
+    catalog: true
+    skills:
+      # Upstream's own CLI + skill: general browser actions plus its own
+      # CLI-driven plan/generate/heal workflow — see deps: below for the
+      # CLI itself.
+      - name: playwright-cli
+        source: community
+        repo: "https://github.com/microsoft/playwright-cli"
+        path: "skills/playwright-cli"
+    deps:
       - command: playwright-cli
         install: npm install -g @playwright/cli@latest
         manual: "https://github.com/microsoft/playwright-cli"
-
-      # Shared by azcloud/azdevops/azaks above (their MCP servers reuse an
-      # existing `az login` session) and azure-devops-cli's own skill.
-      - command: az
-        install: brew install azure-cli
-        manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
 
   # ---------------------------------------------------------------------------
   # codementor — git workflow and code review hygiene skills.
@@ -694,6 +697,7 @@ plugins:
   - name: essentials
     description: Always-on baseline — session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills
     version: "0.1.0"
+    catalog: true
     skills:
       # Custom skills (source of truth is skills/ in this repo)
       - name: onboard-project
@@ -724,3 +728,9 @@ plugins:
         source: community
         repo: "https://github.com/mattpocock/skills"
         path: "skills/productivity/teach"
+    deps:
+      # gh has no skill of its own in this marketplace — a bare catalog
+      # entry instead of a hand-authored one. `gh auth login` stays manual.
+      - command: gh
+        install: brew install gh
+        manual: "https://github.com/cli/cli#installation"

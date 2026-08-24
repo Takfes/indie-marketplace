@@ -1,0 +1,23 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "exa-exa_api_key",
+      "description": "EXA_API_KEY",
+      "password": true
+    }
+  ],
+  "servers": {
+    "exa": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "exa-mcp-server"
+      ],
+      "env": {
+        "EXA_API_KEY": "${input:exa-exa_api_key}"
+      }
+    }
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "pgquery-pgquery_uri",
+      "description": "PGQUERY_URI",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "dbtools-dbtools_config_path",
+      "description": "DBTOOLS_CONFIG_PATH",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-mysql_mcp_host",
+      "description": "MYSQL_MCP_HOST",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-mysql_mcp_user",
+      "description": "MYSQL_MCP_USER",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-mysql_mcp_pass",
+      "description": "MYSQL_MCP_PASS",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mysql-mcp-mysql_mcp_db",
+      "description": "MYSQL_MCP_DB",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-mssql_mcp_host",
+      "description": "MSSQL_MCP_HOST",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-mssql_mcp_database",
+      "description": "MSSQL_MCP_DATABASE",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-mssql_mcp_user",
+      "description": "MSSQL_MCP_USER",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "mssql-mcp-mssql_mcp_password",
+      "description": "MSSQL_MCP_PASSWORD",
+      "password": true
+    }
+  ],
+  "servers": {
+    "pgquery": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "DATABASE_URI=${PGQUERY_URI}",
+        "crystaldba/postgres-mcp",
+        "--access-mode=restricted",
+        "--transport=stdio"
+      ],
+      "env": {
+        "PGQUERY_URI": "${input:pgquery-pgquery_uri}"
+      }
+    },
+    "dbtools": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-v",
+        "${DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+        "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
+        "--stdio",
+        "--config",
+        "/tools.yaml"
+      ],
+      "env": {
+        "DBTOOLS_CONFIG_PATH": "${input:dbtools-dbtools_config_path}"
+      }
+    },
+    "mysql-mcp": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "MYSQL_HOST=${MYSQL_MCP_HOST}",
+        "-e",
+        "MYSQL_USER=${MYSQL_MCP_USER}",
+        "-e",
+        "MYSQL_PASS=${MYSQL_MCP_PASS}",
+        "-e",
+        "MYSQL_DB=${MYSQL_MCP_DB}",
+        "-e",
+        "ALLOW_INSERT_OPERATION=false",
+        "-e",
+        "ALLOW_UPDATE_OPERATION=false",
+        "-e",
+        "ALLOW_DELETE_OPERATION=false",
+        "indie-marketplace-mysql-mcp:local"
+      ],
+      "env": {
+        "MYSQL_MCP_HOST": "${input:mysql-mcp-mysql_mcp_host}",
+        "MYSQL_MCP_USER": "${input:mysql-mcp-mysql_mcp_user}",
+        "MYSQL_MCP_PASS": "${input:mysql-mcp-mysql_mcp_pass}",
+        "MYSQL_MCP_DB": "${input:mysql-mcp-mysql_mcp_db}"
+      }
+    },
+    "mssql-mcp": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "MSSQL_HOST=${MSSQL_MCP_HOST}",
+        "-e",
+        "MSSQL_DATABASE=${MSSQL_MCP_DATABASE}",
+        "-e",
+        "MSSQL_USER=${MSSQL_MCP_USER}",
+        "-e",
+        "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
+        "indie-marketplace-mssql-mcp:local"
+      ],
+      "env": {
+        "MSSQL_MCP_HOST": "${input:mssql-mcp-mssql_mcp_host}",
+        "MSSQL_MCP_DATABASE": "${input:mssql-mcp-mssql_mcp_database}",
+        "MSSQL_MCP_USER": "${input:mssql-mcp-mssql_mcp_user}",
+        "MSSQL_MCP_PASSWORD": "${input:mssql-mcp-mssql_mcp_password}"
+      }
+    }
+  }
+}
