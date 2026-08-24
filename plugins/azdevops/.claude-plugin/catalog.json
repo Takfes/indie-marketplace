@@ -1,0 +1,62 @@
+[
+  {
+    "name": "azcloud",
+    "type": "mcp",
+    "env": []
+  },
+  {
+    "name": "azdevops",
+    "type": "mcp",
+    "env": [
+      "AZDEVOPS_ORG"
+    ]
+  },
+  {
+    "name": "azaks",
+    "type": "mcp",
+    "env": [
+      "AZAKS_BIN"
+    ]
+  },
+  {
+    "name": "azkusto",
+    "type": "mcp",
+    "env": [
+      "AZKUSTO_CLUSTER_URL",
+      "AZKUSTO_DATABASE",
+      "AZKUSTO_TENANT_ID",
+      "AZKUSTO_CLIENT_ID",
+      "AZKUSTO_CLIENT_SECRET"
+    ]
+  },
+  {
+    "name": "multi-stage-dockerfile",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "devcontainer-setup",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "helm-chart-scaffolding",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "kubernetes-specialist",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "ci-cd-and-automation",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "azure-devops-cli",
+    "type": "skill",
+    "env": []
+  }
+]

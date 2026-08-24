@@ -420,6 +420,77 @@ plugins:
   - name: azdevops
     description: DevOps and infrastructure skills — containers, Kubernetes, CI/CD, and Azure DevOps
     version: "0.1.0"
+    catalog: true
+    mcp:
+      # Official Azure MCP server (microsoft/mcp), 40+ services. Auth via
+      # an existing `az login` session — no env var.
+      - name: azcloud
+        command: npx
+        args: ["-y", "@azure/mcp@latest", "server", "start"]
+
+      # Official Azure DevOps MCP server (microsoft/azure-devops-mcp). Org
+      # name is a required positional arg, injected via ${...}.
+      # --authentication azcli reuses the same `az login` session as
+      # azcloud (upstream default is an interactive browser sign-in).
+      - name: azdevops
+        command: npx
+        args:
+          [
+            "-y",
+            "@azure-devops/mcp",
+            "${AZDEVOPS_ORG}",
+            "--authentication",
+            "azcli",
+          ]
+        env:
+          AZDEVOPS_ORG:
+
+      # Official AKS MCP server (Azure/aks-mcp) — a Go binary with no npm
+      # package; download a release from
+      # https://github.com/Azure/aks-mcp/releases/latest and point
+      # AZAKS_BIN at it. Auth: `az login` + kubeconfig, readonly by default.
+      - name: azaks
+        command: "${AZAKS_BIN}"
+        args: ["--transport", "stdio"]
+        env:
+          AZAKS_BIN:
+
+      # Azure Data Explorer / Kusto (johnib/kusto-mcp, npm) — picked over
+      # pab1it0/adx-mcp-server, which hands raw queries straight to the
+      # Kusto SDK with no read-only layer.
+      #
+      # KUSTO_ALLOW_WRITE_OPERATIONS=false is load-bearing: upstream
+      # defaults it true; setting it false enables a real validator
+      # rejecting every dot-command except the introspective .show family.
+      #
+      # Auth: fill in the three service-principal vars for an unattended
+      # identity, or leave them blank to fall through to managed identity
+      # then the same `az login` session azcloud/azdevops use.
+      #
+      # Caveat: reports anonymous usage telemetry to the maintainer (tool
+      # names, latency, salted tenant/user hashes — never query text or
+      # results); redirectable to your own OTLP collector, not disable-able.
+      - name: azkusto
+        command: env
+        args:
+          [
+            "KUSTO_AUTH_METHOD=azure-identity",
+            "KUSTO_ALLOW_WRITE_OPERATIONS=false",
+            "KUSTO_CLUSTER_URL=${AZKUSTO_CLUSTER_URL}",
+            "KUSTO_DEFAULT_DATABASE=${AZKUSTO_DATABASE}",
+            "AZURE_TENANT_ID=${AZKUSTO_TENANT_ID}",
+            "AZURE_CLIENT_ID=${AZKUSTO_CLIENT_ID}",
+            "AZURE_CLIENT_SECRET=${AZKUSTO_CLIENT_SECRET}",
+            "npx",
+            "-y",
+            "kusto-mcp",
+          ]
+        env:
+          AZKUSTO_CLUSTER_URL:
+          AZKUSTO_DATABASE:
+          AZKUSTO_TENANT_ID:
+          AZKUSTO_CLIENT_ID:
+          AZKUSTO_CLIENT_SECRET:
     skills:
       - name: multi-stage-dockerfile
         source: community
@@ -445,6 +516,13 @@ plugins:
         source: community
         repo: "https://github.com/addyosmani/agent-skills"
         path: "skills/ci-cd-and-automation"
+
+      # Needs the `az` CLI plus `az extension add --name azure-devops`
+      # (one-time, not tracked in bundles.yaml).
+      - name: azure-devops-cli
+        source: community
+        repo: "https://github.com/github/awesome-copilot"
+        path: "skills/azure-devops-cli"
 
   # ---------------------------------------------------------------------------
   # integrations — every MCP server, every CLI that substitutes for one (with
