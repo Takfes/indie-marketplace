@@ -113,9 +113,9 @@ plugins:
         path: "plugins/plugin-dev/skills/agent-development"
 
   # ---------------------------------------------------------------------------
-  # python — Python development skills
+  # pythonista — Python development skills
   # ---------------------------------------------------------------------------
-  - name: python
+  - name: pythonista
     description: Python development, packaging, testing, and refactoring skills
     version: "0.1.0"
     skills:
@@ -155,11 +155,11 @@ plugins:
         path: "plugins/python-development/skills/uv-package-manager"
 
   # ---------------------------------------------------------------------------
-  # steering — thinking, planning, and ideation skills
+  # thinktank — thinking, planning, and ideation skills
   # A mix of custom skills and community-sourced skills for structured thinking,
   # planning, and decision-making.
   # ---------------------------------------------------------------------------
-  - name: steering
+  - name: thinktank
     description: Thinking, planning, and ideation skills — custom and community-sourced
     version: "0.1.0"
     skills:
@@ -214,10 +214,10 @@ plugins:
         path: "skills/engineering/*"
 
   # ---------------------------------------------------------------------------
-  # office — Anthropic's document-format skills for creating and editing
+  # officetools — Anthropic's document-format skills for creating and editing
   # Office/PDF documents (docx, pdf, pptx, xlsx).
   # ---------------------------------------------------------------------------
-  - name: office
+  - name: officetools
     description: Create and edit Office documents — docx, pdf, pptx, and xlsx
     version: "0.1.0"
     skills:
@@ -643,9 +643,9 @@ plugins:
         manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
 
   # ---------------------------------------------------------------------------
-  # gitctrl — git workflow and code review hygiene skills.
+  # codementor — git workflow and code review hygiene skills.
   # ---------------------------------------------------------------------------
-  - name: gitctrl
+  - name: codementor
     description: Git workflow and code review skills — cleanup, commit hygiene, and review excellence
     version: "0.1.0"
     skills:

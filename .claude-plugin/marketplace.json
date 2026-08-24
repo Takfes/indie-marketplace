@@ -14,16 +14,16 @@
       "source": "./plugins/skillcraft"
     },
     {
-      "name": "python",
+      "name": "pythonista",
       "description": "Python development, packaging, testing, and refactoring skills",
       "version": "0.1.0",
-      "source": "./plugins/python"
+      "source": "./plugins/pythonista"
     },
     {
-      "name": "steering",
+      "name": "thinktank",
       "description": "Thinking, planning, and ideation skills \u2014 custom and community-sourced",
       "version": "0.1.0",
-      "source": "./plugins/steering"
+      "source": "./plugins/thinktank"
     },
     {
       "name": "mattpocock",
@@ -32,10 +32,10 @@
       "source": "./plugins/mattpocock"
     },
     {
-      "name": "office",
+      "name": "officetools",
       "description": "Create and edit Office documents \u2014 docx, pdf, pptx, and xlsx",
       "version": "0.1.0",
-      "source": "./plugins/office"
+      "source": "./plugins/officetools"
     },
     {
       "name": "frontend",
@@ -62,10 +62,10 @@
       "source": "./plugins/integrations"
     },
     {
-      "name": "gitctrl",
+      "name": "codementor",
       "description": "Git workflow and code review skills \u2014 cleanup, commit hygiene, and review excellence",
       "version": "0.1.0",
-      "source": "./plugins/gitctrl"
+      "source": "./plugins/codementor"
     },
     {
       "name": "superpowers",
