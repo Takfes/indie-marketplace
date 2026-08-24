@@ -279,6 +279,120 @@ plugins:
   - name: database
     description: SQL and data engineering skills — query review, optimization, Azure Kusto, and table profiling
     version: "0.1.0"
+    catalog: true
+    mcp:
+      # Postgres-only, query-plan analysis + index tuning. Docker-only —
+      # `uvx postgres-mcp` has an upstream bug.
+      #
+      # --access-mode=restricted is load-bearing: a second SQL validator
+      # rejects writes before Postgres sees them, independent of the DB
+      # role's own grant.
+      #
+      # The container's own env var name (DATABASE_URI) is fixed upstream,
+      # so the rename happens inline in args instead.
+      - name: pgquery
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "DATABASE_URI=${PGQUERY_URI}",
+            "crystaldba/postgres-mcp",
+            "--access-mode=restricted",
+            "--transport=stdio",
+          ]
+        env:
+          PGQUERY_URI:
+
+      # Multi-engine (Postgres/MySQL/MSSQL/BigQuery/...), configured via a
+      # tools.yaml mounted into the container — inherently user-specific, so
+      # this repo can't ship one. Point DBTOOLS_CONFIG_PATH at your own
+      # (absolute path — docker bind mounts reject relative ones).
+      # Format: https://googleapis.github.io/genai-toolbox/
+      - name: dbtools
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-v",
+            "${DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
+            "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
+            "--stdio",
+            "--config",
+            "/tools.yaml",
+          ]
+        env:
+          DBTOOLS_CONFIG_PATH:
+
+      # Dedicated MySQL (benborla/mcp-server-mysql, MIT) — an app-level
+      # write gate independent of the DB grant, same pattern as pgquery's
+      # --access-mode. No published image; Dockerfile vendored at
+      # docker/mysql-mcp/ (pinned commit — see that file). Build once:
+      #   docker build -t indie-marketplace-mysql-mcp:local plugins/database/docker/mysql-mcp
+      #
+      # ALLOW_*_OPERATION flags are hardcoded false here, overriding the
+      # image's own true defaults — non-configurable by design.
+      - name: mysql-mcp
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "MYSQL_HOST=${MYSQL_MCP_HOST}",
+            "-e",
+            "MYSQL_USER=${MYSQL_MCP_USER}",
+            "-e",
+            "MYSQL_PASS=${MYSQL_MCP_PASS}",
+            "-e",
+            "MYSQL_DB=${MYSQL_MCP_DB}",
+            "-e",
+            "ALLOW_INSERT_OPERATION=false",
+            "-e",
+            "ALLOW_UPDATE_OPERATION=false",
+            "-e",
+            "ALLOW_DELETE_OPERATION=false",
+            "indie-marketplace-mysql-mcp:local",
+          ]
+        env:
+          MYSQL_MCP_HOST:
+          MYSQL_MCP_USER:
+          MYSQL_MCP_PASS:
+          MYSQL_MCP_DB:
+
+      # Dedicated MSSQL (JexinSam/mssql_mcp_server, MIT) — query_sql regex-
+      # gates to SELECT/WITH/SHOW; execute_sql stays unrestricted upstream,
+      # so treat this as read-mostly, not read-only. No published image;
+      # Dockerfile vendored at docker/mssql-mcp/ (pinned commit, also fixes
+      # an upstream build bug). Build once:
+      #   docker build -t indie-marketplace-mssql-mcp:local plugins/database/docker/mssql-mcp
+      - name: mssql-mcp
+        command: docker
+        args:
+          [
+            "run",
+            "-i",
+            "--rm",
+            "-e",
+            "MSSQL_HOST=${MSSQL_MCP_HOST}",
+            "-e",
+            "MSSQL_DATABASE=${MSSQL_MCP_DATABASE}",
+            "-e",
+            "MSSQL_USER=${MSSQL_MCP_USER}",
+            "-e",
+            "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
+            "indie-marketplace-mssql-mcp:local",
+          ]
+        env:
+          MSSQL_MCP_HOST:
+          MSSQL_MCP_DATABASE:
+          MSSQL_MCP_USER:
+          MSSQL_MCP_PASSWORD:
     skills:
       - name: sql-code-review
         source: community

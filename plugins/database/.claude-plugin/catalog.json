@@ -1,0 +1,56 @@
+[
+  {
+    "name": "pgquery",
+    "type": "mcp",
+    "env": [
+      "PGQUERY_URI"
+    ]
+  },
+  {
+    "name": "dbtools",
+    "type": "mcp",
+    "env": [
+      "DBTOOLS_CONFIG_PATH"
+    ]
+  },
+  {
+    "name": "mysql-mcp",
+    "type": "mcp",
+    "env": [
+      "MYSQL_MCP_HOST",
+      "MYSQL_MCP_USER",
+      "MYSQL_MCP_PASS",
+      "MYSQL_MCP_DB"
+    ]
+  },
+  {
+    "name": "mssql-mcp",
+    "type": "mcp",
+    "env": [
+      "MSSQL_MCP_HOST",
+      "MSSQL_MCP_DATABASE",
+      "MSSQL_MCP_USER",
+      "MSSQL_MCP_PASSWORD"
+    ]
+  },
+  {
+    "name": "sql-code-review",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "sql-optimization",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "azure-kusto",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "profiling-tables",
+    "type": "skill",
+    "env": []
+  }
+]
