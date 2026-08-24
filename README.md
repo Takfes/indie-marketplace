@@ -89,6 +89,12 @@ copilot plugin install skillcraft@indie-marketplace
 | `hooks/notify` | local | Stop hook — sound alert when Claude finishes responding |
 | `hooks/permission-alert` | local | Notification hook — sound alert when a permission prompt is waiting |
 
+**CLI dependencies** (`deps:`):
+
+| CLI | Install |
+|---|---|
+| `gh` | `brew install gh` |
+
 </details>
 
 <a id="plugin-skillcraft"></a>
@@ -244,6 +250,12 @@ copilot plugin install skillcraft@indie-marketplace
 | `ci-cd-and-automation` | community | Set up CI/CD pipelines, quality gates, test runners, and deployment strategies |
 | `azure-devops-cli` | community | Azure DevOps CLI — repos, pipelines, builds, PRs, work items |
 
+**CLI dependencies** (`deps:`):
+
+| CLI | Install |
+|---|---|
+| `az` | `brew install azure-cli` |
+
 </details>
 
 <a id="plugin-research"></a>
@@ -277,6 +289,13 @@ copilot plugin install skillcraft@indie-marketplace
 | `last30days` | community | `SCRAPECREATORS_API_KEY` | Recent public discussion across social platforms |
 | `search-yt-dlp` | local | none | YouTube search/channel-fetch CLI primitive |
 
+**CLI dependencies** (`deps:`):
+
+| CLI | Install |
+|---|---|
+| `yt-dlp` | `brew install yt-dlp` |
+| `firecrawl` | `npm install -g firecrawl-cli@latest` |
+
 </details>
 
 <a id="plugin-browser"></a>
@@ -286,6 +305,12 @@ copilot plugin install skillcraft@indie-marketplace
 | Skill | Source | Description |
 |---|---|---|
 | `playwright-cli` | community | General browser actions via the Playwright CLI |
+
+**CLI dependencies** (`deps:`):
+
+| CLI | Install |
+|---|---|
+| `playwright-cli` | `npm install -g @playwright/cli@latest` |
 
 </details>
 
@@ -343,7 +368,7 @@ Every plugin and every skill in this marketplace is declared in `bundles.yaml`. 
 - `source: local` — the skill lives in `skills/<name>/` in this repo, and you own it
 - `source: community` — the skill is fetched at build time from a `repo:` (git URL) and `path:` (subdirectory inside that repo)
 
-A plugin can also declare `mcp:` (hand-authored MCP servers), `env:` (credentials for a CLI a skill drives, with no server behind it), `deps:` (CLI tools tracked for install-status reporting), and `catalog: true` (generates a machine-readable summary of a plugin's `mcp:`/`skills:`/`deps:` entries). See `bundles.yaml`'s own header comments for the full field-by-field reference — `pythonista`, `database`, `azdevops`, `research`, and `web-search` all declare `mcp:` and `catalog: true` today.
+A plugin can also declare `mcp:` (hand-authored MCP servers), `env:` (credentials for a CLI a skill drives, with no server behind it), `deps:` (CLI tools tracked for install-status reporting), and `catalog: true` (generates a machine-readable summary of a plugin's `mcp:`/`skills:`/`deps:` entries). See `bundles.yaml`'s own header comments for the full field-by-field reference — `pythonista`, `database`, `azdevops`, `research`, `web-search`, and `browser` declare `catalog: true` today (all but `browser` also declare `mcp:`), and `azdevops`, `web-search`, `browser`, and `essentials` declare `deps:`.
 
 Nothing outside `bundles.yaml` needs to be hand-edited to add, remove, or move a skill — `build.py` regenerates everything else from it.
 
