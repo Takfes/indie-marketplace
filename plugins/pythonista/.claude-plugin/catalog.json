@@ -1,0 +1,37 @@
+[
+  {
+    "name": "context7",
+    "type": "mcp",
+    "env": []
+  },
+  {
+    "name": "python-packaging",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-performance-optimization",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-refactor",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-simplifier",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-testing-patterns",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "uv-package-manager",
+    "type": "skill",
+    "env": []
+  }
+]

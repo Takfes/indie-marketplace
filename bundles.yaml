@@ -118,6 +118,12 @@ plugins:
   - name: pythonista
     description: Python development, packaging, testing, and refactoring skills
     version: "0.1.0"
+    catalog: true
+    mcp:
+      # Keyless on the free tier (lower rate limits); no env var required.
+      - name: context7
+        command: npx
+        args: ["-y", "@upstash/context7-mcp"]
     skills:
       - name: python-packaging
         source: community
