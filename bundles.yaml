@@ -179,6 +179,9 @@ plugins:
       - name: plan-and-critique
         source: local
 
+      - name: adversarial-review
+        source: local
+
       # Community skills (git-cloned on make fetch / make fetch-build)
       - name: llm-council
         source: community
@@ -701,6 +704,9 @@ plugins:
     skills:
       # Custom skills (source of truth is skills/ in this repo)
       - name: onboard-project
+        source: local
+
+      - name: tldr
         source: local
 
       # Community skills (git-cloned on make fetch / make fetch-build)

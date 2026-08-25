@@ -5,6 +5,11 @@
     "env": []
   },
   {
+    "name": "tldr",
+    "type": "skill",
+    "env": []
+  },
+  {
     "name": "grill-me",
     "type": "skill",
     "env": []
