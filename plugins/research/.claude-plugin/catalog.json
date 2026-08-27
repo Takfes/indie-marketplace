@@ -3,9 +3,21 @@
     "name": "zotero",
     "type": "mcp",
     "env": [
-      "ZOTERO_API_KEY",
-      "ZOTERO_LIBRARY_ID",
-      "ZOTERO_LIBRARY_TYPE"
+      {
+        "name": "ZOTERO_API_KEY",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "ZOTERO_LIBRARY_ID",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "ZOTERO_LIBRARY_TYPE",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {

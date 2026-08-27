@@ -21,15 +21,21 @@ How it works:
                       one mcpServers entry per declared server, plus a
                       .env.example template and a VS Code vscode-mcp.json.
   plugin `env:`     → env var names with no MCP server behind them (a CLI
-                      tool a skill drives). Reaches .env.example only.
+                      tool a skill drives). Reaches .env.example only. Each
+                      name maps to null (required, undescribed) or a
+                      {required, description} object.
   plugin `deps:`    → CLI tools a skill drives with no MCP server and no
                       env var either — validates the shape and writes them
                       verbatim to deps.json.
   `skills:`/`deps:` entries → may also carry their own `env:` map, same
                       shape as an `mcp:` entry's `env:`.
   plugin `catalog: true` → writes catalog.json: one {name, type, env}
-                      object per mcp:/skills:/deps: entry, env listing
-                      names only — for later tooling to consume.
+                      object per mcp:/skills:/deps: entry, env listing one
+                      {name, required, description} object per variable —
+                      for later tooling to consume.
+  duplicate env names → the same var name declared by more than one plugin
+                      fails the build, across every non-fetch build
+                      (including scoped `--plugin` ones).
   plugin `vendor:`  → whole-plugin vendoring: clones a third-party repo
                       and copies one of its plugin directories verbatim
                       into this plugin's root (manifest, LICENSE, NOTICE
@@ -436,6 +442,38 @@ def validate_deps(plugin: dict) -> None:
             sys.exit(1)
 
 
+def _env_declarations(plugin: dict) -> list[tuple[str, str]]:
+    """List (var name, source label) for every env var a plugin declares."""
+    decls = []
+    for entry in plugin.get("mcp") or []:
+        decls += [(var, f"mcp:{entry['name']}") for var in entry.get("env") or {}]
+    for entry in plugin.get("skills") or []:
+        decls += [(var, f"skills:{entry['name']}") for var in entry.get("env") or {}]
+    for entry in plugin.get("deps") or []:
+        decls += [(var, f"deps:{entry['command']}") for var in entry.get("env") or {}]
+    decls += [(var, "env") for var in plugin.get("env") or {}]
+    return decls
+
+
+def validate_no_duplicate_env_vars(config: dict) -> None:
+    """
+    Fail the build if the same env var name is declared by more than one
+    plugin. Variables are keyed globally by name, so a collision would make
+    two plugins silently share one credential.
+    """
+    by_var: dict[str, list[tuple[str, str]]] = {}
+    for plugin in config.get("plugins", []):
+        for var, label in _env_declarations(plugin):
+            by_var.setdefault(var, []).append((plugin["name"], label))
+
+    for var, occurrences in by_var.items():
+        plugin_names = {name for name, _ in occurrences}
+        if len(plugin_names) > 1:
+            where = ", ".join(f"{name} ({label})" for name, label in occurrences)
+            err(f"env var '{var}' is declared by more than one plugin: {where}")
+            sys.exit(1)
+
+
 def write_deps_json(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's deps.json from its `deps:` block in bundles.yaml.
@@ -484,6 +522,19 @@ def write_mcp_json(plugin: dict, plugin_dir: Path) -> None:
     ok(".mcp.json")
 
 
+def _normalize_env_var(meta: dict | None) -> tuple[bool, str | None]:
+    """
+    Normalize one `env:` value into (required, description).
+
+    A `null` value (bundles.yaml's original shape) means required and
+    undescribed. A mapping may override either field; both default to
+    required: true, description: None.
+    """
+    if meta is None:
+        return True, None
+    return meta.get("required", True), meta.get("description")
+
+
 def write_env_example(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's .env.example from every env var name it declares —
@@ -494,7 +545,8 @@ def write_env_example(plugin: dict, plugin_dir: Path) -> None:
     Names are emitted verbatim as declared in bundles.yaml, with empty values —
     this is a template, never a secret store. Real values live in a hand-kept
     .env that build.py neither reads nor writes, so this file is always safe
-    to overwrite wholesale.
+    to overwrite wholesale. Each variable's description (if any) and its
+    required/optional state are emitted as a comment above it.
     """
     groups = [
         (entry["name"], entry["env"])
@@ -524,7 +576,12 @@ def write_env_example(plugin: dict, plugin_dir: Path) -> None:
     for label, env in groups:
         if len(groups) > 1:
             lines.append(f"# {label}")
-        lines.extend(f"{var}=" for var in env)
+        for var, meta in env.items():
+            required, description = _normalize_env_var(meta)
+            note = " ".join(p for p in (description, None if required else "(optional)") if p)
+            if note:
+                lines.append(f"# {note}")
+            lines.append(f"{var}=")
         lines.append("")
 
     if not groups:
@@ -582,26 +639,35 @@ def write_vscode_mcp_json(plugin: dict, plugin_dir: Path) -> None:
     ok("vscode-mcp.json")
 
 
+def _catalog_env(env: dict | None) -> list[dict]:
+    """Build catalog.json's env list: one {name, required, description} object per variable."""
+    result = []
+    for var, meta in (env or {}).items():
+        required, description = _normalize_env_var(meta)
+        result.append({"name": var, "required": required, "description": description})
+    return result
+
+
 def write_catalog_json(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's catalog.json — one entry per `mcp:`/`skills:`/`deps:`
-    item, naming it, its type, and which env var names it needs (names only,
-    never values). Only written for a plugin declaring `catalog: true` in
-    bundles.yaml.
+    item, naming it, its type, and its env vars as {name, required,
+    description} objects (never values). Only written for a plugin
+    declaring `catalog: true` in bundles.yaml.
     """
     catalog = [
-        {"name": entry["name"], "type": "mcp", "env": list(entry.get("env") or {})}
+        {"name": entry["name"], "type": "mcp", "env": _catalog_env(entry.get("env"))}
         for entry in plugin.get("mcp") or []
     ]
     catalog += [
-        {"name": entry["name"], "type": "skill", "env": list(entry.get("env") or {})}
+        {"name": entry["name"], "type": "skill", "env": _catalog_env(entry.get("env"))}
         for entry in plugin.get("skills") or []
     ]
     catalog += [
         {
             "name": entry["command"],
             "type": "cli",
-            "env": list(entry.get("env") or {}),
+            "env": _catalog_env(entry.get("env")),
         }
         for entry in plugin.get("deps") or []
     ]
@@ -767,6 +833,7 @@ def main() -> None:
     args = parser.parse_args()
 
     config = load_config()
+    validate_no_duplicate_env_vars(config)
     plugins = config.get("plugins", [])
 
     if args.plugin:

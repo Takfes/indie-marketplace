@@ -3,34 +3,74 @@
     "name": "pgquery",
     "type": "mcp",
     "env": [
-      "PGQUERY_URI"
+      {
+        "name": "PGQUERY_URI",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
     "name": "dbtools",
     "type": "mcp",
     "env": [
-      "DBTOOLS_CONFIG_PATH"
+      {
+        "name": "DBTOOLS_CONFIG_PATH",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
     "name": "mysql-mcp",
     "type": "mcp",
     "env": [
-      "MYSQL_MCP_HOST",
-      "MYSQL_MCP_USER",
-      "MYSQL_MCP_PASS",
-      "MYSQL_MCP_DB"
+      {
+        "name": "MYSQL_MCP_HOST",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "MYSQL_MCP_USER",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "MYSQL_MCP_PASS",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "MYSQL_MCP_DB",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
     "name": "mssql-mcp",
     "type": "mcp",
     "env": [
-      "MSSQL_MCP_HOST",
-      "MSSQL_MCP_DATABASE",
-      "MSSQL_MCP_USER",
-      "MSSQL_MCP_PASSWORD"
+      {
+        "name": "MSSQL_MCP_HOST",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "MSSQL_MCP_DATABASE",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "MSSQL_MCP_USER",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "MSSQL_MCP_PASSWORD",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {

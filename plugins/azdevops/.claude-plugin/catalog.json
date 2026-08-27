@@ -8,25 +8,53 @@
     "name": "azdevops",
     "type": "mcp",
     "env": [
-      "AZDEVOPS_ORG"
+      {
+        "name": "AZDEVOPS_ORG",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
     "name": "azaks",
     "type": "mcp",
     "env": [
-      "AZAKS_BIN"
+      {
+        "name": "AZAKS_BIN",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
     "name": "azkusto",
     "type": "mcp",
     "env": [
-      "AZKUSTO_CLUSTER_URL",
-      "AZKUSTO_DATABASE",
-      "AZKUSTO_TENANT_ID",
-      "AZKUSTO_CLIENT_ID",
-      "AZKUSTO_CLIENT_SECRET"
+      {
+        "name": "AZKUSTO_CLUSTER_URL",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "AZKUSTO_DATABASE",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "AZKUSTO_TENANT_ID",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "AZKUSTO_CLIENT_ID",
+        "required": true,
+        "description": null
+      },
+      {
+        "name": "AZKUSTO_CLIENT_SECRET",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
