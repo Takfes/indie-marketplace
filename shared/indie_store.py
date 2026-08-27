@@ -29,7 +29,11 @@ def _empty_profiles() -> dict:
 
 def _atomic_write(path: Path, data: bytes, mode: int) -> None:
     parent = path.parent
-    parent.mkdir(parents=True, exist_ok=True)
+    old_umask = os.umask(0o077)
+    try:
+        parent.mkdir(parents=True, exist_ok=True)
+    finally:
+        os.umask(old_umask)
     os.chmod(parent, 0o700)
     tmp = path.with_name(f".{path.name}.tmp-{os.getpid()}")
     fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
