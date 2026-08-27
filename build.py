@@ -30,6 +30,12 @@ How it works:
   plugin `catalog: true` → writes catalog.json: one {name, type, env}
                       object per mcp:/skills:/deps: entry, env listing
                       names only — for later tooling to consume.
+  plugin `vendor:`  → whole-plugin vendoring: clones a third-party repo
+                      and copies one of its plugin directories verbatim
+                      into this plugin's root (manifest, LICENSE, NOTICE
+                      and all), optionally pinned to a ref. Skips the
+                      usual skill/hooks/mcp/deps/catalog dispatch and
+                      plugin.json owner-stamping.
 """
 
 import argparse
@@ -331,6 +337,93 @@ def fetch_community_hooks(hooks_cfg: dict, plugin_dir: Path, fetch: bool) -> Non
     ok("hooks  (community, fetched)")
 
 
+def fetch_vendor_plugin(vendor_cfg: dict, plugin_dir: Path, fetch: bool) -> None:
+    """
+    Vendor an entire third-party plugin: git-clone its repo and copy one of
+    its plugin directories verbatim into this plugin's root — manifest,
+    LICENSE, NOTICE, and all — unlike fetch_community_skill/
+    fetch_community_hooks, which fetch at skill/hooks granularity into a
+    fixed subfolder.
+
+    bundles.yaml fields (under a plugin's `vendor:` block):
+      repo — git URL to clone
+      path — subdirectory inside the repo containing the plugin
+      ref  — optional git tag/branch/sha to pin to (omit to track the
+             default branch)
+
+    Cache-aware like the other fetchers: skips re-cloning if the plugin's
+    own .claude-plugin/plugin.json is already present, unless fetch=True.
+    """
+    repo = vendor_cfg.get("repo", "").strip()
+    path = vendor_cfg.get("path", "").strip()
+    ref = vendor_cfg.get("ref", "").strip()
+    ref_label = f" @ {ref}" if ref else ""
+
+    already_cached = (plugin_dir / ".claude-plugin" / "plugin.json").exists()
+    if already_cached and not fetch:
+        ok("vendored plugin  (cached — run --fetch to update)")
+        return
+
+    if not repo or not path:
+        err("vendor — plugin's `vendor:` block missing `repo:` or `path:` in bundles.yaml")
+        sys.exit(1)
+
+    print(f"  Cloning {repo}{ref_label} (vendor: {path}) ...")
+    with tempfile.TemporaryDirectory() as tmpdir_str:
+        tmpdir = Path(tmpdir_str)
+        clone_cmd = ["git", "clone", "--depth", "1"]
+        if ref:
+            clone_cmd += ["--branch", ref]
+        clone_cmd += [repo, str(tmpdir)]
+        result = subprocess.run(clone_cmd, capture_output=True, text=True)
+
+        if result.returncode != 0 and ref:
+            # `ref` may be a bare sha, which a shallow --branch clone can't
+            # resolve — fall back to a full clone and an explicit checkout.
+            result = subprocess.run(
+                ["git", "clone", repo, str(tmpdir)], capture_output=True, text=True
+            )
+            if result.returncode == 0:
+                result = subprocess.run(
+                    ["git", "-C", str(tmpdir), "checkout", ref],
+                    capture_output=True,
+                    text=True,
+                )
+
+        if result.returncode != 0:
+            if already_cached:
+                warn("vendor — clone failed, using cached copy")
+                if result.stderr.strip():
+                    warn(f"  {result.stderr.strip()}")
+                return
+            err("vendor — git clone failed")
+            if result.stderr.strip():
+                err(f"  {result.stderr.strip()}")
+            sys.exit(1)
+
+        src = tmpdir / path
+        if not src.is_dir():
+            err(f"vendor — path '{path}' not found in {repo}")
+            sys.exit(1)
+
+        shutil.copytree(
+            src,
+            plugin_dir,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".git"),
+            dirs_exist_ok=True,
+        )
+
+    (plugin_dir / "SOURCE.md").write_text(
+        f"# Source\n\n"
+        f"- **Repo:** {repo}\n"
+        f"- **Path:** `{path}`\n"
+        f"- **Ref:** {ref or '(default branch)'}\n"
+        f"- **Fetched:** {date.today()}\n",
+        encoding="utf-8",
+    )
+    ok(f"vendored plugin  (fetched from {repo}{ref_label})")
+
+
 def validate_deps(plugin: dict) -> None:
     """
     Validate a plugin's `deps:` block — CLI tools its skills invoke directly
@@ -537,8 +630,17 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
     action = "Fetching community skills in" if fetch_only else "Building plugin"
     print(f"\n{BOLD}{action}: {name}{RESET}")
 
-    skills_dir = plugin_dir / "skills"
     plugin_dir.mkdir(parents=True, exist_ok=True)
+
+    vendor_cfg = plugin.get("vendor")
+    if vendor_cfg:
+        # Vendored plugins own their entire tree (including plugin.json,
+        # LICENSE, NOTICE) — skip skill/hooks/mcp/deps/catalog dispatch and
+        # this repo's usual owner-stamping of plugin.json.
+        fetch_vendor_plugin(vendor_cfg, plugin_dir, fetch=fetch or fetch_only)
+        return
+
+    skills_dir = plugin_dir / "skills"
     claude_plugin_dir.mkdir(exist_ok=True)
     skills_dir.mkdir(exist_ok=True)
 
