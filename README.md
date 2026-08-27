@@ -38,6 +38,7 @@ Available plugins:
 | `browser` | `/plugin install browser@indie-marketplace` |
 | `codementor` | `/plugin install codementor@indie-marketplace` |
 | `superpowers` | `/plugin install superpowers@indie-marketplace` |
+| `codex` | `/plugin install codex@indie-marketplace` |
 
 ### Other Agents
 
@@ -73,6 +74,7 @@ copilot plugin install skillcraft@indie-marketplace
 - [browser](#plugin-browser) — browser automation skill — general actions via the Playwright CLI
 - [codementor](#plugin-codementor) — git workflow and code review skills — cleanup, commit hygiene, and review excellence
 - [superpowers](#plugin-superpowers) — obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
+- [codex](#plugin-codex) — OpenAI's Codex CLI integration — review, rescue, and related commands (vendored from openai/codex-plugin-cc)
 
 <a id="plugin-essentials"></a>
 <details>
@@ -350,6 +352,30 @@ copilot plugin install skillcraft@indie-marketplace
 
 </details>
 
+<a id="plugin-codex"></a>
+<details>
+<summary><strong>codex</strong> — OpenAI's Codex CLI integration — review, rescue, and related commands (vendored from openai/codex-plugin-cc)</summary>
+
+Vendored whole from [`openai/codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) at `v1.0.6`, rather than built from this repo's usual skill entries — see [How It Works § Vendoring a Whole Plugin](#vendor-mechanism).
+
+| Command / Agent | Description |
+|---|---|
+| `/codex:review` | Run a Codex code review against local git state |
+| `/codex:adversarial-review` | Run a Codex review that challenges the implementation approach and design choices |
+| `/codex:rescue` | Delegate investigation, an explicit fix request, or follow-up rescue work to the Codex rescue subagent |
+| `/codex:transfer` | Transfer the current Claude Code session into a resumable Codex thread |
+| `/codex:status` | Show active and recent Codex jobs for this repository, including review-gate status |
+| `/codex:result` | Show the stored final output for a finished Codex job in this repository |
+| `/codex:cancel` | Cancel an active background Codex job in this repository |
+| `/codex:setup` | Check whether the local Codex CLI is ready and optionally toggle the stop-time review gate |
+| `codex-rescue` (subagent) | Handles deeper root-cause investigation or hands a substantial coding task to Codex through the shared runtime |
+
+**Prerequisites:** Node.js ≥18.18, and a separately-authenticated `codex` CLI (`codex login`) — unlike this marketplace's other plugins, this one runs its own `SessionStart`/`Stop` hooks on every session.
+
+**Cost warning:** the optional review-gate (`/codex:setup --enable-review-gate`) can create a long Claude↔Codex loop that burns usage quickly, per OpenAI's own documented warning. Off by default.
+
+</details>
+
 <a id="how-it-works"></a>
 
 ## 3. How It Works — Architecture and Build Pipeline
@@ -358,6 +384,7 @@ copilot plugin install skillcraft@indie-marketplace
 - [Build Script: build.py](#build-script)
 - [Repo Structure](#repo-structure)
 - [Local vs. Community Skill Resolution](#skill-resolution)
+- [Vendoring a Whole Plugin](#vendor-mechanism)
 
 <a id="source-of-truth"></a>
 
@@ -403,6 +430,14 @@ plugins/                        ← built output (commit after build)
 ### Local vs. Community Skill Resolution
 
 For a `community` skill, `build.py` first looks for the skill at the exact `path:` given in `bundles.yaml`. If that path doesn't contain a `SKILL.md`, it falls back to searching the whole cloned repo for a directory whose name matches the skill's `name`. The exact path is preferred — it fails loudly if upstream reorganizes their repo, rather than silently resolving to the wrong directory.
+
+<a id="vendor-mechanism"></a>
+
+### Vendoring a Whole Plugin
+
+A plugin's `vendor:` block is a different mechanism from `community` skills, and takes an entire third-party plugin wholesale instead of cherry-picking individual skills — see `superpowers` and `mattpocock` for the contrast: those curate a subset of skills from their upstream repos into a plugin of this repo's own, while `vendor:` clones a repo and copies one of its plugin directories in verbatim (its own `plugin.json`, `LICENSE`, `NOTICE`, and any other files) as one sealed unit, optionally pinned to a git tag/branch/sha.
+
+Because the vendored copy's own manifest is authoritative, `build.py` skips its usual owner-stamping of `plugin.json` and any skill/hooks/mcp/deps/catalog dispatch for that plugin — the upstream author stays attributed and the vendored files are free to be hand-edited afterward without being clobbered by the next build. `codex` (vendored from `openai/codex-plugin-cc`) is the first plugin built this way.
 
 <a id="maintaining"></a>
 
