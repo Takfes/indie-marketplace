@@ -3,7 +3,11 @@
     "name": "exa",
     "type": "mcp",
     "env": [
-      "EXA_API_KEY"
+      {
+        "name": "EXA_API_KEY",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
@@ -15,7 +19,11 @@
     "name": "last30days",
     "type": "skill",
     "env": [
-      "SCRAPECREATORS_API_KEY"
+      {
+        "name": "SCRAPECREATORS_API_KEY",
+        "required": true,
+        "description": null
+      }
     ]
   },
   {
