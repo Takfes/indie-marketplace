@@ -86,6 +86,12 @@
       "source": "./plugins/superpowers"
     },
     {
+      "name": "codex",
+      "description": "OpenAI's Codex CLI integration \u2014 review, rescue, and related commands (vendored from openai/codex-plugin-cc)",
+      "version": "1.0.6",
+      "source": "./plugins/codex"
+    },
+    {
       "name": "essentials",
       "description": "Always-on baseline \u2014 session lifecycle hooks plus everyday grilling, handoff, onboarding, and terse-mode skills",
       "version": "0.1.0",
