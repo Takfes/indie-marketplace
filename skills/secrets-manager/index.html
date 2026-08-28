@@ -992,14 +992,24 @@
     saveBtn.className = "btn btn-small";
     saveBtn.textContent = "Save";
     saveBtn.addEventListener("click", function () {
+      // An empty string is stored as a distinct override but is falsy, so
+      // resolution always falls through to base anyway (see server.py's
+      // _resolve_value / resolver.py's resolve_value) — treat a blank
+      // input as "no override" rather than creating an inert set-here
+      // entry that would misleadingly read as overridden.
+      var clearing = input.value === "";
       var payload = {};
-      payload[varName] = input.value;
+      payload[varName] = clearing ? null : input.value;
       api("POST", "/api/profile/" + encodeURIComponent(state.selectedProfile), { values: payload })
         .then(function () { return refreshProfiles(); })
         .then(function () {
           renderProjects();
           renderGrid();
-          showBanner("success", varName + " saved for “" + state.selectedProfile + "”.");
+          var blankOutcome = state.selectedProfile === BASE ? "left unset." : "inherited from base.";
+          var message = clearing
+            ? varName + " left blank — " + blankOutcome
+            : varName + " saved for “" + state.selectedProfile + "”.";
+          showBanner("success", message);
         })
         .catch(function (err) { showBanner("error", err.message); });
     });
