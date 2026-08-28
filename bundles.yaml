@@ -198,6 +198,18 @@ plugins:
       - name: python-scan
         source: local
 
+      # Layer 1 (judgment) of the pythonista pipeline. Merged from
+      # mattpocock/code-review (two-axis skeleton, parallel dispatch, Fowler
+      # smell baseline), codementor/code-review-excellence (severity
+      # taxonomy, harvested — source skill left in place), and
+      # existential-birds/beagle's python-code-review +
+      # review-verification-protocol (Gates workflow, anti-confabulation
+      # gate 0, valid-patterns/context-sensitive tables) — none vendored,
+      # harvest-don't-vendor per the pythonista v2 plan. Hand-maintained —
+      # see skills/python-review/ for the source of truth.
+      - name: python-review
+        source: local
+
       # Originally fetched from community (https://github.com/wshobson/agents,
       # plugins/python-development/skills/python-testing-patterns); now
       # synthesized with TDD methodology from the mattpocock and superpowers

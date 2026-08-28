@@ -2,14 +2,15 @@
 name: python-workflow
 description: >
   Run the pythonista pipeline against Python code via one of three recipes
-  — critique (read-only scan -> report, the default with no recipe named),
-  tidy (safe-tier mutation: scan -> patterns -> quality-tools -> verify,
-  with an approval checkpoint before any write), or ship-it (scan ->
-  document -> patterns -> quality-tools -> optional deep work -> verify ->
-  commit). Use for a health check or review baseline (critique), a
-  low-risk cleanup pass (tidy), or a full mutate-and-commit pass
-  (ship-it). With no recipe named, always run critique — only run tidy or
-  ship-it when the user names that recipe explicitly.
+  — critique (read-only scan -> review -> report, the default with no
+  recipe named), tidy (safe-tier mutation: scan -> patterns ->
+  quality-tools -> verify, with an approval checkpoint before any write),
+  or ship-it (scan -> document -> patterns -> quality-tools -> optional
+  deep work -> verify -> commit). Use for a health check or review
+  baseline (critique), a low-risk cleanup pass (tidy), or a full
+  mutate-and-commit pass (ship-it). With no recipe named, always run
+  critique — only run tidy or ship-it when the user names that recipe
+  explicitly.
 ---
 
 # Python Workflow
@@ -20,7 +21,7 @@ Orchestrator for the pythonista pipeline. One skill, a recipe argument selects w
 
 | Recipe | Pipeline |
 |---|---|
-| `critique` (default) | `scan -> report` — read-only, zero checkpoints |
+| `critique` (default) | `scan -> review -> report` — read-only, zero checkpoints |
 | `tidy` | `scan -> [approve plan] -> patterns -> quality-tools -> verify -> [approve terminal act]` |
 | `ship-it` | `scan -> [approve plan] -> document -> patterns -> quality-tools -> [elect deep work] -> verify -> [approve commit] -> git-commit` |
 
@@ -28,14 +29,15 @@ Orchestrator for the pythonista pipeline. One skill, a recipe argument selects w
 
 `tidy` and `ship-it` hand off to `python-document`, `python-patterns`, and `python-quality-tools` by name. None of the three exist yet in this marketplace (tracked separately). Until they ship, running either recipe past the plan checkpoint will fail to find those skills — say so plainly and stop rather than improvising their behavior yourself.
 
-## `critique` — scan -> report
+## `critique` — scan -> review -> report
 
 1. Run `python-scan`'s entry point against the target path (path relative to this skill's own directory — resolve it from wherever this skill was loaded):
    `../python-scan/scripts/analyze_all.py <path> --format json`
-2. Run it again with `--format text` (or reformat the JSON output yourself) to produce the reader-facing report: severity breakdown, category breakdown, and the highest-severity findings with `file:line`.
-3. Present the report to the user. Do not propose fixes, do not edit any file, and never pass `--output` to the scan — this recipe writes zero files, always.
+2. Run `python-review` against the same target, passing it the scan's JSON report so it doesn't re-report what `python-scan` already flagged (see `python-review`'s own `SKILL.md`, Dispatch). `python-review` picks diff or module mode itself from what the user named — pass that choice through rather than deciding it here.
+3. Build the reader-facing report: run the scan again with `--format text` (or reformat the JSON yourself) for its severity breakdown, category breakdown, and highest-severity findings with `file:line`, then append `python-review`'s `## Standards` / `## Contract` sections verbatim underneath.
+4. Present the report to the user. Do not propose fixes, do not edit any file, and never pass `--output` to the scan — this recipe writes zero files, always.
 
-A later revision adds a `review` stage between scan and report (`python-review`, once it exists) and a report line recommending `python-architecture` by name for whole-module structural concerns (once it exists). Neither skill exists yet — `critique` today is exactly `scan -> report`, nothing else.
+A later revision adds a report line recommending `python-architecture` by name for whole-module structural concerns, once that skill exists — `critique` doesn't reach for it automatically.
 
 ## Checkpoints
 
