@@ -282,6 +282,51 @@ def test_project_must_be_absolute_path(live_server):
     assert status == 400
 
 
+def test_non_string_value_is_rejected_cleanly_not_a_crash(live_server):
+    server, store_home = live_server
+    status, body = server.post("/api/profile/base", {"values": {"MY_VAR": 123}})
+    assert status == 400
+    assert not (store_home / "profiles.json").exists()
+
+    status, body = server.post("/api/profile/base", {"values": {"MY_VAR": "ok"}, "projects": "not-a-list"})
+    assert status == 400
+    assert not (store_home / "profiles.json").exists()
+
+    # the connection must still be usable afterward — a crashed handler
+    # thread must not have corrupted server state
+    status, body = server.get("/api/catalog")
+    assert status == 200
+
+
+def test_non_string_active_profile_is_rejected_cleanly(live_server):
+    server, _ = live_server
+    status, body = server.post("/api/active", {"profile": ["not", "a", "string"]})
+    assert status == 400
+
+
+def test_non_string_rename_target_is_rejected_cleanly(live_server):
+    server, _ = live_server
+    server.post("/api/profile/client-a", {"values": {}})
+    status, body = server.post("/api/profile/client-a/rename", {"to": 123})
+    assert status == 400
+
+
+def test_non_object_request_body_is_rejected_cleanly(live_server):
+    server, _ = live_server
+    data = json.dumps(["not", "an", "object"]).encode()
+    req = urllib.request.Request(
+        f"{server.base_url}/api/profile/base",
+        data=data,
+        method="POST",
+        headers={**server._headers(), "Content-Type": "application/json"},
+    )
+    try:
+        urllib.request.urlopen(req, timeout=5)
+        assert False, "expected HTTPError"
+    except urllib.error.HTTPError as e:
+        assert e.code == 400
+
+
 def test_base_cannot_be_renamed_or_deleted(live_server):
     server, _ = live_server
     status, _ = server.post("/api/profile/base/rename", {"to": "renamed"})

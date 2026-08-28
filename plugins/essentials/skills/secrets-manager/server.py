@@ -206,10 +206,14 @@ class Handler(BaseHTTPRequestHandler):
         if not raw:
             return {}
         try:
-            return json.loads(raw)
+            body = json.loads(raw)
         except json.JSONDecodeError:
             self._send_json(400, {"error": "invalid JSON"})
             return None
+        if not isinstance(body, dict):
+            self._send_json(400, {"error": "request body must be a JSON object"})
+            return None
+        return body
 
     # -- routing --------------------------------------------------------
 
@@ -291,6 +295,13 @@ class Handler(BaseHTTPRequestHandler):
         values = body.get("values") or {}
         projects = body.get("projects")
 
+        if not isinstance(values, dict) or not all(v is None or isinstance(v, str) for v in values.values()):
+            self._send_json(400, {"error": "values must be an object of string or null"})
+            return
+        if projects is not None and (not isinstance(projects, list) or not all(isinstance(p, str) for p in projects)):
+            self._send_json(400, {"error": "projects must be a list of strings"})
+            return
+
         catalog_vars = _catalog_var_names(build_catalog())
         unknown = sorted(k for k in values if k not in catalog_vars)
         if unknown:
@@ -327,7 +338,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(400, {"error": "base cannot be renamed"})
             return
         new_name = body.get("to")
-        if not new_name or not SLUG_RE.match(new_name):
+        if not isinstance(new_name, str) or not SLUG_RE.match(new_name):
             self._send_json(400, {"error": "invalid new name"})
             return
 
@@ -366,7 +377,7 @@ class Handler(BaseHTTPRequestHandler):
     def _handle_set_active(self, body: dict) -> None:
         name = body.get("profile")
         profiles = indie_store.load_profiles().get("profiles", {})
-        if not name or name not in profiles:
+        if not isinstance(name, str) or name not in profiles:
             self._send_json(400, {"error": "unknown profile"})
             return
         indie_store.write_active(name)
