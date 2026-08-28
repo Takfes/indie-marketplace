@@ -8,6 +8,7 @@ Personal Claude Code skill marketplace. All plugins are defined in `bundles.yaml
 2. [What's Included — Plugins and Their Skills](#whats-included) — what each plugin contains
 3. [How It Works — Architecture and Build Pipeline](#how-it-works) — how `bundles.yaml` and `build.py` fit together
 4. [Maintaining the Marketplace](#maintaining) — how to add skills/plugins and test changes before pushing
+5. [Credentials and Secrets](#credentials-and-secrets) — where credentials live and how to configure them
 
 <a id="installing-plugins"></a>
 
@@ -499,3 +500,17 @@ Before pushing, verify the build output and try the plugin locally:
    ```
 3. Invoke the skill in a session to confirm it triggers and behaves as expected
 4. Once satisfied, commit and push
+
+<a id="credentials-and-secrets"></a>
+
+## 5. Credentials and Secrets
+
+Any plugin whose `mcp:`/`skills:`/`deps:` entries declare `env:` needs credentials to work — a Postgres connection string, an API key. Nothing is exported by hand and nothing is written into a project folder: every credential lives in one file, `~/.indie-marketplace/profiles.json` (mode `0600`), edited through a local browser UI, never through terminal prompts and never through a value passed to Claude.
+
+**Open the editor.** Ask Claude to open the secrets manager (the skill ships with the `essentials` plugin) — it starts a local server and hands you a `127.0.0.1` link with a one-time token. Claude relays that link and nothing else; every value you type is read by your own browser, never by the model.
+
+**Global vs. per-project.** Credentials are grouped into named **profiles**. `base` holds your defaults and applies everywhere. A project-specific profile (e.g. `client-a`) overrides only the variables that differ for it — a database URI, say — and inherits everything else from `base`. Bind a profile to a project directory once, and opening Claude Code inside that directory selects it automatically; no per-session typing required. Working outside a bound directory, or need to override one for a single session? `INDIE_PROFILE=client-a claude` — or add a shell function once, `cc() { INDIE_PROFILE="$1" claude; }`, and run `cc client-a`.
+
+At session start, Claude gets a quiet, value-blind nudge about any tool that's *partially* configured (some but not all of its required variables set) — never about one you haven't touched at all.
+
+Full design — store layout, resolution order, how the generated wrapper scripts keep secrets out of `argv`, and what was deliberately rejected — is documented in [`docs/secrets-architecture.md`](docs/secrets-architecture.md).
