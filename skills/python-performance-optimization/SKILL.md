@@ -43,6 +43,61 @@ Comprehensive guide to profiling, analyzing, and optimizing Python code for bett
 - **Caching**: Avoid redundant computation
 - **Native Extensions**: C/Rust for critical paths
 
+## Workflow: Baseline -> Prove -> Profile -> Propose -> Approve -> Optimize -> Compare
+
+This skill's discipline: never edit code to make it "faster" without evidence a real bottleneck
+exists, and never past the approval gate without the user seeing the specific proposal first.
+
+### 1. Baseline
+
+Before touching anything, measure how the target performs today. Run it under
+`scripts/profile_report.py` (or a `timeit` measurement, for a single expression) against
+representative input, and record the number — this is what "improved" gets measured against
+later, not a guess.
+
+### 2. Prove there's a problem
+
+The baseline must show a *named* bottleneck — a specific function, line, or allocation, not a
+general feeling that something is slow. If profiling doesn't surface a hotspot proportionate to
+the effort of optimizing, **stop here and say so**. Refusing to invent a problem to justify
+optimizing is the point of this step, not a formality.
+
+### 3. Profile
+
+With a real problem confirmed, profile it in enough depth to name the exact hot path — pick the
+tool from "Choosing a Profiler" below that answers the specific question (CPU vs. memory, dev vs.
+production, function-level vs. line-level).
+
+### 4. Propose
+
+Write a short proposal before writing any code: what will change, which strategy from Best
+Practices it draws on, and the expected win — referencing the exact function(s)/line(s) the
+profile named. No edits yet.
+
+### 5. Approve — hard gate
+
+Wait for explicit approval of the step-4 proposal before changing anything. This is the enforced
+gate this skill was missing: never optimize without first showing baseline evidence and getting
+the specific change approved, not a general "go ahead."
+
+### 6. Optimize
+
+Apply exactly what was approved, one change at a time. No drive-by changes beyond the approved
+proposal, and no "while I'm in here" cleanup — that's `python-patterns`'/`python-refactor`'s job,
+not this skill's.
+
+### 7. Re-benchmark
+
+Re-run the same baseline measurement — same input, same conditions — against the optimized code.
+
+### 8. Compare
+
+Run `scripts/compare_benchmarks.py <baseline_file> <optimized_file> <bench_data_module>` to
+quantify the win against a regression threshold (default 10%). Report the before/after numbers
+and the verdict plainly, including a regression if the "optimization" made things worse. If no
+test suite exists to confirm the optimized code is still correct, say so explicitly rather than
+claiming behavior is unchanged.
+
 ## Quick Start
 
 ### Basic Timing
@@ -73,8 +128,8 @@ print(f"Average time: {execution_time/100:.6f} seconds")
 
 ## Analysis Scripts
 
-Two stdlib-only scripts turn profiling from manual pstats-reading into a report or
-a live view, no third-party dependencies required.
+Three stdlib-only scripts turn profiling from manual pstats-reading into a report, a live
+view, or a before/after verdict — no third-party dependencies required.
 
 ```bash
 # Run a script under cProfile + tracemalloc and get a Markdown report of the
@@ -88,6 +143,11 @@ python scripts/profile_report.py --top 10 --output report.md my_script.py [scrip
 # redirected to a log file (path printed at the end) so it doesn't tear up
 # the redrawing dashboard.
 python scripts/live_dashboard.py --interval 0.5 --log samples.json -- python my_script.py [args...]
+
+# Workflow step 8 (Compare): time the same function(s) in a baseline file and
+# an optimized file, using a companion module for each function's test input,
+# and flag a regression past the threshold.
+python scripts/compare_benchmarks.py baseline.py optimized.py bench_data.py --threshold 10
 ```
 
 `profile_report.py` runs the target twice — once under cProfile, once under
@@ -150,3 +210,4 @@ tier above is insufficient.
 |--------|-----------------|
 | `profile_report.py` | Runs a target script under cProfile + tracemalloc, produces a Markdown report of top CPU/memory hotspots with a rule-based explanation and proposal for each |
 | `live_dashboard.py` | Spawns a command, samples its RSS memory and CPU% via `ps`, redraws a live terminal dashboard with a memory sparkline, prints a summary on exit |
+| `compare_benchmarks.py` | Workflow step 8: times matching functions in a baseline file and an optimized file via a companion bench-data module, reports before/after and flags a regression past a threshold. Ported from `python-refactor`'s `benchmark_changes.py` |
