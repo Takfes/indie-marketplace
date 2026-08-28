@@ -45,6 +45,11 @@
     "env": []
   },
   {
+    "name": "python-architecture",
+    "type": "skill",
+    "env": []
+  },
+  {
     "name": "python-testing-patterns",
     "type": "skill",
     "env": []

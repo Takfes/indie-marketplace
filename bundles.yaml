@@ -234,6 +234,16 @@ plugins:
       - name: python-document
         source: local
 
+      # Deep-work, explicit-call-only structural critique: interface depth,
+      # the deletion test, seam placement. Harvests only mattpocock/
+      # codebase-design's deletion test and module/interface/seam vocabulary
+      # (glossary + three principles) — its CONTEXT.md/ADR requirement, the
+      # essentials/grilling loop, and the self-contained HTML report are all
+      # dropped in favor of structured findings. See
+      # skills/python-architecture/ for the source of truth.
+      - name: python-architecture
+        source: local
+
       # Originally fetched from community (https://github.com/wshobson/agents,
       # plugins/python-development/skills/python-testing-patterns); now
       # synthesized with TDD methodology from the mattpocock and superpowers
