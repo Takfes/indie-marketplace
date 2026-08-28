@@ -10,6 +10,11 @@
     "env": []
   },
   {
+    "name": "secrets-manager",
+    "type": "skill",
+    "env": []
+  },
+  {
     "name": "grill-me",
     "type": "skill",
     "env": []
