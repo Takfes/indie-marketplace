@@ -131,7 +131,9 @@ copilot plugin install skillcraft@indie-marketplace
 | `python-packaging` | community | Structure and publish distributable Python packages to PyPI |
 | `python-performance-optimization` | local | Profile and optimize Python code with cProfile, tracemalloc, and modern tools — includes an automated hotspot report and a live CPU/memory dashboard |
 | `python-refactor` | local | Restructure tangled code into a clear equivalent while preserving correctness — structural moves only |
+| `python-scan` | local | Run deterministic, read-only Python code analyzers — complexity, documentation coverage, code smells, dead code, duplication, and more — into one structured report |
 | `python-testing-patterns` | local | Write a pytest suite for finished Python code — coverage planning, disciplined mocking, and testing anti-patterns |
+| `python-workflow` | local | Orchestrate the pythonista pipeline via `critique` (read-only), `tidy` (safe-tier cleanup), or `ship-it` (cleanup + commit) recipes |
 | `uv-package-manager` | community | Manage dependencies, virtual environments, and workflows with uv |
 
 </details>
