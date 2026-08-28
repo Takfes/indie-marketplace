@@ -185,21 +185,18 @@ plugins:
       - name: python-performance-optimization
         source: local
 
+      # Originally fetched from community (https://github.com/acaprino/alfio-claude-plugins,
+      # plugins/python-development/skills/python-refactor); now trimmed to
+      # structural moves only and hand-maintained — see
+      # skills/python-refactor/ for the source of truth.
       - name: python-refactor
-        source: community
-        repo: "https://github.com/acaprino/alfio-claude-plugins"
-        path: "plugins/python-development/skills/python-refactor"
+        source: local
 
       # Layer 0 of the pythonista pipeline — deterministic analyzers only.
       # Consolidated from python-simplifier's and python-refactor's own
       # analyzer scripts — see skills/python-scan/ for the source of truth.
       - name: python-scan
         source: local
-
-      - name: python-simplifier
-        source: community
-        repo: "https://github.com/charlesmsiegel/tg"
-        path: ".claude/skills/python-simplifier"
 
       # Originally fetched from community (https://github.com/wshobson/agents,
       # plugins/python-development/skills/python-testing-patterns); now
