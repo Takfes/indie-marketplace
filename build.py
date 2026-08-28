@@ -73,6 +73,7 @@ PLUGINS_DIR = ROOT / "plugins"
 BUNDLES_FILE = ROOT / "bundles.yaml"
 MARKETPLACE_FILE = ROOT / ".claude-plugin" / "marketplace.json"
 RESOLVER_SRC = ROOT / "shared" / "resolver.py"
+INDIE_STORE_SRC = ROOT / "shared" / "indie_store.py"
 
 GREEN = "\033[92m"
 YELLOW = "\033[93m"
@@ -118,6 +119,11 @@ def build_local_skill(skill: dict, plugin_dir: Path) -> None:
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
         dirs_exist_ok=True,
     )
+    if name == "secrets-manager":
+        # server.py runs standalone in the installed plugin tree, with no
+        # access to this repo's shared/ — copy its one runtime dependency
+        # alongside it, mirroring resolver.py's per-wrapper copy in write_bin().
+        shutil.copy2(INDIE_STORE_SRC, dst / "indie_store.py")
     ok(f"{name}  (local)")
 
 
