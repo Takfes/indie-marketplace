@@ -11,13 +11,18 @@ merge decisions held up; enforcement did not — every safety rule was prose wit
 behind it, and two cherry-pick table rows were factually wrong when checked against the actual
 scripts. Both classes of problem are fixed below.
 
-**Standing caveat, load-bearing:** `affaan-m/everything-claude-code` and
-`existential-birds/beagle` have never actually been fetched — they appear nowhere in
-`bundles.yaml` or the tree. Every claim about what beagle's evidence gate or affaan-m's idiom
-categories actually contain (including the "actual prize" framing below) is **unverified**
-until the prior plan's own step 1 ("fetch and read the two new upstreams") runs. Everything
-attributed to mattpocock, codementor, python-simplifier, and python-refactor below *was*
-independently re-verified against the real files by the adversarial reviewer.
+**Provenance note, resolved:** `affaan-m/everything-claude-code` and
+`existential-birds/beagle` have now been independently fetched and read twice — once during
+initial cherry-picking, once again as a targeted re-verification pass with citations, after the
+adversarial review correctly noted no persistent evidence trail existed for either. Every claim
+below attributed to them is now citation-backed (file/section references). One genuine miss
+from the first pass is folded in below: beagle's evidence gate references a sibling skill,
+`review-verification-protocol`, that does exist and was not read the first time — it turns out
+to be the actual substance behind beagle's "prize" framing, not just a name-check. Residual gap:
+beagle's `pep8-style.md`, `type-safety.md`, `async-patterns.md`, and `error-handling.md`
+reference files, and affaan-m's non-English/mirror directories, remain unread — low-value, not
+blocking. Neither upstream is vendored in `bundles.yaml` or the tree, correctly, per the
+harvest-don't-vendor rule.
 
 Inputs: `pythonista-plugin-design-chatgpt.md`, `pythonista-plugin-design-claude.md`, and
 `pythonista-plugin-plan.md` (the prior synthesis of the first two), all in this same `docs/`
@@ -180,13 +185,31 @@ checks syntax, not content, and content is what the recipes now branch on.
 
 ## Cherry-pick findings (grounded in the actual source files where verified — see the standing caveat above for what isn't)
 
-### `python-review` ← mattpocock/code-review + codementor/code-review-excellence + beagle/python-code-review *(beagle unverified — see caveat)*
+### `python-review` ← mattpocock/code-review + codementor/code-review-excellence + beagle/python-code-review + beagle/review-verification-protocol
 
 | Source | Keep | Skip |
 |---|---|---|
 | mattpocock/code-review | Two-axis Standards/Spec report shape; parallel sub-agent dispatch so axes don't pollute each other; 12-smell Fowler baseline, each with a fix hint; "repo standard overrides baseline" rule | The diff-fixed-point mechanism as the *only* mode — must also run against a standalone finished module |
 | codementor/code-review-excellence | Severity taxonomy (blocking/important/nit/suggestion/learning/praise) | All interpersonal/mentoring content — zero agentic value. **Retirement proposal dropped** (see below) — leave the source skill in place in `codementor` |
-| beagle/python-code-review *(unverified)* | Claimed: Scope → false-positive screen → Evidence (`FILE:LINE` mandatory) → Verification → Ship gate | Claimed: Python taxonomy — would route to `python-quality-tools` if confirmed |
+| beagle/python-code-review | Confirmed verbatim: the 5-step Gates workflow (Scope → false-positive screen → Evidence `[FILE:LINE]` mandatory → Verification protocol → Ship). "Valid Patterns — do NOT flag" list confirmed, 5 items. "Context-Sensitive Rules" confirmed but narrower than first implied — a 2-row table (generic exception handling, unused variables), not a broad framework | Its Python mechanical taxonomy — ruff/mypy-coverable, routed to `python-quality-tools` |
+| **beagle/review-verification-protocol** *(new — the actual missed prize)* | This is what beagle's gate 4 actually references and nobody read the first pass. **Anti-confabulation gate 0**, run before any other check: echo the exact `file:line` and the code *read fresh this turn* — never from recollection or branch-name inference. Exists specifically because "an LLM under contextual priming will confidently flag code that is not in the file." This is the single most concrete, most valuable technique found across either upstream — it's the actual mechanism that makes an evidence gate work, not just the shape of one. Also: per-issue-type verification recipes (Unused Variable, Missing Validation, Type Assertion, Memory Leak/Race, Performance Issue) each with a checklist and named common false positives; Severity Calibration (Critical/Major/Minor/Informational, explicit inclusion criteria, a hard "Do NOT Flag At All" list, and a rule that Informational items never count toward an actionable-issue total); richer domain-split Valid-Patterns tables (Python-specific rows: `dict.get(key, [])`, `Optional[T]`, `cast()` after narrowing) | Non-Python-specific false-positive examples (React state setters, etc.) — filter to the Python-relevant subset |
+
+**Spine, updated:** mattpocock's two-axis skeleton + smell baseline → codementor's severity
+labels as presentation → beagle's Gates shape as the report structure → **`review-verification-protocol`'s anti-confabulation gate 0 as the actual enforcement**,
+run first, before any finding is allowed to reach the Gates pipeline at all: no finding may be
+reported without the reviewer having just re-read the exact lines it cites, in this pass, not
+from memory. Everything after gate 0 (severity calibration, per-issue-type verification,
+domain-split valid-patterns tables) is beagle's, harvested wholesale rather than reimplemented,
+since the earlier "reimplement inline, don't take the dependency" call turns out to have been
+about a skill we hadn't actually read.
+
+**Overlap correction:** the earlier claim that beagle's checklist duplicated affaan-m's
+Anti-Patterns table "near line-for-line" was overstated — only mutable default arguments
+actually overlap between beagle's SKILL.md-level checklist and affaan-m's table. `type()` vs.
+`isinstance`, `== None`, and `import *` are unique to affaan-m. Does not change the routing
+decision (affaan-m's table still goes to `python-quality-tools`, not duplicated as prose here)
+but the reasoning for it changes: not "avoid a near-duplicate," but "these are all
+ruff-coverable and belong where fixes actually happen."
 
 **Correction:** the earlier retirement proposal for `codementor/code-review-excellence` used
 different reasoning than the paragraph keeping `git-commit` in the same plugin, despite both
@@ -204,12 +227,12 @@ that always has input: **Contract** — does the code do what its own docstrings
 hints claim? Two lenses now fire in the primary use case, and `python-review-lens` (below) has
 two real dispatch targets instead of one that's usually empty.
 
-### `python-patterns` ← affaan-m/python-patterns *(unverified — see caveat)* + python-simplifier prose
+### `python-patterns` ← affaan-m/python-patterns + python-simplifier prose
 
 | Source | Keep | Skip |
 |---|---|---|
 | python-simplifier (prose) | The spine: Simplification Principles, before/after catalog (Extract-and-Name, Early Returns, Comprehensions, Dictionary Techniques, Context Managers), Over-Engineering anti-patterns, "when NOT to simplify" | — |
-| affaan-m/python-patterns *(unverified)* | Claimed: idiom categories simplifier lacks (EAFP vs. LBYL, type-hint depth, dataclasses/NamedTuple, decorators, `__slots__`/generator memory idioms) | Claimed: concurrency section → performance's territory; Anti-Patterns table → ruff-coverable (B006/E721/E711), route to `python-quality-tools` instead of duplicating as prose |
+| affaan-m/python-patterns | Confirmed, every category present: EAFP vs. LBYL, type-hint depth (Protocol/TypeVar/modern syntax), dataclasses/NamedTuple, decorators, `__slots__`/generator memory idioms, the 10-row quick-reference table. **Newly added, not previously claimed**: Custom Exception Hierarchy pattern (`AppError` → `ValidationError`/`NotFoundError` base classes) and exception chaining (`raise ... from e`) — concrete and idiomatic, nothing else in this cherry-pick covers it | Anti-Patterns table (mutable defaults, `type()`/`isinstance`, `==None`, plus two the first pass missed — bare `except` and `import *`) — all five map to real ruff rules (B006, E721, E711, E722, F403) — route to `python-quality-tools`, don't duplicate as prose. Import Conventions section — that's isort/ruff `I001` territory, also `python-quality-tools`, not `python-packaging` as might be assumed. Concurrency section (threading/multiprocessing/async) — kept out of `python-patterns` on the same reasoning as before (high-stakes correctness, not an everyday-pass idiom), though flagged as the one judgment call here that's genuinely arguable rather than clean-cut |
 
 **Second prose duplication the prior plan missed:** `python-simplifier`'s "Early Returns" /
 "Dictionary Techniques" overlap `python-refactor`'s catalog entries "Guard Clauses" /
@@ -279,26 +302,42 @@ precondition chain (unlike the three-plugin architecture chain that motivated ow
 It lives in `codementor`, whose own stated purpose is "git workflow and code review hygiene
 skills" — already the right home. No change proposed.
 
-## Subagent profiles — deferred
+## Subagent dispatch — in-skill instructions, not static profile files
 
-The original proposal (`python-review-lens`, `python-performance-profiler`) overclaimed on two
-points, both corrected:
+The original proposal (standalone `python-review-lens.md` / `python-performance-profiler.md`
+agent files) was reconsidered after checking how Anthropic's own reference plugin,
+`anthropics/claude-code`'s `code-review` plugin, implements the identical need — parallel
+independent review lenses with false-positive filtering. **It ships zero `agents/*.md` files.**
+The whole pattern lives as plain dispatch instructions inside one prompt (their case: a
+slash-command; ours: a skill), which spawns Agent-tool subagents on demand, each with an inline
+persona and constraints written into the prompt at dispatch time — exactly how this repo's own
+`adversarial-review` skill already works.
 
-1. **`build.py` cannot currently produce a `plugins/pythonista/agents/` directory.** Local
-   skills come from repo-root `skills/<name>/`, copied by a path that never reaches an
-   `agents/` subdirectory; the one existing example, `plugins/codex/agents/`, exists only
-   because that whole plugin is vendored wholesale (`vendor:` copies its entire tree, bypassing
-   the normal skill-by-skill dispatch). Shipping local agent profiles for pythonista needs a
-   real `agents:` block in `build.py`, mirroring `skills:` — a build-mechanism change, not two
-   static files as originally claimed. It's also not yet confirmed that Claude Code reads a
-   plugin-root `agents/` directory at all, independent of the build question.
-2. `skillcraft/skills/agent-development`, if it exists in this marketplace, is a more natural
-   house-style authority to check than `codex-rescue.md` before authoring one.
+**This resolves the build-mechanism question entirely — no `build.py` `agents:` block needed.**
+Confirmed separately: Claude Code *does* read a plugin-root `agents/` directory (official docs,
+lowest-priority scope, drops hooks/mcpServers/permissionMode — irrelevant here since neither
+use case needs them) — but that mechanism isn't even required for this design, since nothing
+is being pre-authored as a static file.
 
-**Deferred, not built this pass.** Worth revisiting once `python-review` actually has two
-lenses that fire without a spec (Standards + Contract, per the fix above) — at that point
-`python-review-lens` has a real justification and the `build.py` change can be scoped
-alongside it.
+**`python-review`'s own `SKILL.md` carries the dispatch instructions** for its two lenses
+(Standards, Contract): spawn two parallel Agent-tool subagents, one per axis, using
+Anthropic's proven refinements rather than beagle's vaguer "gate" framing —
+- **Numeric confidence scoring (0-100, threshold 80)** as the false-positive filter, concrete
+  and provenly-working, in place of a suppression-list-only approach.
+- **A second validation pass**: every flagged issue is re-checked by a fresh subagent before it
+  ships, layered on top of `review-verification-protocol`'s anti-confabulation gate 0 (re-read
+  the cited lines fresh, this pass) — two independent defenses against hallucinated findings,
+  not one.
+- **Model tier matched to task weight**: sonnet for the Standards/Contract compliance lenses,
+  opus for anything judgment-heavy enough to warrant it, matching Anthropic's own
+  haiku/sonnet/opus split by task.
+
+**`python-performance-optimization`'s `SKILL.md` carries a similar one-liner**: run the
+profiling job in an isolated Agent-tool subagent so a long, verbose profiling pass doesn't fill
+the main session's context. Same non-mechanism: no static file, no build change.
+
+No profile-equivalent instructions for `python-architecture`/`python-refactor`/
+`python-testing-patterns` — single-session, explicit-call, no fan-out need.
 
 ## Open items — all resolved
 
@@ -317,9 +356,10 @@ alongside it.
    `python-refactor`'s `compare_metrics.py` / `benchmark_changes.py` pattern, once that script's
    own import fix from the `python-scan` table above lands) instead of reinventing one.
 
-This plan is now finalized pending the still-standing caveat noted at the top: `affaan-m` and
-`beagle` remain unfetched, so the `python-review` and `python-patterns` cherry-pick rows
-attributed to them are provisional until build step 1 runs and either confirms or corrects them.
+This plan is now finalized. The `affaan-m`/`beagle` provenance caveat is resolved (see the top
+of this document) — both were independently read and cross-checked twice, with citations; the
+one residual gap (beagle's untouched reference files, affaan-m's mirror directories) is
+low-value and non-blocking, not a reason to hold the plan open further.
 
 ## Build order
 
@@ -331,7 +371,7 @@ never reached.
 
 | # | Step | Verify |
 |---|---|---|
-| 1 | Fetch and read `affaan-m/everything-claude-code` and `existential-birds/beagle` for harvesting. Read only — do not add as `community` entries yet. | Source notes captured; the cherry-pick tables above get their "unverified" flags removed or corrected |
+| 1 | ~~Fetch and read `affaan-m/everything-claude-code` and `existential-birds/beagle`~~ — **done**, twice, with citations (see cherry-pick tables above, including `beagle/review-verification-protocol`, found on the second pass). Neither added as a `community` entry, per the harvest-don't-vendor rule. | Satisfied |
 | 2 | `python-scan` — port `analyze_all.py` as entry point, consolidate the 7 keeper analyzers, fix `find_code_smells.py` scope, use refactor's tuned thresholds | Runs on this repo and a scratch project; output matches a golden-test fixture, not just "parses" |
 | **2a** | **`python-workflow` — `critique` only.** `scan → report`, no `review` yet, no checkpoints (read-only). | `python-workflow critique` runs end-to-end on a scratch project, writes zero files |
 | 3 | `python-quality-tools` — the fix loop | Runs against a deliberately dirty scratch project; loop converges |
