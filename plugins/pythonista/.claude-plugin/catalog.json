@@ -30,6 +30,21 @@
     "env": []
   },
   {
+    "name": "python-quality-tools",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-patterns",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-document",
+    "type": "skill",
+    "env": []
+  },
+  {
     "name": "python-testing-patterns",
     "type": "skill",
     "env": []

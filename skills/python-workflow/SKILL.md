@@ -27,7 +27,7 @@ Orchestrator for the pythonista pipeline. One skill, a recipe argument selects w
 
 **No recipe argument runs `critique`.** Never select `tidy` or `ship-it` unless the user names that recipe explicitly, by that name — do not infer either from phrases like "clean this up" alone.
 
-`tidy` and `ship-it` hand off to `python-document`, `python-patterns`, and `python-quality-tools` by name. None of the three exist yet in this marketplace (tracked separately). Until they ship, running either recipe past the plan checkpoint will fail to find those skills — say so plainly and stop rather than improvising their behavior yourself.
+`tidy` and `ship-it` hand off to `python-document`, `python-patterns`, and `python-quality-tools` by name — all three exist in this marketplace; `tidy` is reachable end-to-end and `ship-it`'s safe tier through `verify` is too. Deep-work stages (`python-testing-patterns`, `python-refactor`, `python-performance-optimization`) and `git-commit` remain electable/soft-dependency as described below.
 
 ## `critique` — scan -> review -> report
 
