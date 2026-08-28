@@ -1,89 +1,20 @@
 {
   "mcpServers": {
     "pgquery": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "DATABASE_URI=${PGQUERY_URI}",
-        "crystaldba/postgres-mcp",
-        "--access-mode=restricted",
-        "--transport=stdio"
-      ],
-      "env": {
-        "PGQUERY_URI": "${PGQUERY_URI}"
-      }
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/pgquery",
+      "args": []
     },
     "dbtools": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-v",
-        "${DBTOOLS_CONFIG_PATH}:/tools.yaml:ro",
-        "us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest",
-        "--stdio",
-        "--config",
-        "/tools.yaml"
-      ],
-      "env": {
-        "DBTOOLS_CONFIG_PATH": "${DBTOOLS_CONFIG_PATH}"
-      }
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/dbtools",
+      "args": []
     },
     "mysql-mcp": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "MYSQL_HOST=${MYSQL_MCP_HOST}",
-        "-e",
-        "MYSQL_USER=${MYSQL_MCP_USER}",
-        "-e",
-        "MYSQL_PASS=${MYSQL_MCP_PASS}",
-        "-e",
-        "MYSQL_DB=${MYSQL_MCP_DB}",
-        "-e",
-        "ALLOW_INSERT_OPERATION=false",
-        "-e",
-        "ALLOW_UPDATE_OPERATION=false",
-        "-e",
-        "ALLOW_DELETE_OPERATION=false",
-        "indie-marketplace-mysql-mcp:local"
-      ],
-      "env": {
-        "MYSQL_MCP_HOST": "${MYSQL_MCP_HOST}",
-        "MYSQL_MCP_USER": "${MYSQL_MCP_USER}",
-        "MYSQL_MCP_PASS": "${MYSQL_MCP_PASS}",
-        "MYSQL_MCP_DB": "${MYSQL_MCP_DB}"
-      }
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/mysql-mcp",
+      "args": []
     },
     "mssql-mcp": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "MSSQL_HOST=${MSSQL_MCP_HOST}",
-        "-e",
-        "MSSQL_DATABASE=${MSSQL_MCP_DATABASE}",
-        "-e",
-        "MSSQL_USER=${MSSQL_MCP_USER}",
-        "-e",
-        "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
-        "indie-marketplace-mssql-mcp:local"
-      ],
-      "env": {
-        "MSSQL_MCP_HOST": "${MSSQL_MCP_HOST}",
-        "MSSQL_MCP_DATABASE": "${MSSQL_MCP_DATABASE}",
-        "MSSQL_MCP_USER": "${MSSQL_MCP_USER}",
-        "MSSQL_MCP_PASSWORD": "${MSSQL_MCP_PASSWORD}"
-      }
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/mssql-mcp",
+      "args": []
     }
   }
 }

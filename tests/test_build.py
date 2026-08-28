@@ -1,20 +1,6 @@
 import json
-import shutil
 import subprocess
 from pathlib import Path
-
-import pytest
-
-BUILD_PY = Path(__file__).resolve().parent.parent / "build.py"
-
-
-@pytest.fixture
-def project(tmp_path):
-    """A temp dir with its own build.py, so ROOT (= build.py's own dirname)
-    resolves inside it and every generated path stays isolated from the
-    real repo."""
-    shutil.copy2(BUILD_PY, tmp_path / "build.py")
-    return tmp_path
 
 
 def write_bundles(project: Path, yaml_text: str) -> None:

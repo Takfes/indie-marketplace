@@ -1,40 +1,9 @@
 {
-  "inputs": [
-    {
-      "type": "promptString",
-      "id": "zotero-zotero_api_key",
-      "description": "ZOTERO_API_KEY",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "zotero-zotero_library_id",
-      "description": "ZOTERO_LIBRARY_ID",
-      "password": true
-    },
-    {
-      "type": "promptString",
-      "id": "zotero-zotero_library_type",
-      "description": "ZOTERO_LIBRARY_TYPE",
-      "password": true
-    }
-  ],
   "servers": {
     "zotero": {
       "type": "stdio",
-      "command": "env",
-      "args": [
-        "ZOTERO_LOCAL=true",
-        "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
-        "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
-        "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
-        "zotero-mcp"
-      ],
-      "env": {
-        "ZOTERO_API_KEY": "${input:zotero-zotero_api_key}",
-        "ZOTERO_LIBRARY_ID": "${input:zotero-zotero_library_id}",
-        "ZOTERO_LIBRARY_TYPE": "${input:zotero-zotero_library_type}"
-      }
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/zotero",
+      "args": []
     },
     "notebooklm": {
       "type": "stdio",

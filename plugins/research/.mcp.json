@@ -1,19 +1,8 @@
 {
   "mcpServers": {
     "zotero": {
-      "command": "env",
-      "args": [
-        "ZOTERO_LOCAL=true",
-        "ZOTERO_API_KEY=${ZOTERO_API_KEY}",
-        "ZOTERO_LIBRARY_ID=${ZOTERO_LIBRARY_ID}",
-        "ZOTERO_LIBRARY_TYPE=${ZOTERO_LIBRARY_TYPE}",
-        "zotero-mcp"
-      ],
-      "env": {
-        "ZOTERO_API_KEY": "${ZOTERO_API_KEY}",
-        "ZOTERO_LIBRARY_ID": "${ZOTERO_LIBRARY_ID}",
-        "ZOTERO_LIBRARY_TYPE": "${ZOTERO_LIBRARY_TYPE}"
-      }
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/zotero",
+      "args": []
     },
     "notebooklm": {
       "command": "notebooklm-mcp",
