@@ -190,6 +190,12 @@ plugins:
         repo: "https://github.com/acaprino/alfio-claude-plugins"
         path: "plugins/python-development/skills/python-refactor"
 
+      # Layer 0 of the pythonista pipeline — deterministic analyzers only.
+      # Consolidated from python-simplifier's and python-refactor's own
+      # analyzer scripts — see skills/python-scan/ for the source of truth.
+      - name: python-scan
+        source: local
+
       - name: python-simplifier
         source: community
         repo: "https://github.com/charlesmsiegel/tg"
@@ -201,6 +207,12 @@ plugins:
       # tdd skills and hand-maintained — see
       # skills/python-testing-patterns/ for the source of truth.
       - name: python-testing-patterns
+        source: local
+
+      # Orchestrator. Walking skeleton: only the read-only `critique` recipe
+      # (scan -> report) exists so far — see skills/python-workflow/ for the
+      # source of truth and what's still missing.
+      - name: python-workflow
         source: local
 
       - name: uv-package-manager

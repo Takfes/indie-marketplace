@@ -20,12 +20,22 @@
     "env": []
   },
   {
+    "name": "python-scan",
+    "type": "skill",
+    "env": []
+  },
+  {
     "name": "python-simplifier",
     "type": "skill",
     "env": []
   },
   {
     "name": "python-testing-patterns",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "python-workflow",
     "type": "skill",
     "env": []
   },
