@@ -234,6 +234,44 @@ def test_value_endpoint_unknown_profile_is_404(live_server):
     assert status == 404
 
 
+def test_active_get_endpoint_reflects_current_state(live_server):
+    server, _ = live_server
+    status, body = server.get("/api/active")
+    assert status == 200
+    assert body["active"] is None
+
+    server.post("/api/profile/client-a", {"values": {}})
+    server.post("/api/active", {"profile": "client-a"})
+    status, body = server.get("/api/active")
+    assert status == 200
+    assert body["active"] == "client-a"
+
+
+# ---------------------------------------------------------------------------
+# Static UI
+# ---------------------------------------------------------------------------
+
+
+def test_index_page_serves_the_real_ui(live_server):
+    server, _ = live_server
+    req = urllib.request.Request(f"{server.base_url}/", headers=server._headers())
+    resp = urllib.request.urlopen(req, timeout=5)
+    assert resp.status == 200
+    assert resp.headers.get("Content-Type", "").startswith("text/html")
+    assert resp.headers.get("Cache-Control") == "no-store"
+    body = resp.read().decode()
+    assert "Secrets Manager" in body
+    assert "Placeholder" not in body
+
+
+def test_index_page_requires_auth(live_server):
+    server, _ = live_server
+    req = urllib.request.Request(f"{server.base_url}/")
+    with pytest.raises(urllib.error.HTTPError) as exc_info:
+        urllib.request.urlopen(req, timeout=5)
+    assert exc_info.value.code == 401
+
+
 # ---------------------------------------------------------------------------
 # Write API
 # ---------------------------------------------------------------------------
