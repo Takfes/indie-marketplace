@@ -210,6 +210,30 @@ plugins:
       - name: python-review
         source: local
 
+      # Safe-tier mutation stage. Authored fresh: ruff format, ruff check
+      # --fix, mypy, secret scan, dependency audit in a detect->fix->rerun
+      # loop, every tool bootstrapped through uvx. No bespoke analyzers —
+      # see skills/python-quality-tools/ for the source of truth.
+      - name: python-quality-tools
+        source: local
+
+      # Safe-tier mutation stage. Merged from the retired python-simplifier
+      # skill's prose (Simplification Principles, before/after catalog,
+      # Over-Engineering anti-patterns) plus a verified cherry-pick from
+      # affaan-m/everything-claude-code's python-patterns (EAFP/LBYL,
+      # type-hint depth, dataclasses/NamedTuple, decorators, slots/generator
+      # idioms, exception hierarchy, exception chaining) — harvested, not
+      # vendored. See skills/python-patterns/ for the source of truth.
+      - name: python-patterns
+        source: local
+
+      # Safe-tier mutation stage. Authored fresh, additive only: module
+      # summaries, docstrings, type annotations, comments — targets the
+      # gaps python-scan's check_documentation.py flags. See
+      # skills/python-document/ for the source of truth.
+      - name: python-document
+        source: local
+
       # Originally fetched from community (https://github.com/wshobson/agents,
       # plugins/python-development/skills/python-testing-patterns); now
       # synthesized with TDD methodology from the mattpocock and superpowers
@@ -218,9 +242,10 @@ plugins:
       - name: python-testing-patterns
         source: local
 
-      # Orchestrator. Walking skeleton: only the read-only `critique` recipe
-      # (scan -> report) exists so far — see skills/python-workflow/ for the
-      # source of truth and what's still missing.
+      # Orchestrator. tidy is now reachable end-to-end (scan -> patterns ->
+      # quality-tools -> verify); ship-it's safe tier (document -> patterns
+      # -> quality-tools) is reachable too — see skills/python-workflow/ for
+      # the source of truth and what's still missing (deep-work electives).
       - name: python-workflow
         source: local
 
