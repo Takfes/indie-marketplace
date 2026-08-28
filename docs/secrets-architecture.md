@@ -1,686 +1,484 @@
 # Plugin secrets architecture
 
-How MCP-server and CLI-tool credentials get from "declared in `bundles.yaml`"
-to "available to a running process" — without a value ever passing through a
-model's own context, independent of plugin version, marketplace, or which
-project the user is in.
+How MCP-server and CLI credentials get from "declared in `bundles.yaml`" to
+"available to a running process" — without a value ever passing through a
+model's own context, and without a value ever differing silently between
+projects.
 
-## Design constraints
+This document describes the design shipped across issues #66–#72 (parent
+spec #65). It supersedes an earlier per-plugin, `configure-secrets.sh`-driven
+design — that one never shipped; nothing below should be read as a
+description of it.
 
-Everything below is built on these, in this order of confidence:
+## TL;DR
 
-- **Verified on this machine.** `~/.claude/plugins/installed_plugins.json` is
-  `{"version": 2, "plugins": {"<plugin>@<marketplace>": [ {scope, installPath,
-  version, lastUpdated, ...} ]}}` — the value is an *array*, one record per
-  install scope. `~/.claude/settings.json` carries `enabledPlugins` as a
-  `{"<plugin>@<marketplace>": bool}` map. Install paths are versioned
-  (`cache/<marketplace>/<plugin>/<version>/`), every plugin here is pinned
-  `0.1.0`, and updates therefore overwrite in place — a file deleted from the
-  repo can survive in an installed copy indefinitely.
-- **Documented.** `${CLAUDE_PLUGIN_ROOT}` expands inside a plugin's
-  `.mcp.json` and `hooks.json`. `${VAR}` in `.mcp.json` expands from the
-  environment of the process that launched Claude Code.
-- **Deliberately not relied on.** Whether a `settings.json` `env` entry
-  propagates into an MCP subprocess, and whether `$CLAUDE_PROJECT_DIR` or a
-  useful `$PWD` reaches one, are untested here. Nothing in this design
-  depends on either. Where a value has to arrive somewhere, an explicit
-  mechanism puts it there.
+- All credentials live in one file, `~/.indie-marketplace/profiles.json`
+  (mode `0600`), grouped into named **profiles**. `base` holds your
+  defaults; any other profile (`client-a`) overrides only what differs for
+  it and inherits everything else from `base`.
+- A profile is selected per process, in order: `$INDIE_PROFILE` env var →
+  the profile bound to the longest matching project path → the machine-wide
+  `active` file → `base`.
+- You edit values in a browser, never a terminal prompt. Ask the
+  **secrets-manager** skill (bundled with `essentials`) to open it. Claude
+  hands you a `127.0.0.1` URL and never sees a value.
+- Generated wrapper scripts sit between `.mcp.json` and the real command —
+  they resolve the active profile's values and export them, so `${VAR}`
+  substitution and hand-exported shell variables are both gone from this
+  design entirely.
+- A `SessionStart` hook nudges you, once per session, about any tool that's
+  *partially* configured — never about one you haven't touched.
 
-## Walkthrough
+## Get started
 
-**Install a plugin**
-- `claude plugin install database@indie-marketplace`.
-- Landing in the versioned install dir: one generated wrapper per
-  credential-bearing MCP server (`mcp/<server>.sh`, mode `0755`), an
-  `.mcp.json` whose `command` points at those wrappers, `catalog.json`
-  (names, required/optional, renames, mounts), `.env.example` (human-readable
-  documentation), and `SECRETS.md`.
-- No secrets file exists yet, anywhere. Nothing was written outside the
-  install dir.
+**Open the manager.** Ask Claude: *"open the secrets manager"* — it
+launches a local server and gives you a link. Open it in a browser.
 
-**First session after install**
-- `SessionStart` hook (matcher `startup`) runs `check-secrets.sh --quiet`.
-- It enumerates installed *and* enabled plugins, reads each one's
-  `catalog.json`, and applies the zero/partial/complete rule (below).
-- `database` has required vars and no secrets file at all → one line of
-  `additionalContext`: `database: 9 required variables unset — see the
-  secrets skill`. No values, no paths to values, no per-var detail.
-- `research` declares three variables, all optional → never mentioned.
-- Everything satisfied → the hook emits nothing and adds no perceptible
-  delay (a handful of small file reads, no subprocess).
+**Fill in `base`.** Screen A lists every variable every installed,
+enabled plugin declares, grouped by tool, each tagged required or optional.
+Values you enter here apply everywhere, for every project, unless a more
+specific profile overrides them. Put your global credentials here — a
+Zotero API key, an Exa key — anything that's the same regardless of which
+project you're in.
 
-**Configure credentials**
-- The user runs, in their own terminal, never through a Claude tool call:
-  `configure-secrets.sh database --server pgquery`
-- The script refuses to run at all unless stdin *and* stdout are a TTY.
-- It prompts for `PGQUERY_URI` only — `--server` scopes the run to one
-  server's variables instead of marching through all 13 in the plugin.
-- Input is hidden for variables marked secret, echoed for those marked
-  `secret: false` (a config-file path, a binary path, an enum value) so a
-  typo is visible.
-- Each accepted value is written immediately: whole file rendered to a temp
-  file in the same directory under `umask 077`, then `rename`d over the
-  target. Ctrl-C keeps everything entered so far.
-- Result: `~/.local/share/claude-plugin-secrets/indie-marketplace/database.env`,
-  mode `0600`, inside a `0700` directory tree.
+**Need a value to differ per project?** Create a profile (e.g. `client-a`),
+override just the variables that differ for it, and bind it to that
+project's directory. Opening Claude Code inside that directory now resolves
+`client-a` automatically — nothing to type.
 
-**Use it**
-- The user asks for something that needs the Postgres server.
-- Claude Code launches `mcp/pgquery.sh` from the plugin's install dir.
-- The wrapper parses (never sources) the secrets file, asserts every required
-  variable is set, exports `PGQUERY_URI`'s value as `DATABASE_URI`, and
-  `exec`s `docker run … -e DATABASE_URI …` — the name is in argv, the value
-  is only in the environment.
-- A missing required variable stops here with a one-line stderr message
-  naming the variable and the exact command to fix it, and exit status 1.
+**Working outside a bound directory, or need to override one for a single
+session?** See [Launch ergonomics](#launch-ergonomics) below.
 
-**Plugin update**
-- New content overwrites the versioned install dir; `catalog.json` may gain,
-  drop, or re-annotate variables.
-- Nothing to migrate: the secrets file was never inside the install dir, and
-  its path has no version component.
-- The next check re-derives required names from the *current*
-  `catalog.json`. A newly-required variable shows as missing; a dropped one
-  shows as stale, with the exact `--delete` command. No registry, no sync
-  step, nothing to keep in agreement.
+**Check what's still missing without opening a browser:** ask Claude
+*"what secrets are unset"* or *"which profile applies here"* — the
+secrets-manager skill answers both without ever reading a value (see
+[The secrets-manager skill](#the-skill)).
 
-**Rotate or change a value**
-- `configure-secrets.sh database --force MYSQL_MCP_PASS` re-prompts exactly
-  that one variable.
-- `--force` with no variable name re-prompts everything in scope;
-  `--force --server mssql-mcp` re-prompts one server's set.
+## Store layout
 
-**Rename or split a plugin**
-- The secrets file is keyed by plugin name, so a rename orphans it and a
-  split leaves one file holding variables that now belong to several
-  plugins.
-- `status` detects both: any `<marketplace>/*.env` with no installed plugin
-  of that name is reported as orphaned, with the adopt command spelled out.
-- `configure-secrets.sh <new-plugin> --adopt-from <old-plugin>` copies over
-  exactly the variables the new plugin's `catalog.json` declares, line for
-  line, printing names only. Run it once per plugin the split produced, then
-  `--delete` the old file.
-- Both operations are value-blind — they move lines between files and never
-  render a value to stdout — so the skill may run them directly.
+- Root: `~/.indie-marketplace/`, mode `0700`. Overridable via
+  `$INDIE_MARKETPLACE_HOME` (used by this repo's own tests; not a supported
+  user-facing knob).
+- `profiles.json`, mode `0600`:
 
-**A value needs to differ per project**
-- There is no project-scoped secrets file (see *Deliberately out of scope*).
-- The supported answer: launch Claude Code for that project with
-  `CLAUDE_PLUGIN_SECRETS_HOME` pointed at a different root. It is one
-  variable, set explicitly by the user, and it moves the whole store — no
-  per-repo file is read, so no repository can influence what a wrapper
-  loads.
+  ```json
+  {
+    "version": 1,
+    "profiles": {
+      "base":     { "projects": [], "values": { "ZOTERO_API_KEY": "..." } },
+      "client-a": { "projects": ["/Users/x/work/client-a"], "values": { "PGQUERY_URI": "..." } }
+    }
+  }
+  ```
 
-**Uninstall**
-- The install dir and its wrappers go away. The secrets file does not.
-- `status` reports it as orphaned; the skill deletes it on request — a
-  path-only operation, no value read.
+  Values sit under a nested `values` key so a variable name can never
+  collide with a metadata key like `projects`. `base` always exists, can't
+  be deleted or renamed, and legitimately holds no value for a variable
+  that's inherently per-project — that isn't an error, it just means the
+  variable is unset outside a bound profile.
+- `active`, mode `0600`: one line, a profile name. Absent, or naming a
+  profile that no longer exists, means "fall back to `base`" — never an
+  error.
+- Every write goes temp-file-then-`os.replace`, with the mode set on the
+  temp file before the rename — no window where a crash mid-write leaves a
+  partially-written or wrongly-permissioned file visible to a reader
+  (`shared/indie_store.py`'s `_atomic_write`).
 
-## The pieces
+## Resolution, stated once
 
-| Piece | Job | Lives in | Written by |
-|---|---|---|---|
-| Secrets file | Real values, one file per plugin, marketplace-qualified path | `$SECRETS_ROOT/<marketplace>/<plugin>.env` | `configure-secrets.sh` only |
-| `catalog.json` | Machine-readable declaration: per entry, which vars, required, secret, renamed-to, mounted-at | Plugin's `.claude-plugin/` | `build.py`, from `bundles.yaml` |
-| `.env.example` | Same information, human-readable; documentation only | Plugin root | `build.py`, from `bundles.yaml` |
-| MCP wrapper | Loads the plugin's variables, asserts required ones, `exec`s the real server | `<plugin>/mcp/<server>.sh`, referenced from `.mcp.json` | `build.py` codegen |
-| `bin/with-secrets` | Same load, for CLI-driven skills with no MCP launch point | `<plugin>/bin/with-secrets` | `build.py` codegen |
-| `lib-secrets.sh` | The parser, the "set" predicate, the permission check — one implementation | `essentials/scripts/` | `build.py`, from the same template it inlines into wrappers |
-| `check-secrets.sh` | Presence check; `--quiet` (hook JSON) and `--report` (human) on one code path | `essentials/scripts/` | Hand-maintained |
-| `configure-secrets.sh` | The only thing that ever asks for or writes a real value | `essentials/scripts/` | Hand-maintained |
-| `SessionStart` hook | Runs the quiet check on real session start | `essentials/hooks/` | Fires on `startup` only |
-| Secrets skill | status / locate / point-to-configure / delete / adopt / doctor | `essentials/skills/` | Invoked by the user or by the nudge |
+Every consumer of this store — the resolver copied into each plugin's
+`bin/`, the web server, the status CLI, the `SessionStart` hook — implements
+this exact precedence. It is not restated per-consumer below.
 
-## Where secrets live
+**Which profile:**
 
-- Root: `$SECRETS_ROOT` = `${CLAUDE_PLUGIN_SECRETS_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/claude-plugin-secrets}`.
-- File: `$SECRETS_ROOT/<marketplace>/<plugin>.env`.
-- **Marketplace-qualified by directory, not by a joined key.** `indie-marketplace/web-search.env`
-  is unambiguous; a flat `web-search-indie-marketplace` is not — plugin and
-  marketplace names both contain hyphens, so the join has no unique split
-  point. The nested form also makes "list every file this marketplace owns"
-  a plain `ls`, which is what orphan detection needs.
-- **Outside `~/.claude/` on purpose.** That tree is routinely swept into
-  dotfiles repos and sync services, and `~/.claude/plugins/` is managed by
-  Claude Code itself (it prunes and rewrites install caches). A credential
-  store should not live in either.
-- **`~/.claude/plugins/data/<plugin>-<marketplace>/` was considered and not
-  used.** It already carries the marketplace-qualified key this design needs,
-  but it is Claude Code's own directory: its creation mode, its lifecycle on
-  uninstall, and its stability as an interface are all outside this repo's
-  control, and it is inside the tree ruled out above. The naming *idea* is
-  adopted; the location is not.
-- Version never appears in the path. Neither does an install path, a scope,
-  or a project directory.
+```
+$INDIE_PROFILE
+  -> the profile whose projects[] entry is the longest path-segment
+     prefix of realpath($PWD)
+  -> the contents of ~/.indie-marketplace/active
+  -> "base"
+```
 
-## File format
+The path match compares whole path *segments*, not raw string prefixes, so
+a profile bound to `/work/client-a` never matches a session running in
+`/work/client-ab`.
 
-- Line-oriented `KEY=VALUE`. Not a shell script — **nothing ever `source`s
-  it.**
-- Writer rules: key matches `^[A-Za-z_][A-Za-z0-9_]*$`; the value is written
-  verbatim after the first `=`, with no quoting, no escaping, no
-  substitution. A value containing a newline or NUL is **rejected at input
-  time** with an explanation, not silently mangled. Every other byte —
-  backtick, `$(`, `"`, `'`, `#`, leading/trailing space — is stored and
-  returned exactly as typed.
-- Reader rules: skip empty lines and lines whose first character is `#`; a
-  line with no `=` is a parse error naming the line number, not a skip; the
-  key is everything before the first `=`, the value is everything after it,
-  untrimmed and unquoted; on a duplicate key the last occurrence wins.
-- The consequence is deliberate: because the file is parsed rather than
-  executed, a hostile or corrupt value can at worst produce a wrong value —
-  never code execution, and never the multi-line/quoting corruption that a
-  `source`-based loader has to warn about.
+**Which value, once a profile is chosen:**
 
-**One definition of "set", used everywhere**
+```
+profiles[profile].values[NAME]
+  -> profiles["base"].values[NAME]
+  -> unset
+```
 
-> A variable is **set** iff its key is present in the file *and* its value
-> contains at least one non-whitespace character.
+An empty string is treated as unset at every layer — storing `""` for a
+variable falls through to `base` exactly as if the key were absent. This is
+intentional: it's what a wrapper's real runtime resolution does, so the UI
+and status tooling report the same thing a launched process would actually
+see. (The UI's Save action separately refuses to *write* a functionally
+inert empty-string override in the first place — see
+[The web UI](#the-web-ui).)
 
-- `NAME=` → unset. `NAME=   ` → unset. Key absent → unset.
-- This exact predicate is what `check-secrets.sh` reports, what
-  `configure-secrets.sh` treats as "already configured", and what a wrapper's
-  required-variable assertion tests. It exists once, in `lib-secrets.sh` and
-  in the identical inlined copy inside each generated wrapper — both emitted
-  from a single template in `build.py`, so they cannot drift.
+## `base` versus `active` — not the same word
 
-## Permissions and the trust boundary
+Both were called "default" at points during design; they are two different
+files and must stay two different words:
 
-- Directory creation: `(umask 077; mkdir -p "$SECRETS_ROOT/<marketplace>")` —
-  `0700` from the moment it exists.
-- File writes: `umask 077` is set **before** the temp file is created, so it
-  is `0600` at creation. There is no create-then-chmod window. The temp file
-  is created in the target's own directory (same filesystem) and `rename`d
-  into place, which is atomic and preserves the mode.
-- Every reader — wrapper, `check-secrets.sh`, `with-secrets` — verifies
-  before reading that the file is owned by the current user and is mode
-  `0600` (and the directory `0700`). A failure is a hard stop with the exact
-  `chmod` to run, never a silent fallback to unset. (Mode/owner are read via
-  `stat -f '%Lp %u'`, falling back to `stat -c '%a %u'` — the BSD/GNU split
-  is probed once in the shared template.)
-- **`configure-secrets.sh` guards value entry technically, not by
-  convention.** Any code path that would prompt starts with
-  `[ -t 0 ] && [ -t 1 ] || exit 1` and an explanation. There is no
-  `--set VAR=VALUE` flag and no stdin ingestion — the two shapes an agent
-  would reach for both fail. Value-blind paths (`--delete`, `--adopt-from`,
-  `--status`) do not require a TTY, because they never render a value; that
-  is what keeps rotation and cleanup cheap for the skill to do.
-- **A deny rule pairs with the documented policy.** The user adds this once
-  to `~/.claude/settings.json` (paths in permission rules are literal —
-  no `~` expansion):
+- **`base`** is a *profile* — a place values live, and the fallback every
+  other profile inherits from.
+- **`active`** is a *file* naming which profile a process should resolve to
+  when nothing more specific says otherwise (no `$INDIE_PROFILE`, no bound
+  project path match).
+
+Setting the active profile to `client-a` does not move or copy any values —
+it only changes what an unbound session resolves to.
+
+## Wrappers and scoped launchers
+
+**Why they exist at all.** `${VAR}` in `.mcp.json` expands from the
+environment of the process that launched Claude Code — it has no way to
+read a value out of `profiles.json`. Nothing in `.mcp.json` or
+`vscode-mcp.json` can resolve a stored credential by itself; something has
+to read the store and hand the value to the launched process. That
+something is a generated wrapper.
+
+**Which entries get one.** Any `mcp:` entry in `bundles.yaml` declaring at
+least one `env:` variable gets a **wrapper** (`<plugin>/bin/<server-name>`);
+any `deps:` entry declaring `env:` gets a **scoped launcher**
+(`<plugin>/bin/<command-name>`) — same credential resolution, but it
+forwards the caller's own arguments to the real command instead of running
+a fixed argument list, since a `deps:` entry backs a CLI a skill drives
+directly rather than an MCP server with a fixed invocation. An entry
+declaring no `env:` is untouched — a wrapper on a credential-free server
+would buy nothing.
+
+**What a wrapper does, concretely** (`build.py`'s `write_bin`, one
+generated per entry):
+
+1. Runs `resolver.py` (a copy of `shared/resolver.py`, placed alongside
+   every wrapper in the same `bin/` — see below) with its own declared
+   variable names as arguments.
+2. Parses (never `source`s or `eval`s) the `KEY=VALUE` lines that prints,
+   and exports them into its own environment. Parsing rather than sourcing
+   means a value containing shell metacharacters can't execute anything.
+3. `exec`s the real command — same executable and arguments `bundles.yaml`
+   declared, with credential-bearing tokens substituted from the
+   now-exported environment.
+
+A generated wrapper for the `database` plugin's `pgquery` server looks like
+this:
+
+```sh
+#!/bin/sh
+# Generated by build.py — do not edit by hand.
+set -e
+DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+RESOLVED=$("$DIR/resolver.py" PGQUERY_URI) || exit $?
+while IFS='=' read -r key value; do
+  [ -n "$key" ] && export "$key=$value"
+done <<EOF
+$RESOLVED
+EOF
+export DATABASE_URI="$PGQUERY_URI"
+exec docker run -i --rm -e DATABASE_URI crystaldba/postgres-mcp --access-mode=restricted --transport=stdio
+```
+
+`.mcp.json` then points at the wrapper instead of `docker`/`npx` directly,
+with empty `args` and no `env` block — there's nothing left for Claude Code
+to substitute:
 
 ```json
-"permissions": {
-  "deny": ["Read(//Users/<you>/.local/share/claude-plugin-secrets/**)"]
-}
+"pgquery": { "command": "${CLAUDE_PLUGIN_ROOT}/bin/pgquery", "args": [] }
 ```
 
-- The skill's `doctor` function checks for that rule and prints it
-  pre-filled with the resolved absolute path if it is missing — so the rule
-  has an owner and a verifiable state, rather than living in prose.
-- Honest scope of that rule: it stops the `Read` tool. It does not stop an
-  arbitrary `Bash` invocation running as the same user; command-pattern deny
-  rules cannot cover every way a shell can read a file. What holds there is
-  that no script in this design ever prints a value, and the skill is
-  instructed never to read the file — policy, backed by the fact that there
-  is no *convenient* path to a value.
+**Why secrets never land in `argv`.** A Docker `-e NAME=${VAR}` pair in
+`bundles.yaml` becomes a *bare* `-e NAME` in the generated wrapper — the
+bare form pulls the value from the wrapper's own already-exported
+environment rather than putting it in the command line, so it never shows
+up in another user's `ps` listing. `env`-command-style entries
+(`azkusto`'s `command: env KUSTO_..=${VAR} ... npx -y kusto-mcp`) become
+plain `export` statements ahead of the real command instead. A value that
+has to be argv-visible by necessity — a filesystem path substituted into a
+positional argument, or a Docker bind mount (`-v ${DBTOOLS_CONFIG_PATH}:...`)
+— stays argv-visible; there's no way around that for a mount, and it isn't
+a secret in the way a connection string is.
 
-## Declaring variables in `bundles.yaml`
+**The resolver travels with the wrapper, not with `essentials`.**
+`build.py` copies `shared/resolver.py` into every plugin that has at least
+one credential-bearing entry, alongside that plugin's own generated
+wrappers/launchers. A `database` plugin installed without `essentials` still
+resolves its own credentials correctly — `essentials` supplies only the UI
+skill and the `SessionStart` hook, both conveniences, never a runtime
+dependency any other plugin needs to function.
 
-An `mcp:`/`skills:`/`deps:` entry's `env:` map keeps its current shape; the
-value, previously always null, may now carry a small spec:
+**`skills:`-level `env:` is catalog-only.** A `skills:` entry (a skill that
+drives a CLI directly, with no MCP server behind it) can declare `env:` too
+— it reaches `.env.example` and `catalog.json` for visibility, and the
+`SessionStart` hook nudges on it like anything else — but `build.py`
+generates no wrapper for a `skills:`-level declaration; only `mcp:` and
+`deps:` entries get one. A skill that needs its declared variable has to
+resolve it itself. The one such case shipped today, `last30days`'s
+`SCRAPECREATORS_API_KEY`, manages its own credential entirely outside this
+design (its own `~/.config/last30days/.env`, its own signup flow) — that's
+a pre-existing, self-contained mechanism from the vendored upstream skill,
+not something this store drives.
 
-```yaml
-env:
-  PGQUERY_URI:                                  # null → required, secret, no rename
-  DBTOOLS_CONFIG_PATH: { secret: false, mount: "/tools.yaml:ro" }
-  ZOTERO_API_KEY:      { required: false }
-  AZKUSTO_TENANT_ID:   { required: false, as: AZURE_TENANT_ID }
-  AZAKS_BIN:           { secret: false }        # also used as the entry's `command`
-```
+**VS Code gets the same wrapper.** `vscode-mcp.json` is generated from the
+same `mcp:` block and points `command` at the identical wrapper path — the
+wrapper resolves and exports credentials on its own, so nothing there needs
+VS Code's `promptString` input mechanism. Consequence: VS Code and Claude
+Code both read the *same* `~/.indie-marketplace/profiles.json` (there's
+only one store, keyed by variable name, not by editor).
 
-- `required` (default `true`) — drives the nudge and the wrapper's hard
-  stop. Defaulting to required is the safe direction: a genuinely required
-  variable can never become optional by omission.
-- `secret` (default `true`) — `false` means echo the input while prompting
-  and allow the value in argv. Paths, binary locations, and enum values are
-  `secret: false`; anything bearing a credential is not.
-- `as:` — the name the *launched process* should see. Covers container-side
-  names fixed upstream (`PGQUERY_URI` → `DATABASE_URI`) and the several
-  Azure/Kusto renames that today are hand-written into a `command: env`
-  argument list.
-- `mount:` — the value is a host path to bind-mount at the given container
-  target. Docker entries only. `build.py` rejects `mount:` together with
-  `secret: true`, because a mount spec is unavoidably argv-visible.
+## The web UI
 
-A sibling block carries values that are **not** user input:
+- One `index.html`, inlined CSS and JavaScript, no build step, no CDN, no
+  third-party dependency — the same "Python standard library only" posture
+  as the server behind it. It is a **browser** UI, not terminal prompts,
+  because reviewing a full credential catalog with required/optional
+  labels, descriptions, and per-profile inheritance state is a form, not a
+  sequence of one-at-a-time answers.
+- **Screen A — profile editor.** Every catalog variable, grouped by plugin
+  and tool, for the selected profile: inherited-from-`base` or overridden
+  here, required/optional, masked by default with a per-field reveal.
+  Create, rename, and delete profiles; bind a profile to one or more
+  project directories. Saving a blank field never writes a functionally
+  inert empty-string override — it either clears an existing override
+  (restoring inheritance) or, on `base`, leaves the variable genuinely
+  unset; the UI never lets a click produce a stored value that resolution
+  would treat identically to "unset" anyway.
+- **Screen B — active profile.** A dropdown of profile names, writing the
+  `active` file.
+- **How Claude reaches it.** The `secrets-manager` skill starts
+  `skills/secrets-manager/server.py` in the background and relays exactly
+  one thing: the first line of its stdout, a `127.0.0.1` URL carrying a
+  one-time token (`http://127.0.0.1:PORT/?token=...`). Every request must
+  present that token and a matching `Host` header (defeats DNS rebinding);
+  responses carry `Cache-Control: no-store` and no CORS headers. The server
+  shuts down on an explicit "Done" click or after 15 minutes idle — a
+  forgotten listener serving credentials on loopback is the failure this
+  guards against.
+- **API**, all names/state only except the one explicit reveal endpoint:
 
-```yaml
-env_fixed:
-  KUSTO_ALLOW_WRITE_OPERATIONS: "false"
-  ZOTERO_LOCAL: "true"
-```
+  ```
+  GET  /api/catalog             [{plugin, name, type, env:[{name, required, description}]}]
+  GET  /api/profiles            {profile: {projects, values: {VAR: "set-here"|"inherited"|"unset"}}}
+  GET  /api/value?profile=&name=   {"value": "..." | null}   — the one per-field reveal
+  GET  /api/active               {"active": "client-a" | null}
+  POST /api/profile/<name>       {"values": {VAR: "..."|null}, "projects": [...]}  — null clears an override
+  POST /api/profile/<name>/rename   {"to": "new-name"}
+  DELETE /api/profile/<name>
+  POST /api/active                {"profile": "client-a"}
+  POST /api/shutdown
+  ```
 
-- These are the security-load-bearing literals that today hide inside
-  `command: env` argument lists and inline `-e NAME=false` flags
-  (`KUSTO_ALLOW_WRITE_OPERATIONS`, `mysql-mcp`'s three `ALLOW_*_OPERATION`
-  flags, `ZOTERO_LOCAL`). They are declarations, committed and diffable, not
-  credentials.
-- **Precedence is fixed and one-directional:** a wrapper loads secrets
-  first, then applies `env_fixed` — so no value in a user's secrets file can
-  loosen a server that upstream ships permissive by default. `build.py`
-  additionally errors at build time if a name appears both in `env_fixed`
-  and as an `env:` name or `as:` target.
+  Writes are validated server-side: profile names must match a safe slug
+  pattern, every submitted variable name must already exist in the catalog
+  (an unknown key is rejected, not stored), `base` can't be renamed or
+  deleted, and `projects` entries must be absolute paths.
 
-`catalog.json` carries all of this verbatim, one object per entry, values
-never included:
+## <a id="the-skill"></a>The secrets-manager skill
 
-```json
-{ "name": "pgquery", "type": "mcp",
-  "env": [ { "name": "PGQUERY_URI", "required": true, "secret": true,
-             "as": "DATABASE_URI" } ] }
-```
+Bundled with `essentials`, this is what Claude actually runs on your
+behalf. Its only value-touching action is starting the server above and
+relaying its URL — everything else it does answers a question from
+variable *names*, profile *state labels*, project *paths*, or file
+*permission bits*, never a value:
 
-- It is written for **any** plugin that declares an env var anywhere, not
-  only those flagged `catalog: true` — a credential-bearing plugin without a
-  catalog would be invisible to every tool here.
-- It is the single source every consumer reads. `.env.example` stays as
-  human documentation (regenerated with `# required` / `# optional`
-  annotations and a header pointing at `configure-secrets.sh`), but nothing
-  parses it — per-server grouping and optionality only survive in
-  `catalog.json`.
+| Ask for | Runs | Answers |
+|---|---|---|
+| Open the manager | `server.py` (backgrounded, first stdout line only) | a URL to open |
+| What's unset | `status.py unset [--profile NAME]` | every catalog variable unset for a profile (default: whichever profile the current directory resolves to), tagged required/optional |
+| Which profile applies here | `status.py resolve [PATH]` | the profile a directory resolves to, and which precedence rule decided it |
+| Health check | `status.py doctor` | stale bound project paths, variables no installed plugin declares anymore, and store files/directories whose permissions have drifted from `0600`/`0700` |
 
-## Wrapper: scope and shape
+Hard prohibitions, stated in the skill's own instructions regardless of
+what a user asks for: never read a value out of `profiles.json`; never
+invoke a wrapper or scoped launcher directly (those hand a value to a
+*subprocess*, not to a Claude session); never print anything from the
+server's own output beyond its one URL line; never write a credential value
+on the user's behalf — every write happens through the user's own clicks in
+the browser.
 
-**Which entries get one**
+## Walkthrough, from a clean machine
 
-- Exactly those declaring at least one `env:` variable. `context7`,
-  `azcloud`, `notebooklm` and every other credential-free server keep a
-  plain `.mcp.json` entry with no wrapper at all.
-- **Why not narrower.** `${VAR}` in `.mcp.json` expands from the environment
-  of the process that launched Claude Code. It cannot read a file this
-  design wrote — that gap is the premise of the whole design, not an
-  unverified assumption. Anything that needs a value *from the store* needs
-  something that reads the store.
-- **Why not `settings.json`'s `env` instead.** Three reasons, independent of
-  each other: it is a single global environment shared by every MCP server
-  and every Bash tool call, which reintroduces exactly the cross-plugin
-  collision surface the per-plugin file eliminates; it would require writing
-  credential values into a file Claude reads and edits routinely, which is a
-  strictly worse exposure surface than a `0600` file behind a deny rule; and
-  whether it reaches an MCP subprocess at all is unverified here. The first
-  two would be disqualifying even if the third were confirmed.
-- **Why not universal.** A wrapper on a credential-free server buys nothing
-  and costs a generated file, an `exec` hop, and a failure mode.
+1. **Install a plugin.** `claude plugin install database@indie-marketplace`.
+   No secrets file exists yet, anywhere — nothing was written outside the
+   plugin's own versioned install directory.
+2. **First session.** The `SessionStart` hook runs. `database`'s `pgquery`
+   server has required variables and none of them are set — but *none set
+   at all* is silence, not a nudge (see
+   [Nudging](#nudging) below). Nothing appears yet.
+3. **Set one variable, leave the rest.** Say you set `PGQUERY_URI` but
+   `database` has other servers (`mysql-mcp`, `mssql-mcp`) with their own
+   unset required variables. Next session start, those show up:
+   `database/mysql-mcp missing: MYSQL_MCP_HOST, MYSQL_MCP_USER, ...` — a
+   *partial* configuration, which is exactly the state worth flagging.
+4. **Open the UI.** Ask Claude to open the secrets manager. On Screen A,
+   fill in `base` with whatever's genuinely global (a Zotero key, an Exa
+   key) and the `pgquery` variable if it's the same everywhere.
+5. **Create a project profile.** Add `client-a`, override `PGQUERY_URI`
+   with that client's connection string, and bind it to
+   `/Users/you/work/client-a`.
+6. **Use it — no typing required.** `cd /Users/you/work/client-a && claude`
+   resolves `client-a` automatically via the bound-path match. A second,
+   concurrent session in a different directory resolves independently —
+   nothing shared, nothing to contend over.
+7. **Override for one session.** Working inside `client-a`'s tree but need
+   `base`'s values instead, just this once? `INDIE_PROFILE=base claude` —
+   `$INDIE_PROFILE` outranks the path match. See
+   [Launch ergonomics](#launch-ergonomics).
 
-**Shape**
+## <a id="nudging"></a>Nudging — when the `SessionStart` hook speaks up
 
-- A generated **file** per server — `<plugin>/mcp/<server>.sh` — not an
-  inline `bash -c '…'` string in `.mcp.json`. A shell program embedded in a
-  JSON string needs escaping that is easy to get subtly wrong, is
-  unreviewable in a diff, and grows unreadable the moment it has a
-  conditional in it.
-- `.mcp.json` addresses it the only way a versioned install dir can be
-  addressed: `"command": "${CLAUDE_PLUGIN_ROOT}/mcp/<server>.sh"`, with
-  `"args": []`. The real command and its real arguments live inside the
-  wrapper, because the docker branch has to build parts of the argument list
-  from loaded values.
-- `build.py` writes the file and then explicitly `chmod`s it `0755` —
-  `Path.write_text` does not set the executable bit. The mode is recorded in
-  git, so it survives the clone into the plugin cache.
-- The shared loader is **inlined** into every wrapper rather than sourced
-  from `essentials`. A `database` wrapper cannot assume `essentials` is
-  installed, or find it if it is. Duplication in generated output is free;
-  the single source is the template in `build.py`.
-- The wrapper's only inputs are its own baked-in variable list and the
-  secrets file. It reads no `catalog.json` at runtime and has no dependency
-  on any other plugin.
-
-**Plain command branch** — `web-search`/`exa`:
-
-```bash
-#!/usr/bin/env bash
-# Generated by build.py from bundles.yaml — do not edit.
-set -euo pipefail
-SECRETS_FILE="${CLAUDE_PLUGIN_SECRETS_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/claude-plugin-secrets}/indie-marketplace/web-search.env"
-# … inlined lib-secrets.sh: parse, "set" predicate, ownership/mode check …
-
-secrets_require "$SECRETS_FILE" exa EXA_API_KEY
-secrets_export  "$SECRETS_FILE" EXA_API_KEY
-exec npx -y exa-mcp-server
-```
-
-- `secrets_require FILE SERVER NAME…` — for each unset name, one stderr
-  line (`web-search/exa: EXA_API_KEY is not set — run: configure-secrets.sh
-  web-search --server exa`) then `exit 1`. Never a warning that continues
-  into a less legible downstream failure.
-- `secrets_export FILE NAME[:AS]…` — exports each name that is set, under
-  its `as:` name where declared. An unset **optional** variable is not
-  exported at all, so the downstream tool sees "absent" and takes its own
-  default, rather than seeing an empty string.
-- No `2>/dev/null` anywhere. A missing file, a bad mode, a foreign owner and
-  a malformed line each produce a distinct, named message. These messages
-  contain variable names and paths, never values.
-
-**Docker branch** — `database`/`pgquery`, `dbtools`, `mysql-mcp`:
-
-```bash
-secrets_require "$SECRETS_FILE" pgquery PGQUERY_URI
-secrets_export  "$SECRETS_FILE" PGQUERY_URI:DATABASE_URI
-exec docker run -i --rm -e DATABASE_URI \
-  crystaldba/postgres-mcp --access-mode=restricted --transport=stdio
-```
-
-- **`-e NAME`, never `-e NAME=value`.** The bare form forwards the value
-  from the wrapper's own environment, so a password-bearing DSN never
-  appears in argv and never shows up in a local `ps` listing.
-- `env_fixed` entries *do* go in argv as `-e NAME=value` — they are
-  non-secret by construction, and having them visible in a process listing
-  is a feature for anything as load-bearing as
-  `ALLOW_DELETE_OPERATION=false`.
-- A `mount:` variable becomes `-v "$VALUE:<target>"`, which is argv-visible
-  by necessity — hence the build-time rule that a mounted variable must be
-  declared `secret: false`:
-
-```bash
-secrets_require "$SECRETS_FILE" dbtools DBTOOLS_CONFIG_PATH
-secrets_export  "$SECRETS_FILE" DBTOOLS_CONFIG_PATH
-exec docker run -i --rm -v "$DBTOOLS_CONFIG_PATH:/tools.yaml:ro" \
-  us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:latest \
-  --stdio --config /tools.yaml
-```
-
-**`${VAR}`-as-command** — `azdevops`/`azaks`, where the executable path is
-itself supplied by the user: the wrapper requires and exports the variable,
-then `exec "$AZAKS_BIN" --transport stdio`. This case *cannot* work through
-`.mcp.json` substitution at all when the value lives in the store, which is
-why it is called out separately.
-
-**All-optional server** — `research`/`zotero` has no `secrets_require` line
-at all, because none of its three variables is required:
-
-```bash
-secrets_export "$SECRETS_FILE" ZOTERO_API_KEY ZOTERO_LIBRARY_ID ZOTERO_LIBRARY_TYPE
-export ZOTERO_LOCAL=true       # from env_fixed, applied after the store
-exec zotero-mcp
-```
-
-**Intra-plugin exposure**, stated plainly: a plugin's secrets file is
-per-plugin, so a wrapper loads only names it declares — `pgquery`'s process
-gets `DATABASE_URI` and nothing else, not `MYSQL_MCP_PASS`. The file groups
-several servers' variables; the wrappers do not.
-
-## Bare CLI credentials
-
-- Some variables belong to a skill that drives a CLI directly, with no MCP
-  server to wrap — `web-search`'s `SCRAPECREATORS_API_KEY`, consumed by a
-  vendored upstream script.
-- Each credential-bearing plugin gets a generated
-  `<plugin>/bin/with-secrets` (`0755`): the same loader, then
-  `exec "$@"`. Any command run through it sees the plugin's variables:
-
-```bash
-"$CLAUDE_PLUGIN_ROOT"/bin/with-secrets python scripts/fetch.py …
-```
-
-- This deliberately avoids editing the vendored script. A community skill is
-  copied verbatim on every fetch (`shutil.copytree`, add/overwrite only), so
-  a `source` line added inside it would be silently reverted on the next
-  refresh. `bin/with-secrets` lives at the plugin root, which upstream
-  content never touches.
-- The convention is documented in the plugin's generated `SECRETS.md` (also
-  at the plugin root, also outside upstream's reach) and surfaced by the
-  skill's `status` output for any plugin with CLI-only variables.
-- Residual gap, acknowledged: whether a given invocation actually goes
-  through the launcher is a convention, not an enforcement. It is the one
-  place this design cannot close by construction.
-
-## Required, optional, and when to nudge
-
-Required-ness is per variable, and variables belong to a server (or skill,
-or CLI entry) — both facts come from `catalog.json`. That gives three states
-per entry:
+Reading `plugins/essentials/scripts/secrets-startup-check.py`, wired to
+`SessionStart`'s `startup` matcher in `plugins/essentials/hooks/hooks.json`
+(both hand-maintained — see [Repo notes](#repo-notes)):
 
 | State | Meaning | Nudge? |
 |---|---|---|
-| **complete** | every required variable set | no |
-| **partial** | some but not all required variables set | **yes** — a real misconfiguration |
-| **zero** | no required variable set | no — treated as deliberately unused |
-| *(no required variables at all)* | e.g. `research`/`zotero` | never |
+| **fully configured** | every required variable of a tool is set (via the resolved profile or inherited from `base`) | no |
+| **partially configured** | some, not all, required variables set | **yes** |
+| **entirely untouched** | no required variable set | no — treated as deliberately unused |
 
-- Plus one bootstrap case: a plugin that has at least one required variable
-  **and no secrets file at all** is nudged — that is the intended
-  onboarding, and it stops the moment the file exists.
-- The zero/partial/complete rule is what makes a multi-server plugin usable.
-  A Postgres-only user configures `pgquery`, and `mysql-mcp`, `mssql-mcp`,
-  `dbtools` sit at **zero** — untouched, therefore silent — instead of
-  nagging forever. Half-entering a MySQL configuration, which genuinely
-  breaks that server, is what raises a flag.
-- No state file, no acknowledgement marker, no opt-out list: all three
-  states are derived from the secrets file's contents on every run.
+Classification is per catalog *entry* (one MCP server, or one CLI tool),
+not per plugin — a multi-server plugin like `database` can have `pgquery`
+fully configured and silent while `mysql-mcp` sits partial and nudges,
+because half-entering one server's credentials is the state that actually
+breaks something. The hook derives all of this fresh, every session start,
+from `profiles.json`'s contents and each installed, enabled plugin's
+`catalog.json` — there's no acknowledgement marker or opt-out list to fall
+out of sync with reality. One malformed `catalog.json` from one plugin
+doesn't suppress the nudge for every other plugin; that plugin alone is
+skipped. Every failure mode here (missing store, unreadable
+`installed_plugins.json`, malformed `catalog.json`) is swallowed —
+`SessionStart` must never block or error on a shape it doesn't recognize.
 
-**Nudge output** (hook, `additionalContext`) — one line per affected plugin,
-counts only:
+## <a id="launch-ergonomics"></a>Launch ergonomics
 
-```
-database: 4 required variables unset for mysql-mcp — see the secrets skill
-```
+`$INDIE_PROFILE` is the one thing you have to type by hand, and only in two
+cases: working outside any directory a profile is bound to, or overriding
+the profile a bound directory would otherwise resolve to for one session.
+Inside a bound directory, the profile is selected automatically — there is
+nothing to type.
 
-**`status` output** (on demand) — per plugin, grouped by entry:
+Add this to your shell profile once:
 
-```
-database  ~/.local/share/claude-plugin-secrets/indie-marketplace/database.env  (0600, ok)
-  pgquery     ready        PGQUERY_URI ✓
-  dbtools     unconfigured DBTOOLS_CONFIG_PATH — (required)
-  mysql-mcp   incomplete   MYSQL_MCP_HOST ✓  MYSQL_MCP_USER ✓  MYSQL_MCP_PASS —  MYSQL_MCP_DB —
-research  (no file — nothing required)
-  zotero      ready        ZOTERO_API_KEY — (optional, upstream default applies)
+```sh
+cc() { INDIE_PROFILE="$1" claude; }
 ```
 
-- "ready" is the verdict whenever every **required** variable is set, no
-  matter how many optional ones are unset. An unset optional variable is
-  rendered as information, never as a problem to fix.
-- Stale keys (present in the file, no longer declared) get their own line
-  and the exact `--delete` command.
-- Counts and presence only. No value, no length, no masked fragment.
-
-## `configure-secrets.sh` — pinned behavior
-
-```
-configure-secrets.sh <plugin> [--server NAME] [--force [VAR]]
-                              [--delete [VAR]] [--adopt-from OLD]
-                              [--import PATH] [--status] [--yes]
+```sh
+cc client-a   # -> INDIE_PROFILE=client-a claude
+cc base       # explicitly force base, even inside a bound directory
 ```
 
-- Reads which variables to handle from the installed plugin's
-  `catalog.json`; writes to `$SECRETS_ROOT/<marketplace>/<plugin>.env`. The
-  marketplace is resolved from `installed_plugins.json`; if the plugin name
-  is installed from more than one marketplace, the script refuses and asks
-  for `<plugin>@<marketplace>`.
-- Default run: prompts only for variables that are unset, in catalog order,
-  grouped by server with a header. Already-set variables print
-  `already set — Enter to keep` and are not re-prompted.
-- Prompting: hidden (`read -s`) for `secret: true`, echoed for
-  `secret: false`. Bare Enter on an unset variable **skips** it (leaves it
-  absent), and says so. A value is stored exactly as typed — no trimming —
-  with one refusal: a value containing a newline or NUL is rejected with an
-  explanation and re-prompted.
-- `--server NAME` scopes everything (prompting, `--force`, `--status`) to one
-  entry's variables.
-- `--force` re-prompts everything in scope; `--force VAR` re-prompts exactly
-  one variable — the cheap path for rotating a single credential.
-- **Write timing:** each accepted value is committed immediately as a whole-
-  file atomic rewrite (`umask 077` → temp file in the same directory →
-  `rename`). Ctrl-C mid-sequence keeps every value entered before it; the
-  next run resumes at the first unset variable. There is no state in which
-  a partially written file is visible to a reader.
-- **Merge and prune:** the file is script-owned and fully re-rendered on
-  every write — generated header, one commented group per entry in catalog
-  order, keys in catalog order. Hand-added comments and hand-chosen ordering
-  are not preserved. Keys no longer declared are **retained**, moved to a
-  trailing `# no longer declared by this plugin` block, and reported by
-  `status`; they are never dropped silently and never dropped automatically.
-- **Concurrency:** an exclusive lock is taken for the duration of a write —
-  `mkdir "$file.lock"`, released by an `EXIT` trap, atomic on every
-  filesystem this targets (`flock` is not present by default on macOS). A
-  second concurrent run reports the lock and exits rather than losing the
-  first run's entries.
-- `--delete VAR` removes one key; `--delete` alone removes the file, with a
-  confirmation that `--yes` can pre-answer. Value-blind, so no TTY required.
-- `--adopt-from OLD` copies from `<marketplace>/OLD.env` exactly those keys
-  the current plugin's catalog declares, verbatim, printing names only —
-  the rename and split path.
-- `--import PATH` pulls declared keys out of a legacy `.env` file, prints
-  names only, and then tells the user to delete the source themselves; it
-  refuses a file with an unparseable line, and it requires a TTY (it is a
-  human cleanup action against an arbitrary path).
-- Ends by calling `check-secrets.sh --report <plugin>` so the run's result is
-  shown in the same presence-only vocabulary the skill uses.
+Two Claude Code sessions started this way never contend over shared state —
+`$INDIE_PROFILE` is read once, at process launch, from that process's own
+environment.
 
-## `check-secrets.sh` and the `SessionStart` hook
+## Permissions and the trust boundary
 
-- One code path, two modes: `--quiet` (emits `hookSpecificOutput` JSON, and
-  only when something needs saying) and `--report [plugin]` (human-readable,
-  all plugins or one). Neither mode can print a value — there is no code
-  path in the script that renders one.
-- Enumeration reads `~/.claude/plugins/installed_plugins.json` directly. No
-  `claude plugin list --json` subprocess: a blocking startup hook should not
-  pay process-spawn latency, and the whole check is otherwise a handful of
-  small file reads.
-- That file's format is undocumented, so reading it is **defensive**: if it
-  is absent, unparseable, or not `version: 2`, the hook exits 0 in silence.
-  A startup hook must never block or error on a shape change. `--report`
-  says so explicitly instead, and points at `claude plugin list`.
-- **Disabled plugins are filtered out** — a plugin is considered only if
-  `settings.json`'s `enabledPlugins` maps `<plugin>@<marketplace>` to true.
-  A plugin that is installed but switched off never nags.
-- **Multiple install records** (the value is an array — user and project
-  scope can coexist at different versions): the record with the newest
-  `lastUpdated` supplies the `catalog.json` to read. If the records disagree
-  on which variables exist, `--report` adds one line naming both install
-  paths. The secrets file itself is unaffected — it is keyed by plugin, not
-  by install.
-- Hook wiring: `SessionStart`, matcher `startup` only, so `/clear` and
-  compaction never re-nag mid-conversation.
-- The hook never writes anything and never collects a value — the same
-  boundary as the skill.
-- No install/update-triggered hook exists: every check is a fresh scan of
-  current state, so there is nothing that needs invalidating.
+- Directory creation: `os.umask(0o077)` around `mkdir`, then an explicit
+  `os.chmod(parent, 0o700)` — `0700` from the moment the store directory
+  exists.
+- File writes: the mode is set on the temp file (`0600` for
+  `profiles.json` and `active`) before the atomic rename into place —
+  there's no create-then-`chmod` window where the file is briefly
+  world-readable.
+- `doctor` (via the secrets-manager skill) checks the store root and both
+  files against these exact modes and reports drift with the path and the
+  mode found — it does not fix permissions itself.
+- **"Claude never sees a value" is a boundary enforced by these scripts,
+  not a cryptographic proof.** It rests on: no shipped script here has a
+  code path that prints a value; the skill's own instructions refuse to
+  read one; and the UI's reveal action is a click the user makes, not a
+  tool call Claude issues. An agent running arbitrary shell as the same
+  user is outside what any of that can stop — the honest posture is the
+  same one an unencrypted SSH private key or a `.pgpass` file has.
 
-## Secrets-management skill
+## Stated limits
 
-Safe for Claude to run directly (none of these can render a value):
+- **No mid-session profile switching.** MCP servers launch at session
+  start, before any skill can run. Switching profiles means restarting the
+  session under a different `$INDIE_PROFILE` (or a different bound
+  directory). The UI is a configuration surface, not a runtime switcher —
+  this is a consequence accepted by the design, not a bug to route around.
+- **A browser on the same machine is required.** There is no headless or
+  no-browser configuration path; a bare SSH session means hand-editing
+  `profiles.json`.
+- **Unix and WSL only.** Generated wrappers are POSIX shell (`#!/bin/sh`,
+  `exec`, `os.replace`-backed atomic writes). Native Windows without WSL
+  isn't supported.
+- **Plaintext at `0600`.** No encryption at rest, no OS keychain
+  integration — the same posture as an SSH private key. See `NEXTME.md`
+  for what's deliberately deferred here.
+- **A `skills:`-level `env:` declaration gets no wrapper.** See
+  [Wrappers and scoped launchers](#wrappers-and-scoped-launchers) above —
+  it's visible in the catalog, the UI, and the nudge, but nothing exports
+  its value automatically unless the skill resolves it itself.
+- **A profile can be pointed at the wrong project by hand.** Automatic
+  directory binding covers the common case, but a manually-set
+  `$INDIE_PROFILE` or `active` file can still select the wrong profile for
+  where you're actually working. This is the one regression accepted
+  relative to a purely filesystem-derived scheme — the alternative
+  (deriving scope only from a project registry with stable identifiers and
+  planted symlinks) was rejected as substantially more machinery than the
+  whole rest of this feature; see below.
 
-- **status** — the report above, across every installed and enabled plugin.
-- **locate** — prints the secrets file path and its mode. A path is not a
-  value; the deny rule is what makes the path uninteresting.
-- **point-to-configure** — prints the exact `configure-secrets.sh` command
-  for the user to run, including `--server`/`--force VAR` where that is the
-  cheaper path. Never runs it.
-- **delete / reset** — removes a key or a file. Deleting touches a path,
-  never a value, so making the user drop to a terminal for it would buy
-  nothing and make rotation worse.
-- **adopt** — the rename/split migration; moves lines between files, prints
-  names.
-- **doctor** — checks directory and file modes and ownership, checks that
-  the `Read(...)` deny rule is present in `settings.json`, and prints
-  whatever needs fixing with the exact command or JSON snippet.
+## What was rejected, and why
 
-Refused unconditionally, by the skill's own instructions:
+Recorded so a future session doesn't re-derive and re-propose these:
 
-- Running any prompting path of `configure-secrets.sh` — including when the
-  user explicitly asks it to. The technical TTY guard makes the attempt fail
-  anyway; the instruction exists so the refusal is legible rather than
-  confusing.
-- Reading the secrets file by any means, including "just to check whether it
-  parses". `doctor` answers every legitimate version of that question.
+- **A project registry with stable identifiers and symlinks planted in
+  project roots**, plus `--relink`/`--forget-project`/`--adopt-from`
+  migration tooling to keep it in sync. This was the whole shape of the
+  design that preceded the one in this document. It required a registry
+  that could drift from reality, stable IDs that a plugin rename or split
+  would invalidate, and symlinks written into project directories — none of
+  which the bound-project-path scheme (a plain string comparison against
+  `profiles.json`) needs at all.
+- **`direnv` / `.envrc`.** Would mean a value-bearing file inside a
+  project's own working tree — exactly the exposure surface a credential
+  store outside any project directory is designed to avoid.
+- **`settings.json`'s `env` key as the credential store.** It's a single
+  global environment shared by every MCP server and every Bash tool call,
+  which reintroduces the cross-plugin collision surface a per-variable
+  global namespace with a build-time duplicate check already eliminates;
+  and it would mean writing credential values into a file Claude reads and
+  edits routinely — a strictly worse exposure surface than a `0600` file
+  outside `~/.claude/` entirely.
+- **`configure-secrets.sh`, a terminal-prompt credential wizard.** Superseded
+  by the browser UI once "review a full catalog with per-profile
+  inheritance state" was the actual requirement — a sequence of one-at-a-
+  time prompts has no way to show that.
+- **A `scope:` annotation on a variable in `bundles.yaml`.** Scope isn't a
+  property of a variable — it's a consequence of which profile a value is
+  stored under. Declaring it a second time per-variable would just be
+  another place for it to disagree with reality.
+- **Per-plugin secrets files** (the design's own earlier draft, before
+  settling on one `profiles.json`). Keying credentials by variable name in
+  one file, rather than by plugin in many files, is what makes renaming or
+  splitting a plugin free — nothing to migrate, because nothing is keyed by
+  plugin identity at all.
 
-No "register a plugin" step exists: the required-variable list is re-derived
-from whatever is installed on every single run, which removes the entire
-class of bug where a registry and reality disagree.
+## <a id="repo-notes"></a>Repo notes
 
-## Two configurations of the same declarations
-
-- `vscode-mcp.json` is still generated from the same `mcp:` block, and it
-  **does not use the wrapper**. VS Code has its own `promptString` inputs and
-  its own credential storage; routing it through a Unix wrapper and a
-  `0600` file would replace a working native flow with a worse one.
-- What the shared declarations give it: `as:` renames are applied (the input
-  keeps the declared name, the server's `env` key is the renamed one),
-  `env_fixed` values are emitted literally into the server's `env` block, and
-  a `mount:` variable becomes an input substituted into the `-v` argument.
-  Docker entries use the `-e NAME` forwarding form there too, since VS Code
-  sets the server process's environment.
-- Consequences, stated rather than hidden: the two editors keep **separate
-  credential stores**, so a value configured in one is not available in the
-  other; `check-secrets.sh` and the skill report on the Claude Code store
-  only; and VS Code has no notion of an optional variable, so every declared
-  variable still becomes a `promptString` there.
-
-## Migration from the previous convention
-
-- The earlier instruction was "copy `.env.example` to `.env` inside the
-  plugin directory and fill it in". Anyone who followed it has real values in
-  a versioned install path that an update can overwrite.
-- Path forward: `configure-secrets.sh <plugin> --import <path-to-old-.env>`,
-  then delete the old file by hand. The script will not delete anything
-  outside its own root.
-- `bundles.yaml`'s header block needs a matching edit in the same change —
-  its "Env var files (per plugin…)" section still describes the `.env`
-  half of that convention, and the "To add a CLI credential" line still
-  implies it. `.env.example` keeps its entry, with its job restated as
-  documentation; `.env` no longer exists as a concept anywhere in this
-  design. `.gitignore`'s `.env` rule is harmless and stays.
-- Stale generated artifacts are a real, observed phenomenon: because every
-  plugin here is pinned `0.1.0` and updates overwrite in place, a file
-  deleted from the repo can persist in an installed copy indefinitely.
-  Wrappers are therefore keyed by server name and regenerated wholesale, and
-  the skill's `doctor` flags a wrapper in the install dir that the current
-  `catalog.json` does not account for.
-
-## What this does not guarantee
-
-- **"Claude never sees a value" is a boundary, not a proof.** It rests on
-  three things together: no shipped script has a code path that prints a
-  value, the prompting paths fail without a TTY, and a deny rule blocks the
-  obvious read. An agent running arbitrary shell as the same user is outside
-  what any of those can stop.
-- **Downstream tools are not under this design's control.** A database
-  client can echo a DSN in a connection error, an MCP server can log its own
-  configuration, and a container runtime can print its own invocation on some
-  failure classes. Keeping values out of argv removes the largest of those
-  surfaces; it does not remove the class. Wrapper stderr lands in Claude
-  Code's MCP logs, so a *downstream* tool's error text can reach a transcript
-  even though this design's own messages never carry a value.
-- **Unix shells only.** `bash`, `exec`, `rename`, POSIX modes — consistent
-  with the `docker`/CLI patterns this marketplace already ships.
-- **The store is a single directory the user is responsible for excluding**
-  from any dotfiles or sync setup. Placing it outside `~/.claude/` makes that
-  easy; it does not make it automatic.
-- **The CLI launcher convention is a convention.** See *Bare CLI
-  credentials*.
-
-## Deliberately out of scope
-
-- **Project-scoped secrets files.** A `<project>/.claude/secrets/<plugin>.env`
-  tier is cut, not deferred-with-a-shrug. Reading a credentials file out of
-  whatever repository happens to be the working directory means any cloned
-  repository can supply values to a process this design launches — including,
-  for `azaks`, the *executable path itself*. Parsing instead of sourcing
-  removes the code-execution half of that, but not the value-substitution
-  half. It also depended on cwd or `$CLAUDE_PROJECT_DIR` reaching an MCP
-  subprocess, which is unverified, appeared in no user story, and left the
-  `.gitignore` obligation without an owner. The supported per-project answer
-  is `CLAUDE_PLUGIN_SECRETS_HOME`, set explicitly by the user. Re-entry
-  criterion: a concrete case where one project genuinely needs different
-  values *and* the whole-store switch is too coarse.
-- **Selective enablement of one server within a multi-server plugin.** Claude
-  Code's install granularity is per plugin. The zero/partial/complete rule
-  makes an unconfigured server silent and harmless, which covers the practical
-  complaint; it does not stop the server from being listed. Splitting the
-  plugin remains the only real lever.
-- **Automated CLI installation.** `deps.json` documents what to install;
-  nothing is ever installed on the user's behalf.
-- **A cross-marketplace standard.** Everything here is keyed by marketplace,
-  so a second marketplace could adopt the same layout — but nothing is
-  specified for, or tested against, plugins this repo does not build.
+- `bundles.yaml` is the single source of truth for which variables exist;
+  see its own header comments for the `env:`/`mcp:`/`deps:` field reference.
+  `build.py` fails the build if the same variable name is declared by more
+  than one plugin, naming both, so two tools can never silently share one
+  credential.
+- `plugins/essentials/hooks/hooks.json` and
+  `plugins/essentials/scripts/secrets-startup-check.py` are hand-maintained,
+  not `build.py`-generated — `essentials` has no `hooks:` block in
+  `bundles.yaml` because nothing there is fetched from upstream.
+- `shared/resolver.py` and `shared/indie_store.py` are the only two
+  first-party implementations of store access. `resolver.py` is
+  deliberately self-contained (no imports beyond the standard library, no
+  dependency on any other file in this repo) because it's copied verbatim
+  into every credential-bearing plugin's `bin/` and must keep working with
+  zero access to this repository at runtime. `indie_store.py` is the
+  version everything else here — the web server, the tests — actually
+  imports.
