@@ -173,10 +173,13 @@ plugins:
         command: npx
         args: ["-y", "@upstash/context7-mcp"]
     skills:
+      # Originally fetched from community (https://github.com/wshobson/agents,
+      # plugins/python-development/skills/python-packaging); now gains a CLI
+      # surface-design section (argument ergonomics, not just entry-point
+      # wiring) and is hand-maintained — see skills/python-packaging/ for
+      # the source of truth.
       - name: python-packaging
-        source: community
-        repo: "https://github.com/wshobson/agents"
-        path: "plugins/python-development/skills/python-packaging"
+        source: local
 
       # Originally fetched from community (https://github.com/wshobson/agents,
       # plugins/python-development/skills/python-performance-optimization);
