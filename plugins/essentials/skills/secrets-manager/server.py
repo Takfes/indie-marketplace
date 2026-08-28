@@ -25,6 +25,7 @@ API:
   GET    /api/profiles         -> {profile: {projects, values: {VAR: state}}}
                                     state is one of set-here/inherited/unset
   GET    /api/value?profile=&name= -> {"value": "..." | null}
+  GET    /api/active           -> {"active": "client-a"}
   POST   /api/profile/<name>   <- {"values": {VAR: "..."|null}, "projects": [...]}
                                     null clears an override; "" stores an
                                     empty string
@@ -224,13 +225,15 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == "/":
-            self._send_html(200, PLACEHOLDER_PAGE)
+            self._send_html(200, INDEX_HTML_PATH.read_bytes())
         elif parsed.path == "/api/catalog":
             self._send_json(200, build_catalog())
         elif parsed.path == "/api/profiles":
             self._send_json(200, build_profiles_view())
         elif parsed.path == "/api/value":
             self._handle_get_value(query)
+        elif parsed.path == "/api/active":
+            self._send_json(200, {"active": indie_store.read_active()})
         else:
             self._send_json(404, {"error": "not found"})
 
@@ -384,10 +387,7 @@ class Handler(BaseHTTPRequestHandler):
         self._send_json(200, {"active": name})
 
 
-PLACEHOLDER_PAGE = (
-    b"<!doctype html><title>secrets-manager</title>"
-    b"<p>Placeholder UI \xe2\x80\x94 the real page ships in a later change.</p>"
-)
+INDEX_HTML_PATH = Path(__file__).resolve().parent / "index.html"
 
 
 # ---------------------------------------------------------------------------

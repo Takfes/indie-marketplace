@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secrets Manager</title>
+<style>
+  :root {
+    --bg: #16171a;
+    --surface: #1d1f23;
+    --surface-raised: #24262b;
+    --border: #34373d;
+    --border-strong: #46494f;
+    --text: #ededea;
+    --text-dim: #9a9da5;
+    --text-faint: #6b6e75;
+    --yellow: #f5b700;
+    --yellow-dim: rgba(245, 183, 0, 0.14);
+    --red: #e5484d;
+    --red-dim: rgba(229, 72, 77, 0.14);
+    --blue: #5ec8d8;
+    --blue-dim: rgba(94, 200, 216, 0.14);
+    --green: #4fbf7a;
+    --green-dim: rgba(79, 191, 122, 0.14);
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --radius: 3px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  body { min-height: 100vh; }
+
+  button, input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--yellow);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+
+  /* -- layout shell -- */
+
+  #app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 24px;
+    background: var(--surface);
+    border-bottom: 4px solid transparent;
+    border-image: repeating-linear-gradient(45deg, var(--yellow) 0 10px, #202124 10px 20px) 4;
+  }
+
+  .brand {
+    font-family: var(--mono);
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 13px;
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  .brand small {
+    display: block;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--text-faint);
+    font-size: 10px;
+    margin-top: 2px;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+  }
+
+  .tab {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tab:hover { color: var(--text); }
+
+  .tab.active {
+    background: var(--surface-raised);
+    border-color: var(--border-strong);
+    color: var(--yellow);
+  }
+
+  .btn {
+    border-radius: var(--radius);
+    border: 1px solid var(--border-strong);
+    background: var(--surface-raised);
+    color: var(--text);
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  .btn:hover { border-color: var(--text-dim); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-dim);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+    padding: 6px 10px;
+  }
+  .btn-ghost:hover { color: var(--text); background: var(--surface-raised); }
+
+  .btn-danger-outline {
+    background: transparent;
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .btn-danger-outline:hover { background: var(--red-dim); }
+
+  .btn-danger {
+    background: var(--red);
+    border-color: var(--red);
+    color: #16171a;
+  }
+
+  .btn-accent {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: #16171a;
+  }
+  .btn-accent:hover { filter: brightness(1.08); }
+
+  .btn-small {
+    padding: 4px 9px;
+    font-size: 11px;
+  }
+
+  /* -- banner -- */
+
+  .banner {
+    margin: 0;
+    padding: 12px 24px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .banner[hidden] { display: none; }
+  .banner.success { background: var(--green-dim); color: var(--green); }
+  .banner.error { background: var(--red-dim); color: var(--red); }
+  .banner button {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0 4px;
+  }
+
+  main {
+    flex: 1;
+    padding: 24px;
+    max-width: 1080px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .view[hidden] { display: none; }
+
+  section.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 16px;
+  }
+
+  .panel-label {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+    color: var(--text-faint);
+    margin: 0 0 10px;
+  }
+
+  /* -- profile bar -- */
+
+  .profile-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .chip:hover { color: var(--text); }
+
+  .chip.active {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: var(--yellow-dim);
+  }
+
+  .chip .lock { color: var(--text-faint); }
+  .chip.active .lock { color: var(--yellow); }
+
+  .profile-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .new-profile-form {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .new-profile-form input {
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    font-family: var(--mono);
+    width: 180px;
+  }
+
+  .rename-input {
+    background: var(--surface-raised);
+    border: 1px solid var(--yellow);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    width: 140px;
+  }
+
+  /* -- projects -- */
+
+  textarea.projects {
+    width: 100%;
+    min-height: 72px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px;
+    resize: vertical;
+  }
+
+  .panel-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+  }
+
+  .hint {
+    color: var(--text-faint);
+    font-size: 12px;
+    margin: 0 0 10px;
+  }
+
+  /* -- grid -- */
+
+  .group {
+    margin-bottom: 14px;
+  }
+
+  .group-header {
+    border-left: 4px solid var(--yellow);
+    background: var(--surface);
+    padding: 8px 14px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-radius: var(--radius);
+  }
+
+  .group-plugin {
+    font-family: var(--mono);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+  }
+
+  .group-tool {
+    font-family: var(--mono);
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  .group-type {
+    font-family: var(--mono);
+    color: var(--text-faint);
+    font-size: 10px;
+    text-transform: uppercase;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    padding: 1px 8px;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1.1fr 1.6fr 0.7fr 1.6fr;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .row:last-child { border-bottom: none; }
+
+  .var-name {
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    word-break: break-word;
+  }
+
+  .req-badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 1px 7px;
+    border-radius: 999px;
+    border: 1px solid var(--border-strong);
+    color: var(--text-faint);
+  }
+  .req-badge.required { border-color: var(--red); color: var(--red); }
+
+  .var-desc {
+    color: var(--text-dim);
+    font-size: 12.5px;
+  }
+
+  .state-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 999px;
+    width: fit-content;
+  }
+  .state-badge.set-here { background: var(--yellow-dim); color: var(--yellow); }
+  .state-badge.inherited { background: var(--blue-dim); color: var(--blue); }
+  .state-badge.unset { background: transparent; color: var(--text-faint); border: 1px dashed var(--border-strong); }
+
+  .value-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .value-cell input {
+    flex: 1;
+    min-width: 120px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 7px 9px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+  }
+
+  .value-cell input::placeholder {
+    color: var(--text-faint);
+    font-family: var(--sans);
+    font-style: italic;
+  }
+
+  .value-cell input.masked::placeholder {
+    font-family: var(--mono);
+    letter-spacing: 2px;
+    font-style: normal;
+  }
+
+  /* -- active profile screen -- */
+
+  .plaque-wrap {
+    display: flex;
+    justify-content: center;
+    padding-top: 40px;
+  }
+
+  .plaque {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px 36px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .plaque-label {
+    font-family: var(--mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    color: var(--yellow);
+    margin: 0 0 6px;
+  }
+
+  .plaque p {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin: 0 0 22px;
+  }
+
+  .plaque .distinguish {
+    font-size: 12px;
+    color: var(--text-faint);
+    border-top: 1px solid var(--border);
+    margin-top: 22px;
+    padding-top: 16px;
+  }
+
+  select.active-select {
+    width: 100%;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 14px;
+    padding: 10px 12px;
+    margin-bottom: 16px;
+  }
+
+  .empty {
+    color: var(--text-faint);
+    font-size: 13px;
+    padding: 20px;
+    text-align: center;
+  }
+
+  .closed-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    font-family: var(--mono);
+    color: var(--text-dim);
+  }
+
+  @media (max-width: 720px) {
+    .row {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
+    .topbar { flex-wrap: wrap; gap: 10px; }
+    main { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">Secrets Manager<small>indie-marketplace credential profiles</small></div>
+    <nav class="tabs">
+      <button class="tab active" data-view="editor" type="button">Profiles</button>
+      <button class="tab" data-view="active" type="button">Active Profile</button>
+    </nav>
+    <button id="done-btn" class="btn btn-danger-outline" type="button">Done</button>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main>
+    <section id="view-editor" class="view">
+      <section class="panel">
+        <p class="panel-label">Profile</p>
+        <div class="profile-chips" id="profile-chips"></div>
+        <div class="profile-actions" id="profile-actions" style="margin-top:12px;"></div>
+      </section>
+
+      <section class="panel">
+        <p class="panel-label">Bound project paths</p>
+        <p class="hint">Absolute paths, one per line. When the working directory matches one of these, this profile is selected automatically.</p>
+        <textarea class="projects" id="projects-input" spellcheck="false"></textarea>
+        <div class="panel-footer">
+          <button class="btn btn-small" id="save-projects-btn" type="button">Save paths</button>
+        </div>
+      </section>
+
+      <div id="grid"></div>
+    </section>
+
+    <section id="view-active" class="view" hidden>
+      <div class="plaque-wrap">
+        <div class="plaque">
+          <p class="plaque-label">Active Profile</p>
+          <p>The profile used when <code>INDIE_PROFILE</code> is not set in the environment and the current working directory matches none of a profile's bound project paths.</p>
+          <select class="active-select" id="active-select"></select>
+          <button class="btn btn-accent" id="save-active-btn" type="button">Save</button>
+          <p class="distinguish"><strong>base</strong> holds the inherited defaults every profile falls back to. <strong>active</strong> decides which profile applies right now. Setting active to base is valid — it just means no profile-specific overrides are in play.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var params = new URLSearchParams(location.search);
+  var token = params.get("token");
+  var BASE = "base";
+
+  var state = {
+    catalog: [],
+    profiles: {},
+    activeProfile: null,
+    selectedProfile: BASE,
+    revealed: {}
+  };
+
+  function api(method, path, body) {
+    var headers = {};
+    if (token) headers["Authorization"] = "Bearer " + token;
+    var opts = { method: method, headers: headers };
+    if (body !== undefined) {
+      headers["Content-Type"] = "application/json";
+      opts.body = JSON.stringify(body);
+    }
+    return fetch(path, opts).then(function (res) {
+      return res.text().then(function (text) {
+        var data = null;
+        if (text) {
+          try { data = JSON.parse(text); } catch (e) { data = null; }
+        }
+        if (!res.ok) {
+          var message = (data && data.error) || ("request failed (" + res.status + ")");
+          throw new Error(message);
+        }
+        return data;
+      });
+    });
+  }
+
+  var bannerEl = document.getElementById("banner");
+  var bannerTimer = null;
+
+  function showBanner(kind, message) {
+    bannerEl.className = "banner " + kind;
+    bannerEl.innerHTML = "";
+    var span = document.createElement("span");
+    span.textContent = message;
+    var close = document.createElement("button");
+    close.type = "button";
+    close.textContent = "×";
+    close.setAttribute("aria-label", "Dismiss");
+    close.addEventListener("click", hideBanner);
+    bannerEl.appendChild(span);
+    bannerEl.appendChild(close);
+    bannerEl.hidden = false;
+    if (bannerTimer) clearTimeout(bannerTimer);
+    if (kind === "success") {
+      bannerTimer = setTimeout(hideBanner, 4000);
+    }
+  }
+
+  function hideBanner() {
+    bannerEl.hidden = true;
+    if (bannerTimer) { clearTimeout(bannerTimer); bannerTimer = null; }
+  }
+
+  // -- tab switching --
+
+  var tabs = document.querySelectorAll(".tab");
+  var views = { editor: document.getElementById("view-editor"), active: document.getElementById("view-active") };
+
+  tabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      tabs.forEach(function (t) { t.classList.toggle("active", t === tab); });
+      Object.keys(views).forEach(function (key) {
+        views[key].hidden = key !== tab.dataset.view;
+      });
+      if (tab.dataset.view === "active") renderActiveView();
+    });
+  });
+
+  // -- profile bar --
+
+  function sortedProfileNames() {
+    var names = Object.keys(state.profiles);
+    names.sort(function (a, b) {
+      if (a === BASE) return -1;
+      if (b === BASE) return 1;
+      return a.localeCompare(b);
+    });
+    return names;
+  }
+
+  function renderProfileChips() {
+    var wrap = document.getElementById("profile-chips");
+    wrap.innerHTML = "";
+    sortedProfileNames().forEach(function (name) {
+      var chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip" + (name === state.selectedProfile ? " active" : "");
+      if (name === BASE) {
+        chip.innerHTML = '<span class="lock">&#128274;</span> base';
+      } else {
+        chip.textContent = name;
+      }
+      chip.addEventListener("click", function () {
+        state.selectedProfile = name;
+        renderProfileChips();
+        renderProfileActions();
+        renderProjects();
+        renderGrid();
+      });
+      wrap.appendChild(chip);
+    });
+  }
+
+  function renderProfileActions() {
+    var wrap = document.getElementById("profile-actions");
+    wrap.innerHTML = "";
+
+    var newBtn = document.createElement("button");
+    newBtn.type = "button";
+    newBtn.className = "btn btn-small";
+    newBtn.textContent = "+ New profile";
+    newBtn.addEventListener("click", showNewProfileForm);
+    wrap.appendChild(newBtn);
+
+    if (state.selectedProfile !== BASE) {
+      var renameBtn = document.createElement("button");
+      renameBtn.type = "button";
+      renameBtn.className = "btn btn-ghost btn-small";
+      renameBtn.textContent = "Rename";
+      renameBtn.addEventListener("click", showRenameForm);
+      wrap.appendChild(renameBtn);
+
+      var deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "btn btn-ghost btn-small";
+      deleteBtn.textContent = "Delete";
+      wrap.appendChild(deleteBtn);
+      armDeleteButton(deleteBtn);
+    }
+  }
+
+  function showNewProfileForm() {
+    var wrap = document.getElementById("profile-actions");
+    wrap.innerHTML = "";
+    var form = document.createElement("div");
+    form.className = "new-profile-form";
+    var input = document.createElement("input");
+    input.placeholder = "profile-name";
+    input.autocomplete = "off";
+    var save = document.createElement("button");
+    save.type = "button";
+    save.className = "btn btn-small btn-accent";
+    save.textContent = "Create";
+    var cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "btn btn-ghost btn-small";
+    cancel.textContent = "Cancel";
+
+    function submit() {
+      var name = input.value.trim();
+      if (!name) return;
+      api("POST", "/api/profile/" + encodeURIComponent(name), { values: {} })
+        .then(function () { return refreshProfiles(); })
+        .then(function () {
+          state.selectedProfile = name;
+          renderAll();
+          showBanner("success", "Created profile “" + name + "”.");
+        })
+        .catch(function (err) { showBanner("error", err.message); });
+    }
+
+    save.addEventListener("click", submit);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") submit();
+      if (e.key === "Escape") renderProfileActions();
+    });
+    cancel.addEventListener("click", renderProfileActions);
+
+    form.appendChild(input);
+    form.appendChild(save);
+    form.appendChild(cancel);
+    wrap.appendChild(form);
+    input.focus();
+  }
+
+  function showRenameForm() {
+    var chips = document.getElementById("profile-chips");
+    chips.innerHTML = "";
+    var input = document.createElement("input");
+    input.className = "rename-input";
+    input.value = state.selectedProfile;
+    input.autocomplete = "off";
+
+    function submit() {
+      var to = input.value.trim();
+      if (!to || to === state.selectedProfile) { renderProfileChips(); return; }
+      api("POST", "/api/profile/" + encodeURIComponent(state.selectedProfile) + "/rename", { to: to })
+        .then(function () { return refreshProfiles(); })
+        .then(function () {
+          state.selectedProfile = to;
+          renderAll();
+          showBanner("success", "Renamed to “" + to + "”.");
+        })
+        .catch(function (err) { showBanner("error", err.message); renderProfileChips(); });
+    }
+
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") submit();
+      if (e.key === "Escape") renderProfileChips();
+    });
+    input.addEventListener("blur", submit);
+    chips.appendChild(input);
+    input.focus();
+    input.select();
+  }
+
+  function armDeleteButton(btn) {
+    var armed = false;
+    var timer = null;
+    var revert = function () {
+      armed = false;
+      if (timer) { clearTimeout(timer); timer = null; }
+      btn.textContent = "Delete";
+      btn.classList.remove("btn-danger");
+    };
+    btn.addEventListener("click", function () {
+      if (!armed) {
+        armed = true;
+        btn.textContent = "Confirm delete?";
+        btn.classList.add("btn-danger");
+        timer = setTimeout(revert, 4000);
+        return;
+      }
+      clearTimeout(timer);
+      var name = state.selectedProfile;
+      api("DELETE", "/api/profile/" + encodeURIComponent(name))
+        .then(function () { return refreshProfiles(); })
+        .then(function () {
+          state.selectedProfile = BASE;
+          renderAll();
+          showBanner("success", "Deleted profile “" + name + "”.");
+        })
+        .catch(function (err) { showBanner("error", err.message); revert(); });
+    });
+  }
+
+  // -- projects panel --
+
+  function renderProjects() {
+    var textarea = document.getElementById("projects-input");
+    var profile = state.profiles[state.selectedProfile];
+    textarea.value = profile ? profile.projects.join("\n") : "";
+  }
+
+  document.getElementById("save-projects-btn").addEventListener("click", function () {
+    var textarea = document.getElementById("projects-input");
+    var projects = textarea.value.split("\n").map(function (p) { return p.trim(); }).filter(Boolean);
+    api("POST", "/api/profile/" + encodeURIComponent(state.selectedProfile), { values: {}, projects: projects })
+      .then(function () { return refreshProfiles(); })
+      .then(function () {
+        showBanner("success", "Saved project paths for “" + state.selectedProfile + "”.");
+      })
+      .catch(function (err) { showBanner("error", err.message); });
+  });
+
+  // -- credential grid --
+
+  function groupsFromCatalog() {
+    var byPlugin = {};
+    var order = [];
+    state.catalog.forEach(function (entry) {
+      if (!entry.env || entry.env.length === 0) return;
+      if (!byPlugin[entry.plugin]) { byPlugin[entry.plugin] = []; order.push(entry.plugin); }
+      byPlugin[entry.plugin].push(entry);
+    });
+    order.sort();
+    return order.map(function (plugin) { return { plugin: plugin, entries: byPlugin[plugin] }; });
+  }
+
+  function stateLabel(s) {
+    if (s === "set-here") return "Overridden here";
+    if (s === "inherited") return "Inherited from base";
+    return "Unset";
+  }
+
+  function renderGrid() {
+    var grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    state.revealed = {};
+
+    var groups = groupsFromCatalog();
+    if (groups.length === 0) {
+      var empty = document.createElement("div");
+      empty.className = "empty panel";
+      empty.textContent = "No installed plugin declares any credentials yet.";
+      grid.appendChild(empty);
+      return;
+    }
+
+    var profileView = state.profiles[state.selectedProfile] || { values: {} };
+
+    groups.forEach(function (group) {
+      group.entries.forEach(function (entry) {
+        var wrap = document.createElement("div");
+        wrap.className = "group";
+
+        var header = document.createElement("div");
+        header.className = "group-header";
+        header.innerHTML =
+          '<span class="group-plugin">' + escapeHtml(group.plugin) + '</span>' +
+          '<span class="group-tool">' + escapeHtml(entry.name) + '</span>' +
+          '<span class="group-type">' + escapeHtml(entry.type || "") + '</span>';
+        wrap.appendChild(header);
+
+        var body = document.createElement("div");
+        body.className = "panel";
+        body.style.borderTopLeftRadius = "0";
+        body.style.borderTopRightRadius = "0";
+        body.style.marginTop = "0";
+        body.style.padding = "0";
+
+        entry.env.forEach(function (v) {
+          body.appendChild(renderRow(v, profileView));
+        });
+
+        wrap.appendChild(body);
+        grid.appendChild(wrap);
+      });
+    });
+  }
+
+  function renderRow(v, profileView) {
+    var row = document.createElement("div");
+    row.className = "row";
+
+    var nameCell = document.createElement("div");
+    var nameEl = document.createElement("div");
+    nameEl.className = "var-name";
+    nameEl.textContent = v.name;
+    var badge = document.createElement("span");
+    badge.className = "req-badge" + (v.required ? " required" : "");
+    badge.textContent = v.required ? "Required" : "Optional";
+    nameCell.appendChild(nameEl);
+    nameCell.appendChild(badge);
+
+    var descCell = document.createElement("div");
+    descCell.className = "var-desc";
+    descCell.textContent = v.description || "";
+
+    var varState = (profileView.values || {})[v.name] || "unset";
+    var stateCell = document.createElement("div");
+    var stateBadge = document.createElement("span");
+    stateBadge.className = "state-badge " + varState;
+    stateBadge.textContent = stateLabel(varState);
+    stateCell.appendChild(stateBadge);
+
+    var valueCell = buildValueCell(v.name, varState);
+
+    row.appendChild(nameCell);
+    row.appendChild(descCell);
+    row.appendChild(stateCell);
+    row.appendChild(valueCell);
+    return row;
+  }
+
+  function buildValueCell(varName, varState) {
+    var cell = document.createElement("div");
+    cell.className = "value-cell";
+
+    var input = document.createElement("input");
+    input.type = "password";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+
+    var hasResolvable = varState !== "unset";
+    if (hasResolvable) {
+      input.classList.add("masked");
+      input.placeholder = "••••••••";
+    } else {
+      input.placeholder = state.selectedProfile === BASE ? "Not set" : "Leave blank to inherit from base";
+    }
+
+    var showBtn = null;
+    if (hasResolvable) {
+      showBtn = document.createElement("button");
+      showBtn.type = "button";
+      showBtn.className = "btn btn-ghost btn-small";
+      showBtn.textContent = "Show";
+      showBtn.addEventListener("click", function () {
+        var key = state.selectedProfile + ":" + varName;
+        if (input.type === "password") {
+          if (state.revealed[key] !== undefined) {
+            input.value = state.revealed[key];
+            input.type = "text";
+            input.placeholder = "";
+            showBtn.textContent = "Hide";
+          } else {
+            showBtn.disabled = true;
+            api("GET", "/api/value?profile=" + encodeURIComponent(state.selectedProfile) + "&name=" + encodeURIComponent(varName))
+              .then(function (data) {
+                var value = data.value === null || data.value === undefined ? "" : data.value;
+                state.revealed[key] = value;
+                input.value = value;
+                input.type = "text";
+                input.placeholder = "";
+                showBtn.textContent = "Hide";
+              })
+              .catch(function (err) { showBanner("error", err.message); })
+              .then(function () { showBtn.disabled = false; });
+          }
+        } else {
+          input.type = "password";
+          if (input.value === "") {
+            input.placeholder = "••••••••";
+          }
+          showBtn.textContent = "Show";
+        }
+      });
+    }
+
+    var saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.className = "btn btn-small";
+    saveBtn.textContent = "Save";
+    saveBtn.addEventListener("click", function () {
+      var payload = {};
+      payload[varName] = input.value;
+      api("POST", "/api/profile/" + encodeURIComponent(state.selectedProfile), { values: payload })
+        .then(function () { return refreshProfiles(); })
+        .then(function () {
+          renderProjects();
+          renderGrid();
+          showBanner("success", varName + " saved for “" + state.selectedProfile + "”.");
+        })
+        .catch(function (err) { showBanner("error", err.message); });
+    });
+
+    cell.appendChild(input);
+    if (showBtn) cell.appendChild(showBtn);
+    cell.appendChild(saveBtn);
+
+    if (varState === "set-here") {
+      var clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "btn btn-ghost btn-small";
+      clearBtn.textContent = "Clear";
+      clearBtn.addEventListener("click", function () {
+        var payload = {};
+        payload[varName] = null;
+        api("POST", "/api/profile/" + encodeURIComponent(state.selectedProfile), { values: payload })
+          .then(function () { return refreshProfiles(); })
+          .then(function () {
+            renderGrid();
+            showBanner("success", varName + " cleared — now inherited from base.");
+          })
+          .catch(function (err) { showBanner("error", err.message); });
+      });
+      cell.appendChild(clearBtn);
+    }
+
+    return cell;
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.textContent = str == null ? "" : String(str);
+    return div.innerHTML;
+  }
+
+  // -- active profile screen --
+
+  function renderActiveView() {
+    var select = document.getElementById("active-select");
+    select.innerHTML = "";
+    sortedProfileNames().forEach(function (name) {
+      var opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name === BASE ? "base" : name;
+      select.appendChild(opt);
+    });
+    select.value = state.activeProfile in state.profiles ? state.activeProfile : BASE;
+  }
+
+  document.getElementById("save-active-btn").addEventListener("click", function () {
+    var select = document.getElementById("active-select");
+    var name = select.value;
+    api("POST", "/api/active", { profile: name })
+      .then(function () {
+        state.activeProfile = name;
+        showBanner("success", "Active profile set to “" + name + "”.");
+      })
+      .catch(function (err) { showBanner("error", err.message); });
+  });
+
+  // -- done / shutdown --
+
+  document.getElementById("done-btn").addEventListener("click", function () {
+    api("POST", "/api/shutdown")
+      .catch(function () { /* server closes the connection; ignore */ })
+      .then(function () {
+        document.getElementById("app").innerHTML =
+          '<div class="closed-screen">Session closed. You can close this tab.</div>';
+        setTimeout(function () { window.close(); }, 300);
+      });
+  });
+
+  // -- boot / refresh --
+
+  function refreshProfiles() {
+    return api("GET", "/api/profiles").then(function (data) { state.profiles = data; });
+  }
+
+  function renderAll() {
+    renderProfileChips();
+    renderProfileActions();
+    renderProjects();
+    renderGrid();
+    renderActiveView();
+  }
+
+  function boot() {
+    Promise.all([
+      api("GET", "/api/catalog"),
+      api("GET", "/api/profiles"),
+      api("GET", "/api/active")
+    ]).then(function (results) {
+      state.catalog = results[0];
+      state.profiles = results[1];
+      state.activeProfile = results[2].active;
+      state.selectedProfile = state.activeProfile in state.profiles ? state.activeProfile : BASE;
+      renderAll();
+    }).catch(function (err) {
+      showBanner("error", "Could not load: " + err.message);
+    });
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
