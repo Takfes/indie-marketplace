@@ -129,16 +129,21 @@ def _find_partial_tools(cwd: Path) -> list[tuple[str, str, list[str]]]:
     partial: list[tuple[str, str, list[str]]] = []
     for plugin_name, install_path in _installed_plugin_paths().items():
         catalog_file = install_path / ".claude-plugin" / "catalog.json"
-        if not catalog_file.exists():
-            continue
-        entries = json.loads(catalog_file.read_text())
-        for entry in entries:
-            required = [v["name"] for v in entry.get("env", []) if v.get("required")]
-            if not required:
+        try:
+            if not catalog_file.exists():
                 continue
-            missing = [name for name in required if not _is_set(profiles, profile_name, name)]
-            if missing and len(missing) < len(required):
-                partial.append((plugin_name, entry.get("name", "?"), missing))
+            entries = json.loads(catalog_file.read_text())
+            for entry in entries:
+                required = [v["name"] for v in entry.get("env", []) if v.get("required")]
+                if not required:
+                    continue
+                missing = [name for name in required if not _is_set(profiles, profile_name, name)]
+                if missing and len(missing) < len(required):
+                    partial.append((plugin_name, entry.get("name", "?"), missing))
+        except Exception:
+            # One plugin's malformed catalog.json must not silence every
+            # other plugin's legitimate nudge — skip just this one.
+            continue
     return partial
 
 

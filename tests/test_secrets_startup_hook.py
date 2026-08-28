@@ -214,6 +214,49 @@ def test_empty_stdin_is_silent_not_error(fixture, tmp_path):
     assert result.returncode == 0
 
 
+def test_one_malformed_catalog_does_not_silence_other_plugins(tmp_path):
+    claude_dir = tmp_path / "claude_config"
+    store_home = tmp_path / "store"
+    broken_dir = tmp_path / "plugins" / "broken"
+    good_dir = tmp_path / "plugins" / "good"
+
+    (broken_dir / ".claude-plugin").mkdir(parents=True)
+    (broken_dir / ".claude-plugin" / "catalog.json").write_text("{not valid json")
+    _write_catalog(
+        good_dir,
+        [{"name": "svc", "type": "mcp", "env": [{"name": "REQ_1", "required": True}, {"name": "REQ_2", "required": True}]}],
+    )
+    _write_installed_plugins(claude_dir, {"broken": broken_dir, "good": good_dir})
+    _write_profiles(store_home, {"version": 1, "profiles": {"base": {"projects": [], "values": {"REQ_1": "x"}}}})
+
+    result = run_hook(claude_dir, store_home, tmp_path)
+    assert result.returncode == 0
+    ctx = json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "good/svc" in ctx
+    assert "REQ_2" in ctx
+
+
+def test_catalog_that_is_not_a_list_does_not_silence_other_plugins(tmp_path):
+    claude_dir = tmp_path / "claude_config"
+    store_home = tmp_path / "store"
+    broken_dir = tmp_path / "plugins" / "broken"
+    good_dir = tmp_path / "plugins" / "good"
+
+    (broken_dir / ".claude-plugin").mkdir(parents=True)
+    (broken_dir / ".claude-plugin" / "catalog.json").write_text(json.dumps({"not": "a list"}))
+    _write_catalog(
+        good_dir,
+        [{"name": "svc", "type": "mcp", "env": [{"name": "REQ_1", "required": True}, {"name": "REQ_2", "required": True}]}],
+    )
+    _write_installed_plugins(claude_dir, {"broken": broken_dir, "good": good_dir})
+    _write_profiles(store_home, {"version": 1, "profiles": {"base": {"projects": [], "values": {"REQ_1": "x"}}}})
+
+    result = run_hook(claude_dir, store_home, tmp_path)
+    assert result.returncode == 0
+    ctx = json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "good/svc" in ctx
+
+
 def test_disabled_plugin_is_never_checked(tmp_path):
     claude_dir = tmp_path / "claude_config"
     store_home = tmp_path / "store"
