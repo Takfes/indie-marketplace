@@ -25,6 +25,11 @@
     "env": []
   },
   {
+    "name": "python-review",
+    "type": "skill",
+    "env": []
+  },
+  {
     "name": "python-testing-patterns",
     "type": "skill",
     "env": []
