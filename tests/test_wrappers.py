@@ -176,6 +176,30 @@ plugins:
     assert "inputs" not in vscode
 
 
+def test_command_env_with_no_real_command_fails_cleanly(project):
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    mcp:
+      - name: broken
+        command: env
+        args: ["FOO=${BAR}"]
+        env:
+          BAR: null
+""",
+    )
+    result = run_build(project)
+    assert result.returncode != 0
+    assert "broken" in result.stdout
+    assert "Traceback" not in result.stdout
+    assert "Traceback" not in result.stderr
+
+
 # ---------------------------------------------------------------------------
 # Seam 3 — observable environment
 # ---------------------------------------------------------------------------

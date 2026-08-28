@@ -611,6 +611,10 @@ def _wrapper_body(entry: dict) -> tuple[list[str], list[str]]:
             else:
                 exports.append(f"export {name}={shlex.quote(value)}")
             i += 1
+        if i >= len(args):
+            label = entry.get("name") or entry.get("command")
+            err(f"{label} — `command: env` has no real command after its NAME=VALUE prefix args")
+            sys.exit(1)
         command = args[i]
         args = args[i + 1 :]
 
