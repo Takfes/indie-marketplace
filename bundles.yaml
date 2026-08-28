@@ -30,11 +30,14 @@
 #     name    — server key under mcpServers
 #     command — executable to run
 #     args    — list of CLI args (defaults to [])
-#     env     — optional map of env var names to metadata (build.py writes
-#               "${NAME}" in .mcp.json so Claude Code resolves it from the
-#               shell at runtime — metadata never reaches .mcp.json). Each
-#               value is either null (required, undescribed — today's
-#               shape) or a mapping overriding either field:
+#     env     — optional map of env var names to metadata. An entry
+#               declaring env gets a generated wrapper in the plugin's
+#               bin/ (see "Credential wrappers" below) that resolves and
+#               exports these before exec'ing `command`/`args` — .mcp.json
+#               then points at the wrapper instead of substituting
+#               "${NAME}" itself. Each value is either null (required,
+#               undescribed — today's shape) or a mapping overriding
+#               either field:
 #                 env:
 #                   PGQUERY_URI: null
 #                   ZOTERO_API_KEY: { required: false, description: "…" }
@@ -44,7 +47,8 @@
 # plugin.env (optional, top-level sibling of `skills:`, map):
 #   Env var names a plugin needs with no single mcp:/skills:/deps: entry to
 #   attach to. Same shape as an mcp: entry's `env:`. Reaches .env.example
-#   only — nothing here is written to .mcp.json or vscode-mcp.json.
+#   only — nothing here is written to .mcp.json or vscode-mcp.json, and it
+#   gets no wrapper (there is no command to wrap it around).
 #
 # plugin.deps (optional, top-level sibling of `skills:`, list):
 #   CLI tools a plugin's skills invoke directly, with no MCP server behind
@@ -53,8 +57,24 @@
 #     install — shell command that installs it, shown as a suggestion only —
 #               nothing here is ever run automatically
 #     manual  — install docs URL, shown when there's no scripted `install`
-#     env     — optional, same shape as an mcp: entry's `env:`
-#   build.py copies these verbatim into the plugin's deps.json.
+#     env     — optional, same shape as an mcp: entry's `env:`. An entry
+#               declaring env gets a generated scoped launcher in bin/
+#               instead of an mcp: entry's wrapper — same credential
+#               resolution, but it forwards its caller's own arguments to
+#               `command` rather than running a fixed argv.
+#   build.py copies command/install/manual verbatim into the plugin's
+#   deps.json.
+#
+# Credential wrappers (generated bin/, one per plugin with a credential-
+# bearing mcp:/deps: entry):
+#   A copy of shared/resolver.py plus one wrapper (mcp:) or scoped launcher
+#   (deps:) per entry declaring env. Each resolves its own declared vars via
+#   the resolver, exports them, and execs the real command — so a secret
+#   value is set via the process's environment, never passed as a `-e
+#   NAME=value`-shaped argument, and is therefore invisible to another
+#   user's `ps`. The resolver travels inside bin/ rather than being shared
+#   from `essentials`, so a plugin installed alone still resolves its own
+#   credentials.
 #
 # plugin.catalog (optional, top-level sibling of `skills:`, bool):
 #   Set true to have build.py write catalog.json: one {name, type, env}
