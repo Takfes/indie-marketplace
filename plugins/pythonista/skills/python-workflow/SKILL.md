@@ -1,6 +1,15 @@
 ---
 name: python-workflow
-description: Run the pythonista pipeline against Python code via one of three recipes — critique (read-only scan -> report, the default with no recipe named), tidy (safe-tier mutation: scan -> patterns -> quality-tools -> verify, with an approval checkpoint before any write), or ship-it (scan -> document -> patterns -> quality-tools -> optional deep work -> verify -> commit). Use for a health check or review baseline (critique), a low-risk cleanup pass (tidy), or a full mutate-and-commit pass (ship-it). With no recipe named, always run critique — only run tidy or ship-it when the user names that recipe explicitly.
+description: >
+  Run the pythonista pipeline against Python code via one of three recipes
+  — critique (read-only scan -> report, the default with no recipe named),
+  tidy (safe-tier mutation: scan -> patterns -> quality-tools -> verify,
+  with an approval checkpoint before any write), or ship-it (scan ->
+  document -> patterns -> quality-tools -> optional deep work -> verify ->
+  commit). Use for a health check or review baseline (critique), a
+  low-risk cleanup pass (tidy), or a full mutate-and-commit pass
+  (ship-it). With no recipe named, always run critique — only run tidy or
+  ship-it when the user names that recipe explicitly.
 ---
 
 # Python Workflow
