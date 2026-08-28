@@ -1,6 +1,18 @@
 {
-  "description": "Sound alerts for session lifecycle events",
+  "description": "Session lifecycle hooks: sound alerts, plus a startup nudge for partially configured credentials",
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/secrets-startup-check.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "*",
