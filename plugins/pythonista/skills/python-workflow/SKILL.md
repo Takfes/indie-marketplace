@@ -34,10 +34,8 @@ Orchestrator for the pythonista pipeline. One skill, a recipe argument selects w
 1. Run `python-scan`'s entry point against the target path (path relative to this skill's own directory — resolve it from wherever this skill was loaded):
    `../python-scan/scripts/analyze_all.py <path> --format json`
 2. Run `python-review` against the same target, passing it the scan's JSON report so it doesn't re-report what `python-scan` already flagged (see `python-review`'s own `SKILL.md`, Dispatch). `python-review` picks diff or module mode itself from what the user named — pass that choice through rather than deciding it here.
-3. Build the reader-facing report: run the scan again with `--format text` (or reformat the JSON yourself) for its severity breakdown, category breakdown, and highest-severity findings with `file:line`, then append `python-review`'s `## Standards` / `## Contract` sections verbatim underneath.
+3. Build the reader-facing report: run the scan again with `--format text` (or reformat the JSON yourself) for its severity breakdown, category breakdown, and highest-severity findings with `file:line`, then append `python-review`'s `## Standards` / `## Contract` sections verbatim underneath. If `python-scan`'s `find_code_smells.py` flagged a god class, or `python-review`'s Standards axis raised a Divergent Change, Feature Envy, Message Chains, Middle Man, or Refused Bequest finding — whole-module structural signals, not idiom-level ones — end the report with one line: `architecture review recommended: run python-architecture`. Text only; nothing in this recipe invokes it.
 4. Present the report to the user. Do not propose fixes, do not edit any file, and never pass `--output` to the scan — this recipe writes zero files, always.
-
-A later revision adds a report line recommending `python-architecture` by name for whole-module structural concerns, once that skill exists — `critique` doesn't reach for it automatically.
 
 ## Checkpoints
 
