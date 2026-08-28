@@ -1,6 +1,6 @@
-# Pythonista plugin plan — v2 draft
+# Pythonista plugin plan — v2
 
-**Status: draft, under active discussion.** Supersedes `pythonista-plugin-plan.md` where the
+**Status: finalized.** Supersedes `pythonista-plugin-plan.md` where the
 two disagree. First produced by re-deriving the design from first principles rather than
 accepting that plan's settled-decisions table as fixed; then put through an independent
 adversarial review (`docs/202608280959-review-pythonista-plan-v2.md`, staff-engineer persona,
@@ -60,8 +60,8 @@ pass (different cost/scope), and discoverability is solved separately, not by bu
 | 6 | `python-architecture` | Whole-module/codebase structural critique: seams, adapters, the deletion test, module/interface vocabulary | No | `critique`'s report *recommends* it by name (see Recipes) | **No — `disable-model-invocation: true`** |
 | 7 | `python-refactor` | Structural moves only: Extract Method, Encapsulate Global State, Group Related Functions, Create Domain Models, DI. Idiom-level entries removed — link to `python-patterns` instead | Yes, structural tier | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
 | 8 | `python-testing-patterns` ✅ | Tests-after workflow: plan seams → confirm ambiguity with user → write one seam at a time → prove non-trivial tests can fail → flag testability smells | Yes (adds tests) | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
-| 9 | `python-performance-optimization` ✅ | Evidence-first profiling: hotspot report or live dashboard | No (profiling only; optimization is a separate explicit step) | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
-| 10 | `python-packaging` | Distribution shape: src/flat layout, pyproject.toml, build backend, PyPI publishing | Yes | Deep work, explicit call, unchanged from community | Yes (low harm, read-mostly reference) |
+| 9 | `python-performance-optimization` ✅→**revised** | Evidence-first profiling under an enforced workflow: baseline → prove there's a problem → profile → propose → 🛑 approve → optimize → re-benchmark → compare. Adds a ported benchmark-comparison script | No (profiling only; optimization is a separate, checkpointed explicit step) | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
+| 10 | `python-packaging` **→revised** | Distribution shape (src/flat layout, pyproject.toml, build backend, PyPI publishing) **plus CLI surface design** (argument ergonomics, `[project.scripts]` entry-point wiring) | Yes | Deep work, explicit call | Yes (low harm, read-mostly reference) |
 | 11 | `uv-package-manager` | `uv` CLI reference: deps, venvs, Python versions, lockfiles | Yes | Deep work/utility, explicit call, unchanged | Yes (low harm, read-mostly reference) |
 | 12 | `python-workflow` | Orchestrator. One skill, three recipe args (`critique`/`tidy`/`ship-it`). **No argument defaults to `critique`** — `tidy`/`ship-it` require the user to name them. No expertise of its own | — | Is the pipeline | Yes, but description advertises only the read-only entry point |
 
@@ -300,20 +300,26 @@ lenses that fire without a spec (Standards + Contract, per the fix above) — at
 `python-review-lens` has a real justification and the `build.py` change can be scoped
 alongside it.
 
-## Open items
+## Open items — all resolved
 
-1. ~~`python-architecture` as owned skill~~ — **resolved**, see above.
-2. **CLI-invocation-design gap in `python-packaging`** — still open. Nothing currently covers
-   designing the CLI surface itself (argument ergonomics), only wiring `[project.scripts]`
-   entry points. Fold into this pass, or leave flagged for later?
-3. **Workflow-discipline gap in `python-performance-optimization`** — **confirmed real** by
-   independent file inspection (it has no `## Workflow` section, unlike
-   `python-testing-patterns`'s explicit numbered one) and **recommended to fold in**: an
-   enforced baseline → prove-there's-a-problem → profile → propose → 🛑 approve → optimize →
-   re-benchmark → compare sequence, matching what the chatgpt source doc asked for. Also
-   missing a before/after benchmark-comparison script — `python-refactor` already has one
-   (`compare_metrics.py` / `benchmark_changes.py`, see the `python-scan` table above) worth
-   porting rather than reinventing. Still needs your go-ahead to schedule the actual edit.
+1. **`python-architecture` as owned skill** — resolved, kept as its own skill (see above).
+2. **CLI-invocation-design gap in `python-packaging`** — resolved, folded in. The skill gains a
+   CLI-surface-design section (argument ergonomics, not just entry-point wiring) alongside its
+   existing packaging content. Since this is now a hand-maintained addition rather than
+   verbatim community content, `python-packaging` flips `source: community` → `local` in
+   `bundles.yaml`, the same pattern already used for `python-testing-patterns` and
+   `python-performance-optimization`.
+3. **Workflow-discipline gap in `python-performance-optimization`** — resolved, folded in.
+   Confirmed real by independent file inspection (no `## Workflow` section, unlike
+   `python-testing-patterns`'s explicit numbered one). Adds the enforced baseline →
+   prove-there's-a-problem → profile → propose → 🛑 approve → optimize → re-benchmark → compare
+   sequence the chatgpt source doc asked for, plus a ported benchmark-comparison script (from
+   `python-refactor`'s `compare_metrics.py` / `benchmark_changes.py` pattern, once that script's
+   own import fix from the `python-scan` table above lands) instead of reinventing one.
+
+This plan is now finalized pending the still-standing caveat noted at the top: `affaan-m` and
+`beagle` remain unfetched, so the `python-review` and `python-patterns` cherry-pick rows
+attributed to them are provisional until build step 1 runs and either confirms or corrects them.
 
 ## Build order
 
@@ -336,8 +342,10 @@ never reached.
 | 8 | `python-refactor` rework — port fixed `compare_metrics.py`, keep `benchmark_changes.py`, strip duplicated analyzers, fix stale refs, flip to `local`, add `disable-model-invocation` | `./build.py --plugin pythonista`; `compare_metrics.py` imports cleanly; git diff shows only intended changes |
 | 9 | Retire `python-simplifier` | Removed from `bundles.yaml`; nothing references it |
 | 10 | `python-workflow` — complete: add `tidy`, `ship-it`, the three real checkpoints, evidence-conditioned skip proposals, soft-dep probing for `git-commit`, `disable-model-invocation` default-to-`critique` behavior | Each recipe runs end to end on a scratch project |
+| 11 | `python-performance-optimization` — add the enforced Workflow section (baseline → prove problem → profile → propose → 🛑 approve → optimize → re-benchmark → compare) and port a benchmark-comparison script | Run on a scratch script with a real bottleneck; the skill refuses to "optimize" without first showing baseline evidence, and the approval gate is honored |
+| 12 | `python-packaging` — add CLI surface-design section, flip `source: community` → `local` | Skill proposes a CLI argument structure (not just entry-point wiring) for a scratch script being turned into a tool |
 
-Use `skillcraft:skill-creator` for every new/merged skill (steps 2, 2a, 3, 4, 5, 6, 7, 10).
+Use `skillcraft:skill-creator` for every new/merged/revised skill (steps 2, 2a, 3, 4, 5, 6, 7, 10, 11, 12).
 
 ### Repo mechanics — non-negotiable
 
