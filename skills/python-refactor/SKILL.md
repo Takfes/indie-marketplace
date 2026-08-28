@@ -3,6 +3,7 @@ name: python-refactor
 description: >
   Restructure tangled code into a clear equivalent, preserving behavior.
   TRIGGER WHEN: the user asks for "readable", "maintainable" or "clean" code, a review flags comprehension issues, or the task is legacy modernization or onboarding cleanup.
+disable-model-invocation: true
 ---
 
 # Python Refactor
