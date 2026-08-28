@@ -1,9 +1,23 @@
 # Pythonista plugin plan — v2 draft
 
 **Status: draft, under active discussion.** Supersedes `pythonista-plugin-plan.md` where the
-two disagree; produced by re-deriving the design from first principles rather than accepting
-that plan's settled-decisions table as fixed. Written for an adversarial review pass — open
-items are marked explicitly rather than silently resolved.
+two disagree. First produced by re-deriving the design from first principles rather than
+accepting that plan's settled-decisions table as fixed; then put through an independent
+adversarial review (`docs/202608280959-review-pythonista-plan-v2.md`, staff-engineer persona,
+opus, fresh context) that verified claims against the actual vendored source files and found
+real defects, not just style nits. This revision folds in that review's remediation plan.
+Verdict on the pre-review draft was **"sound with gaps"**: the layer model, recipe shape, and
+merge decisions held up; enforcement did not — every safety rule was prose with no mechanism
+behind it, and two cherry-pick table rows were factually wrong when checked against the actual
+scripts. Both classes of problem are fixed below.
+
+**Standing caveat, load-bearing:** `affaan-m/everything-claude-code` and
+`existential-birds/beagle` have never actually been fetched — they appear nowhere in
+`bundles.yaml` or the tree. Every claim about what beagle's evidence gate or affaan-m's idiom
+categories actually contain (including the "actual prize" framing below) is **unverified**
+until the prior plan's own step 1 ("fetch and read the two new upstreams") runs. Everything
+attributed to mattpocock, codementor, python-simplifier, and python-refactor below *was*
+independently re-verified against the real files by the adversarial reviewer.
 
 Inputs: `pythonista-plugin-design-chatgpt.md`, `pythonista-plugin-design-claude.md`, and
 `pythonista-plugin-plan.md` (the prior synthesis of the first two), all in this same `docs/`
@@ -31,94 +45,171 @@ Layer 0   Analysis        shared deterministic scripts, no judgment
 ## Skill inventory — 12 skills
 
 Net change from the prior plan's 11: **+1, `python-architecture`**, replacing a soft
-cross-plugin dependency with an owned skill (reasoning below). This is the one inventory-level
-change in this draft and is flagged as an open item for explicit sign-off.
+cross-plugin dependency with an owned skill. **Confirmed** (user sign-off, after the reviewer
+corrected the original argument for it — see below) — keep it as its own skill, not folded
+into a `python-review` lens: architecture audits are a different kind of work than a review
+pass (different cost/scope), and discoverability is solved separately, not by bundling.
 
-| # | Skill | Job | Mutates? | Pipeline role |
-|---|---|---|---|---|
-| 1 | `python-scan` | Read-only deterministic analyzers → structured JSON (complexity, dedup, dead code, coupling, docstring/type coverage, overengineering, unpythonic constructs) | No | Evidence for every other stage; gates whether a stage runs at all |
-| 2 | `python-review` | Judgment critique of a module or diff — prioritized findings, each with `FILE:LINE` evidence, gated by a false-positive/suppression check before anything ships | No | `critique` recipe only |
-| 3 | `python-patterns` | Idioms, dead code, duplication, YAGNI — behavior-preserving | Yes, safe tier | `tidy`, `ship-it` |
-| 4 | `python-document` | Module summaries, docstrings, type annotations, comments — additive only | Yes, safe tier | `ship-it` |
-| 5 | `python-quality-tools` | ruff format/check --fix, mypy, secret scan, dep audit — detect→fix→rerun loop | Yes, safe tier | `tidy`, `ship-it` |
-| 6 | **`python-architecture`** *(new)* | Whole-module/codebase structural critique: seams, adapters, the deletion test, module/interface vocabulary | No | `critique`'s optional deep lane |
-| 7 | `python-refactor` | Structural moves only: Extract Method, Encapsulate Global State, Group Related Functions, Create Domain Models, DI. Idiom-level entries removed — link to `python-patterns` instead | Yes, structural tier | Deep work, explicit call only |
-| 8 | `python-testing-patterns` ✅ | Tests-after workflow: plan seams → confirm ambiguity with user → write one seam at a time → prove non-trivial tests can fail → flag testability smells | Yes (adds tests) | Deep work, explicit call only |
-| 9 | `python-performance-optimization` ✅ | Evidence-first profiling: hotspot report or live dashboard | No (profiling only; optimization is a separate explicit step) | Deep work, explicit call only |
-| 10 | `python-packaging` | Distribution shape: src/flat layout, pyproject.toml, build backend, PyPI publishing | Yes | Deep work, explicit call, unchanged from community |
-| 11 | `uv-package-manager` | `uv` CLI reference: deps, venvs, Python versions, lockfiles | Yes | Deep work/utility, explicit call, unchanged |
-| 12 | `python-workflow` | Orchestrator. One skill, three recipe args (`critique`/`tidy`/`ship-it`). No expertise of its own — checkpoints, soft-dep probing, evidence-conditioned stage-skip logic | — | Is the pipeline |
+| # | Skill | Job | Mutates? | Pipeline role | Auto-invocable? |
+|---|---|---|---|---|---|
+| 1 | `python-scan` | Read-only deterministic analyzers → structured JSON (complexity, dedup, dead code, coupling, docstring/type coverage, overengineering, unpythonic constructs) | No | Evidence for every other stage; gates whether a stage runs at all | Yes |
+| 2 | `python-review` | Judgment critique of a module or diff — prioritized findings, each with `FILE:LINE` evidence, gated by a false-positive/suppression check before anything ships | No | `critique` recipe only | Yes |
+| 3 | `python-patterns` | Idioms, dead code, duplication, YAGNI — behavior-preserving | Yes, safe tier | `tidy`, `ship-it` | Yes |
+| 4 | `python-document` | Module summaries, docstrings, type annotations, comments — additive only | Yes, safe tier | `ship-it` | Yes |
+| 5 | `python-quality-tools` | ruff format/check --fix, mypy, secret scan, dep audit — detect→fix→rerun loop | Yes, safe tier | `tidy`, `ship-it` | Yes |
+| 6 | `python-architecture` | Whole-module/codebase structural critique: seams, adapters, the deletion test, module/interface vocabulary | No | `critique`'s report *recommends* it by name (see Recipes) | **No — `disable-model-invocation: true`** |
+| 7 | `python-refactor` | Structural moves only: Extract Method, Encapsulate Global State, Group Related Functions, Create Domain Models, DI. Idiom-level entries removed — link to `python-patterns` instead | Yes, structural tier | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
+| 8 | `python-testing-patterns` ✅ | Tests-after workflow: plan seams → confirm ambiguity with user → write one seam at a time → prove non-trivial tests can fail → flag testability smells | Yes (adds tests) | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
+| 9 | `python-performance-optimization` ✅ | Evidence-first profiling: hotspot report or live dashboard | No (profiling only; optimization is a separate explicit step) | Deep work; electable at `ship-it` checkpoint 2, or explicit call | **No — `disable-model-invocation: true`** |
+| 10 | `python-packaging` | Distribution shape: src/flat layout, pyproject.toml, build backend, PyPI publishing | Yes | Deep work, explicit call, unchanged from community | Yes (low harm, read-mostly reference) |
+| 11 | `uv-package-manager` | `uv` CLI reference: deps, venvs, Python versions, lockfiles | Yes | Deep work/utility, explicit call, unchanged | Yes (low harm, read-mostly reference) |
+| 12 | `python-workflow` | Orchestrator. One skill, three recipe args (`critique`/`tidy`/`ship-it`). **No argument defaults to `critique`** — `tidy`/`ship-it` require the user to name them. No expertise of its own | — | Is the pipeline | Yes, but description advertises only the read-only entry point |
 
-### Why these boundaries survive independent scrutiny (not just inherited)
+### Why these boundaries survive independent scrutiny (re-verified by adversarial review)
 
 - **`python-scan` stays separate from `python-quality-tools`**, rejecting the prior plan's own
-  trim option. Not just an output-shape difference: `python-scan`'s analyzers (complexity,
-  dedup, coupling) have no `--fix` mode — a human/LLM has to *decide* what to do with a
-  complexity score. `python-quality-tools`'s checks (ruff, mypy, secret-scan) are directly
-  actionable by the same tool that found them. Merging would blur the mutate/no-mutate line the
-  whole checkpoint design depends on.
-- **`python-patterns` absorbs `python-simplifier` wholesale** — confirmed. Idioms, dead code,
-  duplication, and YAGNI are one cognitive operation (assess code against a quality bar), not
-  four. Splitting them buys no real boundary.
-- **Self-contained Python, no agnostic core** — confirmed. A generic core only pays for itself
-  with ≥2 language packs consuming it; there is one today. Building it now is the
-  "configurability that wasn't requested" this project's own conventions warn against.
-- **`python-workflow` is one skill with recipe args, not three skills.** The shared machinery —
-  checkpoint UI, soft-dep probing, "establish state" — is real, load-bearing duplication if
-  split, unlike the scan/quality-tools case where the apparent overlap was superficial.
+  trim option. **Survives, with one correction:** the original framing ("analyzers have no
+  `--fix` counterpart") is slightly off — `check_documentation.py`'s output *does* have a fixer,
+  it's just a different skill (`python-document`) in a different tier. The real criterion:
+  the fixer is always a separate, tier-appropriate skill, never the analyzer itself. Conclusion
+  unchanged either way.
+- **`python-patterns` absorbs `python-simplifier` wholesale** — confirmed, survives. Idioms,
+  dead code, duplication, and YAGNI are one cognitive operation, not four.
+- **Self-contained Python, no agnostic core** — confirmed, off-limits for this pass. The test
+  ("a generic core only pays for itself with ≥2 language packs") is correct and there is one
+  today.
+- **`python-workflow` is one skill with recipe args, not three skills.** **Argument corrected**
+  by review: the original reasoning ("shared checkpoint/probing machinery would duplicate")
+  was the weaker available case — three skills could each link one shared reference file, so
+  that alone doesn't force one skill. The reason that actually holds: there must be exactly one
+  entry point capable of reaching `git-commit`, and one skill description for the model to
+  match invocation against — which is also what makes the read-only-by-default rule below
+  enforceable at all. Same conclusion, sounder argument.
+
+## Enforcement — not prose, mechanism
+
+The pre-review draft declared six skills "explicit call only, never auto-triggered" without
+anything that actually stopped auto-invocation. This marketplace already has the primitive:
+`disable-model-invocation: true` appears in 14 other SKILL.md files across the marketplace and,
+before this fix, zero pythonista ones — `python-refactor`'s shipped description still triggers
+on "clean this up," the exact collision this plan exists to end.
+
+- `disable-model-invocation: true` on the four skills that mutate structurally or run expensive
+  work: `python-architecture`, `python-refactor`, `python-testing-patterns`,
+  `python-performance-optimization`. `python-packaging` and `uv-package-manager` stay
+  auto-invocable — read-mostly references, low harm.
+- `python-workflow` with **no recipe argument runs `critique`** (read-only). `tidy` and
+  `ship-it` require the user to name the recipe explicitly. This restates and makes operative
+  the prior plan's decision 7 ("read-only by default"), which the pre-review v2 draft had
+  silently dropped.
+- `python-workflow`'s skill body states explicitly: never select `tidy` or `ship-it` unless the
+  user named the recipe.
+
+Cost: none of the four newly-gated skills lose anything — `python-refactor` was already
+scheduled to flip `community` → `local` in this pass, and the other three are already local.
 
 ## Recipes — pipeline vs. ad-hoc
 
 **In the pipeline** (`python-workflow <recipe>`):
 
 ```
-critique:  scan → review → report                          [read-only, 0 checkpoints]
-                     └─optional─▶ python-architecture
+critique:  scan → review → report
+                     (report may recommend: "run python-architecture" — text, not an
+                      auto-triggered arrow; nothing can invoke it but the user, by name)
+           [read-only, 0 checkpoints]
 
-tidy:      scan → 🛑 approve plan → patterns → quality-tools → verify → 🛑 diff review
+tidy:      scan → 🛑 approve plan → patterns → quality-tools → verify → 🛑 approve terminal act
+           [2 checkpoints: 1 and 3 — see below]
 
 ship-it:   scan → 🛑 approve plan → document → patterns → quality-tools
-                → 🛑 approve consequential work → verify → 🛑 approve commit → git-commit
+                → 🛑 elect deep work → verify → 🛑 approve terminal act → git-commit
+           [3 checkpoints]
 ```
 
-**Ad-hoc — explicit call only, never auto-triggered** (a checkpoint may *recommend*, only the
-user *starts*): `python-testing-patterns`, `python-refactor`, `python-performance-optimization`,
-`python-architecture`, `python-packaging`, `uv-package-manager`.
+**Ad-hoc — explicit call only, `disable-model-invocation: true`** (electable at `ship-it`'s
+checkpoint 2 with the scan evidence attached, or invoked directly by name outside any recipe):
+`python-testing-patterns`, `python-refactor`, `python-performance-optimization`,
+`python-architecture`. `python-packaging` and `uv-package-manager` remain explicit-call by
+convention but are not gated — see Enforcement above.
 
-**Checkpoints: three, unchanged from the prior plan, re-derived independently and held.**
-1. Approve the plan — after evidence, before any write.
-2. Approve consequential work — before anything structural, behavior-changing, or expensive.
-3. Approve the commit — the only irreversible act.
-Five is checkpoint fatigue; two lets judgment-based edits land unreviewed; three is the
-read→write and reversible→irreversible boundary.
+### Checkpoints — three, each answering a real question
 
-**New in this draft, not present in either source doc or the prior plan: evidence-conditioned
-execution.** Recipe stages consult `python-scan`'s findings before running and skip a stage
-with nothing to act on (e.g., don't invoke `python-document` if docstring coverage is already
-100%), reported as "skipped — nothing to do" rather than run for zero effect. Same
-evidence-over-ritual logic the prior plan already used to reject code-review-as-steering,
-applied one level deeper into the recipes themselves.
+The pre-review draft drew three checkpoints where two gated nothing (`ship-it`'s "approve
+consequential work" sat between two already-safe stages with nothing left to elect; `tidy`'s
+"diff review" was terminal, not a decision). Redefined so every stop has an answer:
 
-## Cherry-pick findings (grounded in the actual source files, not the prior plan's placeholder attributions)
+1. **Approve the plan** — after evidence, before any write. *Decides:* which stages run,
+   including which `python-scan` proposes to skip (see Evidence-conditioned execution, below).
+2. **Elect deep work** *(`ship-it` only)* — after the safe tier, before `verify`. *Decides:*
+   whether to hand off to `python-testing-patterns` / `python-refactor` /
+   `python-performance-optimization`, with the scan evidence attached, as a real branch —
+   this is what the chatgpt source doc originally asked for ("Which should I proceed with?").
+   This is a deliberate, explicit softening of "never auto-triggered" to "never without an
+   explicit election at this exact checkpoint" — the workflow can now hand off with consent,
+   it still cannot decide to on its own.
+3. **Approve the terminal act** — `git-commit` in `ship-it`; the already-applied, already
+   behavior-preserving diff in `tidy` (which has no commit — this decides ship-as-is or
+   revert, not "review a diff that already landed").
 
-### `python-review` ← mattpocock/code-review + codementor/code-review-excellence + beagle/python-code-review
+`tidy` has two stops (1 and 3); `ship-it` has three; `critique` has none, because nothing
+mutates.
+
+### Evidence-conditioned execution — proposed, not autonomous
+
+The original version of this mechanism was under-specified: it measured docstring *presence*
+not *adequacy* (a module of one-line stub docstrings would score 100% and skip the exact stage
+`ship-it` was invoked for), ignored the tuned coverage bands adopted elsewhere in this document,
+and had no evidence source at all for `python-quality-tools` (no `python-scan` analyzer touches
+ruff or mypy findings). Fixed by making every skip a **proposal surfaced at checkpoint 1**, not
+a silent runtime decision:
+
+| Stage | Skip proposed when | Evidence source |
+|---|---|---|
+| `python-document` | docstring coverage ≥80% **and** type-hint coverage ≥90% | `check_documentation.py` |
+| `python-patterns` | `find_dead_code`, `find_duplicates`, `find_unpythonic`, `find_overengineering` all empty | those four analyzers |
+| `python-quality-tools` | never — no `python-scan` analyzer produces ruff/mypy evidence | — |
+
+Checkpoint 1 then reads, e.g.: *"`python-document` — skip proposed (docstrings 94%, type hints
+97%) · keep?"* — a line the user approves, not a behavior nothing tests.
+
+`python-scan` is the only deterministic component this whole mechanism depends on, so it needs
+a golden-test fixture: check a known-bad module into `tests/fixtures/` and assert `python-scan`'s
+JSON output against it (the repo already has a `tests/` harness for exactly this kind of thing).
+The prior plan's own build-order verification for `python-scan` was "output parses" — that
+checks syntax, not content, and content is what the recipes now branch on.
+
+## Cherry-pick findings (grounded in the actual source files where verified — see the standing caveat above for what isn't)
+
+### `python-review` ← mattpocock/code-review + codementor/code-review-excellence + beagle/python-code-review *(beagle unverified — see caveat)*
 
 | Source | Keep | Skip |
 |---|---|---|
 | mattpocock/code-review | Two-axis Standards/Spec report shape; parallel sub-agent dispatch so axes don't pollute each other; 12-smell Fowler baseline, each with a fix hint; "repo standard overrides baseline" rule | The diff-fixed-point mechanism as the *only* mode — must also run against a standalone finished module |
-| codementor/code-review-excellence | Severity taxonomy (blocking/important/nit/suggestion/learning/praise) | All interpersonal/mentoring content — zero agentic value; propose retiring it from `codementor` once harvested |
-| beagle/python-code-review | The actual prize: Scope → false-positive screen → Evidence (`FILE:LINE` mandatory) → Verification → Ship gate — the one mechanism here that directly fixes LLM-reviewer hallucination/noise | Its Python taxonomy (PEP8/type-safety/async/error-handling) — mechanical, ruff/mypy-coverable, routed to `python-quality-tools` instead |
+| codementor/code-review-excellence | Severity taxonomy (blocking/important/nit/suggestion/learning/praise) | All interpersonal/mentoring content — zero agentic value. **Retirement proposal dropped** (see below) — leave the source skill in place in `codementor` |
+| beagle/python-code-review *(unverified)* | Claimed: Scope → false-positive screen → Evidence (`FILE:LINE` mandatory) → Verification → Ship gate | Claimed: Python taxonomy — would route to `python-quality-tools` if confirmed |
 
-Spine: mattpocock's two-axis skeleton + smell baseline → codementor's severity labels as
-presentation → beagle's gate as a hard pre-output check.
+**Correction:** the earlier retirement proposal for `codementor/code-review-excellence` used
+different reasoning than the paragraph keeping `git-commit` in the same plugin, despite both
+skills being equally language-agnostic and equally covered by `codementor`'s stated purpose
+("code review hygiene"). Dropped — harvest the taxonomy into `python-review`, leave the source
+skill where it is, on the same reasoning already applied to `git-commit`. No irreversible action
+needed for the cost of one plugin entry.
 
-### `python-patterns` ← affaan-m/python-patterns + python-simplifier prose
+**Standards/Spec axis gap, fixed:** the two-axis design has no real Spec input for this
+plugin's primary use case — a standalone finished script has no issue, PRD, or
+`docs/agents/issue-tracker.md` to compare against, so the Spec axis would run empty on exactly
+the case this plugin exists for (the prior plan raised this same objection when rejecting
+code-review-as-steering and it re-surfaced here unanswered). Fixed by defining a second axis
+that always has input: **Contract** — does the code do what its own docstrings, names, and type
+hints claim? Two lenses now fire in the primary use case, and `python-review-lens` (below) has
+two real dispatch targets instead of one that's usually empty.
+
+### `python-patterns` ← affaan-m/python-patterns *(unverified — see caveat)* + python-simplifier prose
 
 | Source | Keep | Skip |
 |---|---|---|
-| python-simplifier (prose) | The spine, not a donor: Simplification Principles, before/after catalog (Extract-and-Name, Early Returns, Comprehensions, Dictionary Techniques, Context Managers), Over-Engineering anti-patterns, "when NOT to simplify" | — |
-| affaan-m/python-patterns | Idiom categories simplifier lacks: EAFP vs. LBYL, type-hint depth, dataclasses/NamedTuple, decorators, `__slots__`/generator memory idioms | Concurrency section → `python-performance-optimization`'s territory; package-layout/tooling → `python-packaging`'s territory; its Anti-Patterns table is ruff-coverable (B006/E721/E711) → route to `python-quality-tools`'s ruleset, don't duplicate as prose |
-| beagle | (fully claimed by `python-review`) | Nothing — its checklist duplicates affaan-m's Anti-Patterns near line-for-line; taking both reproduces the collision |
+| python-simplifier (prose) | The spine: Simplification Principles, before/after catalog (Extract-and-Name, Early Returns, Comprehensions, Dictionary Techniques, Context Managers), Over-Engineering anti-patterns, "when NOT to simplify" | — |
+| affaan-m/python-patterns *(unverified)* | Claimed: idiom categories simplifier lacks (EAFP vs. LBYL, type-hint depth, dataclasses/NamedTuple, decorators, `__slots__`/generator memory idioms) | Claimed: concurrency section → performance's territory; Anti-Patterns table → ruff-coverable (B006/E721/E711), route to `python-quality-tools` instead of duplicating as prose |
 
 **Second prose duplication the prior plan missed:** `python-simplifier`'s "Early Returns" /
 "Dictionary Techniques" overlap `python-refactor`'s catalog entries "Guard Clauses" /
@@ -128,118 +219,130 @@ moves.
 
 ### `python-scan` ← python-simplifier/scripts/ + python-refactor/scripts/
 
-Ships **~7 analyzers, not "8+7 deduped."**
+Ships **~7 analyzers**, with two file-level corrections found by reading the actual scripts
+(the pre-review table had these wrong):
 
 | Script | Source | What it does | Verdict |
 |---|---|---|---|
 | `analyze_multi_metrics.py` | refactor | cognitive + cyclomatic + maintainability index | **Winner** for complexity |
 | `analyze_complexity.py` | simplifier | bespoke AST cyclomatic-only | Retire — superseded |
-| `measure_complexity.py` | refactor | bespoke cyclomatic+length AST walk | **Retire — a second duplicate**, within refactor's own set, missed by the prior plan |
-| `analyze_with_flake8.py` + `compare_flake8_reports.py` | refactor | shell out to flake8 + 8 plugins | **Retire outright.** Refactor's own SKILL.md already declares ruff the primary stack |
+| `measure_complexity.py` | refactor | bespoke cyclomatic+length AST walk | Retire — a second duplicate, within refactor's own set |
+| `analyze_with_flake8.py` + `compare_flake8_reports.py` | refactor | shell out to flake8 + 8 plugins | Retire outright — refactor's own SKILL.md already declares ruff the primary stack |
 | `check_documentation.py` | refactor | docstring + type-hint coverage | Keep — unique |
 | `find_duplicates.py`, `find_dead_code.py`, `find_coupling_issues.py`, `find_overengineering.py`, `find_unpythonic.py` | simplifier | each unique, no counterpart | Keep all five |
-| `find_code_smells.py` | simplifier | grab-bag, unlabeled | Undetermined — read closer at build time, fold overlaps into the winners above |
-| `analyze_all.py`, `compare_metrics.py`, `benchmark_changes.py` | both | orchestrator / before-after comparison harness | **Not Layer-0 material** — this is `python-refactor`'s own regression-prevention job; stays there |
+| `find_code_smells.py` | simplifier | magic numbers, bare excepts, mutable defaults, type comparisons, god classes, long parameter lists | Mutable defaults/type comparisons are B006/E721 — already ruff-coverable, drop from here. God classes and long parameter lists are the part worth keeping |
+| **`analyze_all.py`** | simplifier | **Corrected**: not a comparison harness — it's `python-simplifier`'s unified-JSON dispatcher, already wired to run 6 of the 7 keeper analyzers via subprocess and merge results | **Port to `python-scan` as its entry point.** Two edits: swap the `analyze_complexity.py` call for `analyze_multi_metrics.py`, add a `check_documentation.py` call. This is `python-scan`'s deliverable, already written — don't rebuild it from scratch |
+| `compare_metrics.py` | refactor | before/after regression comparison | Stays in `python-refactor` — **but as written it imports `measure_complexity` and `check_documentation`, both of which move or retire under this plan and would break on import.** Fix: rewrite it to shell out to `python-scan` the way `analyze_all.py` shells out to its siblings, rather than importing modules directly |
+| `benchmark_changes.py` | refactor | before/after benchmark comparison | Stays in `python-refactor`, no cross-import issue |
 
-Bonus: refactor's metric-threshold table (cyclomatic <10/warn 15/err 20, cognitive <15/warn 20,
-docstring >80%, type-hint >90%) is already tuned — use it as `python-scan`'s pass/warn/fail
-bands instead of inventing new ones.
+Refactor's metric-threshold table (cyclomatic <10/warn 15/err 20, cognitive <15/warn 20,
+docstring >80%, type-hint >90%) is already tuned — used as `python-scan`'s pass/warn/fail bands.
 
 ### `python-testing-patterns` (already shipped) — gap check, not a redo
 
-No real gap: mattpocock's seam-confirm-with-user workflow and superpowers' "prove it can fail"
-discipline don't transfer cleanly beyond what's already there, because this skill is
-deliberately tests-*after*, not TDD-loop. One cheap addition worth taking: mattpocock's
-sharper one-line tautological-test definition ("expected value must come from a source
-independent of the code's own computation").
+No real gap versus its sources. One cheap addition worth taking: mattpocock's sharper
+one-line tautological-test definition ("expected value must come from a source independent of
+the code's own computation").
 
-## `python-architecture` — the one inventory change, and why (needs sign-off)
+## `python-architecture` — confirmed as skill #12, argument corrected
 
-The prior plan kept `improve-codebase-architecture` as a soft cross-plugin dependency
-(mattpocock/codebase-design + domain-modeling + essentials/grilling). Researching what each
-dependency actually contributes:
+The original justification for this skill was wrong and has been replaced, not just patched.
 
-| Dependency | Concrete contribution |
-|---|---|
-| codebase-design | The actual analysis engine — module/interface/depth/seam vocabulary, the deletion test, "one adapter = hypothetical seam, two = real" |
-| domain-modeling | CONTEXT.md/ADR glossary upkeep — near-zero value without an existing CONTEXT.md in the target repo |
-| grilling | The frontier/rounds interview mechanic for walking a candidate |
+**What was claimed:** the `improve-codebase-architecture` soft-dependency "degrades and skips"
+when the target repo has no `CONTEXT.md`/ADR trail — checked against
+`plugins/mattpocock/skills/improve-codebase-architecture/SKILL.md` directly: **false.** The
+skill creates `CONTEXT.md` lazily if it's missing (§2, "Create the file lazily if it doesn't
+exist") and treats ADRs as "if applicable." It does not skip.
 
-Only `codebase-design` is load-bearing. This plugin's primary use case is a **finished script or
-module**, not a repo with existing architecture-decision discipline — so the soft-dependency
-would degrade-and-skip most of the times it's actually invoked, which defeats offering it as a
-deep lane at all.
+**What actually holds, verified:** `improve-codebase-architecture` emits a self-contained HTML
+file (Tailwind-via-CDN, Mermaid-via-CDN) opened in a browser. This plugin's own modularity rule
+requires that where one skill's output feeds another, that output is structured — `FILE:LINE`
+findings or JSON — never prose or a browser-rendered report requiring a second interpretation
+pass. An HTML report cannot be consumed by `critique`'s report stage at all. *That* — not a
+missing `CONTEXT.md` — is why the deep lane needs its own owned skill.
 
-**Proposal:** author `python-architecture` as an owned skill, harvesting only `codebase-design`'s
-deletion test and module/interface/seam vocabulary, dropping the CONTEXT.md/ADR requirement and
-the `grilling` dependency. Side effect: removes the last cross-plugin coupling in this plugin
-except `git-commit`.
+**Confirmed (user sign-off):** keep `python-architecture` as its own skill rather than folding
+it into `python-review-lens` as a third lens. Reasoning: architecture audits (seams, deletion
+test, whole-module structural analysis) are a materially different kind of work than a review
+pass — different cost, different scope, and bundling them would make `python-review`'s cost
+unpredictable. Discoverability is handled separately: `critique`'s report recommends running it
+by name (see Recipes, above) rather than the recipe reaching for it automatically.
 
-`git-commit` is kept as a soft reference, not owned, and deliberately treated differently: it's
-a single skill with no precondition chain (unlike the three-plugin architecture chain), and
-it's genuinely reusable if a second language pack is ever added — the compound-dependency
-problem that broke the `improve-codebase-architecture` soft-dep doesn't apply here.
-`git-commit` lives in the `codementor` plugin, whose own stated purpose is "git workflow and
-code review hygiene skills" (alongside `git-cleanup`, `code-review-excellence`) — that is
-already the right home, not an accident, and moving it to `essentials` would fight the
-plugin's own reason for existing. No change proposed.
+**Build:** harvest only `codebase-design`'s deletion test and module/interface/seam vocabulary
+from the `mattpocock` plugin, dropping the `CONTEXT.md`/ADR requirement and the `grilling`
+dependency entirely. `disable-model-invocation: true` (see Enforcement).
 
-## Subagent profiles (new — proposal, not yet built)
+`git-commit` remains the one soft cross-plugin dependency left in this plugin, kept deliberately
+differently from the old `improve-codebase-architecture` reference: it's a single skill with no
+precondition chain (unlike the three-plugin architecture chain that motivated owning
+`python-architecture`), and it's genuinely reusable if a second language pack is ever added.
+It lives in `codementor`, whose own stated purpose is "git workflow and code review hygiene
+skills" — already the right home. No change proposed.
 
-This repo already has one clean example of the intended house style —
-`plugins/codex/agents/codex-rescue.md`: minimal frontmatter (`name`, `description`, `model`,
-`tools`, `skills`), a tight single-purpose prompt, explicit "do not" boundaries, no fabricated
-"Communication Protocol" JSON stubs, no references to agents/tools that don't exist in this
-marketplace. That is the template to follow — not the generic wshobson/agents-style mega-prompt
-agents (verbose checklists, fake integration sections naming nonexistent collaborator agents).
+## Subagent profiles — deferred
 
-Grounded in the dispatch model already settled in the source docs ("sequential pipeline;
-fan-out only for independent read-only analysis"), two profiles are justified — no more:
+The original proposal (`python-review-lens`, `python-performance-profiler`) overclaimed on two
+points, both corrected:
 
-1. **`python-review-lens`** — runs one axis (Standards or Spec) of `python-review`'s two-axis
-   analysis. Read-only: `Read, Grep, Glob, Bash`. Dispatched twice in parallel by `python-review`
-   itself so the axes don't pollute each other (this is literally what mattpocock/code-review's
-   own design calls for). Model: `sonnet` by default; caller may request `opus` for a
-   high-stakes review.
-2. **`python-performance-profiler`** — runs a profiling job (`profile_report.py` /
-   `live_dashboard.py`) in isolation so a long-running, verbose profiling pass doesn't pollute
-   the main session's context. Tools: `Bash, Read`. Model: `sonnet` — mechanical execution, no
-   deep judgment required.
+1. **`build.py` cannot currently produce a `plugins/pythonista/agents/` directory.** Local
+   skills come from repo-root `skills/<name>/`, copied by a path that never reaches an
+   `agents/` subdirectory; the one existing example, `plugins/codex/agents/`, exists only
+   because that whole plugin is vendored wholesale (`vendor:` copies its entire tree, bypassing
+   the normal skill-by-skill dispatch). Shipping local agent profiles for pythonista needs a
+   real `agents:` block in `build.py`, mirroring `skills:` — a build-mechanism change, not two
+   static files as originally claimed. It's also not yet confirmed that Claude Code reads a
+   plugin-root `agents/` directory at all, independent of the build question.
+2. `skillcraft/skills/agent-development`, if it exists in this marketplace, is a more natural
+   house-style authority to check than `codex-rescue.md` before authoring one.
 
-No profile proposed for `python-architecture`, `python-refactor`, or `python-testing-patterns` —
-these are explicit-call, single-session, deep-work skills with no fan-out need; adding a profile
-for them would be unrequested configurability.
+**Deferred, not built this pass.** Worth revisiting once `python-review` actually has two
+lenses that fire without a spec (Standards + Contract, per the fix above) — at that point
+`python-review-lens` has a real justification and the `build.py` change can be scoped
+alongside it.
 
-**Mechanism note:** `build.py` currently has no `agents:` block (confirmed by inspection) — only
-`plugins/codex/agents/` exists, vendored whole via the `vendor:` mechanism, not generated. Adding
-local agent profiles to `pythonista` means hand-authoring `skills/../agents/*.md` (or wherever
-this repo's convention lands) the same way local skills are hand-authored, not a new build.py
-capability — no build-mechanism change needed for two static files.
+## Open items
 
-## Open items requiring explicit sign-off
-
-1. **`python-architecture` as owned skill (12 vs. 11 total)** — see above. Reversible if
-   rejected: fall back to the prior plan's soft-dependency reference.
-2. **CLI-invocation-design gap in `python-packaging`** — flagged during Q&A: nothing currently
-   covers designing the CLI surface itself (argument ergonomics), only wiring `[project.scripts]`
+1. ~~`python-architecture` as owned skill~~ — **resolved**, see above.
+2. **CLI-invocation-design gap in `python-packaging`** — still open. Nothing currently covers
+   designing the CLI surface itself (argument ergonomics), only wiring `[project.scripts]`
    entry points. Fold into this pass, or leave flagged for later?
-3. **Workflow-discipline gap in `python-performance-optimization`** — it reads as a reference
-   manual (excellent scripts, profiler-choice table, pitfalls list) rather than a disciplined
-   workflow with an enforced gate, unlike `python-testing-patterns`'s explicit numbered
-   "Workflow" section. Missing: an enforced baseline → prove-there's-a-problem → profile →
-   propose → 🛑 approve → optimize → re-benchmark → compare sequence (this is literally what
-   the chatgpt source doc asked for — "Its first question should effectively be: 'Where is the
-   evidence that this needs optimization?'" — and it's currently implied by good tooling, not
-   structurally enforced). Also missing a before/after benchmark-comparison script — ironically,
-   `python-refactor` already has one (`compare_metrics.py`, `benchmark_changes.py`) that could be
-   ported over instead of reinvented. Fold in, or leave flagged?
+3. **Workflow-discipline gap in `python-performance-optimization`** — **confirmed real** by
+   independent file inspection (it has no `## Workflow` section, unlike
+   `python-testing-patterns`'s explicit numbered one) and **recommended to fold in**: an
+   enforced baseline → prove-there's-a-problem → profile → propose → 🛑 approve → optimize →
+   re-benchmark → compare sequence, matching what the chatgpt source doc asked for. Also
+   missing a before/after benchmark-comparison script — `python-refactor` already has one
+   (`compare_metrics.py` / `benchmark_changes.py`, see the `python-scan` table above) worth
+   porting rather than reinventing. Still needs your go-ahead to schedule the actual edit.
 
-## Build order (supersedes the prior plan's step 2 given the corrected script inventory)
+## Build order
 
-Unchanged in shape from the prior plan, corrected in step 2's actual scope: `python-scan`
-consolidates ~7 analyzers (not 8+7), with three explicit retirements (not just dedup) and two
-scripts redirected to stay in `python-refactor`. `python-architecture` is a new step between the
-prior plan's steps 6 and 7 (merge `python-review`) and 7 (rework `python-refactor`), harvesting
-only `codebase-design`'s vocabulary. Subagent profiles are authored alongside `python-review`
-(step 6, for `python-review-lens`) and `python-performance-optimization`'s revision if the
-workflow-discipline item above is accepted (for `python-performance-profiler`).
+Corrected from the prior plan given the fixes above. New: a walking skeleton inserted early
+(step 2a), so the orchestrator — the part of this design that is actually novel — gets
+exercised while it's still cheap to change, instead of being the last thing built in a solo,
+intermittent project where the realistic outcome of a ten-step queue is four steps done and six
+never reached.
+
+| # | Step | Verify |
+|---|---|---|
+| 1 | Fetch and read `affaan-m/everything-claude-code` and `existential-birds/beagle` for harvesting. Read only — do not add as `community` entries yet. | Source notes captured; the cherry-pick tables above get their "unverified" flags removed or corrected |
+| 2 | `python-scan` — port `analyze_all.py` as entry point, consolidate the 7 keeper analyzers, fix `find_code_smells.py` scope, use refactor's tuned thresholds | Runs on this repo and a scratch project; output matches a golden-test fixture, not just "parses" |
+| **2a** | **`python-workflow` — `critique` only.** `scan → report`, no `review` yet, no checkpoints (read-only). | `python-workflow critique` runs end-to-end on a scratch project, writes zero files |
+| 3 | `python-quality-tools` — the fix loop | Runs against a deliberately dirty scratch project; loop converges |
+| 4 | `python-patterns` — merge | Diff on a scratch project is behavior-preserving; tests still green. `tidy` recipe now reachable end-to-end |
+| 5 | `python-document` | Produces docstrings/annotations without changing behavior. `ship-it`'s safe tier now reachable |
+| 6 | `python-review` — merge, with the Contract axis | Findings match `python-scan`'s flags plus judgment beyond it; both axes produce output on a spec-less module |
+| 7 | `python-architecture` — harvest `codebase-design` only | Runs standalone on a module with no `CONTEXT.md`; emits structured findings, not an HTML report |
+| 8 | `python-refactor` rework — port fixed `compare_metrics.py`, keep `benchmark_changes.py`, strip duplicated analyzers, fix stale refs, flip to `local`, add `disable-model-invocation` | `./build.py --plugin pythonista`; `compare_metrics.py` imports cleanly; git diff shows only intended changes |
+| 9 | Retire `python-simplifier` | Removed from `bundles.yaml`; nothing references it |
+| 10 | `python-workflow` — complete: add `tidy`, `ship-it`, the three real checkpoints, evidence-conditioned skip proposals, soft-dep probing for `git-commit`, `disable-model-invocation` default-to-`critique` behavior | Each recipe runs end to end on a scratch project |
+
+Use `skillcraft:skill-creator` for every new/merged skill (steps 2, 2a, 3, 4, 5, 6, 7, 10).
+
+### Repo mechanics — non-negotiable
+
+- New/merged skills are authored in `skills/<name>/` (source of truth) and declared
+  `source: local` in `bundles.yaml`.
+- Regenerate with `./build.py --plugin pythonista` — never a bare `./build.py`.
+- Never hand-edit anything under `plugins/`.
+- Record the merge rationale in each merged skill's header so "why two became one" survives.
