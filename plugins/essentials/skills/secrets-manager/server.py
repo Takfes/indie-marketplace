@@ -114,7 +114,7 @@ def build_catalog() -> list[dict]:
     return catalog
 
 
-def _catalog_var_names(catalog: list[dict]) -> set[str]:
+def catalog_var_names(catalog: list[dict]) -> set[str]:
     return {var["name"] for entry in catalog for var in entry.get("env", [])}
 
 
@@ -138,7 +138,7 @@ def build_profiles_view() -> dict:
     value, only whether it is set-here, inherited from base, or unset."""
     data = indie_store.load_profiles()
     profiles = data.get("profiles", {})
-    var_names = sorted(_catalog_var_names(build_catalog()))
+    var_names = sorted(catalog_var_names(build_catalog()))
     base_values = profiles.get(indie_store.BASE_PROFILE, {}).get("values", {})
 
     view = {}
@@ -305,7 +305,7 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(400, {"error": "projects must be a list of strings"})
             return
 
-        catalog_vars = _catalog_var_names(build_catalog())
+        catalog_vars = catalog_var_names(build_catalog())
         unknown = sorted(k for k in values if k not in catalog_vars)
         if unknown:
             self._send_json(400, {"error": f"unknown variable(s): {', '.join(unknown)}"})

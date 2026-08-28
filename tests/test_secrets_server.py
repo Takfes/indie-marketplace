@@ -85,10 +85,11 @@ class LiveServer:
             self.proc.wait(timeout=5)
 
 
-def _start_server(project: Path, tmp_path: Path, idle_timeout: int = 30) -> tuple[subprocess.Popen, Path]:
-    """Build the fixture project, fake an installed-and-enabled `alpha`
-    plugin, and launch the generated secrets-manager server against it.
-    Returns (proc, store_home)."""
+def build_fixture(project: Path, tmp_path: Path) -> tuple[Path, Path, Path]:
+    """Build the fixture project and fake an installed-and-enabled `alpha`
+    plugin against it. Returns (claude_dir, store_home, home) — shared setup
+    for anything that needs the generated secrets-manager skill directory
+    (the HTTP server, or the value-blind status.py CLI)."""
     (project / "bundles.yaml").write_text(BUNDLES)
     (project / "skills").mkdir(exist_ok=True)
     shutil.copytree(SKILL_SRC, project / "skills" / "secrets-manager")
@@ -116,6 +117,13 @@ def _start_server(project: Path, tmp_path: Path, idle_timeout: int = 30) -> tupl
     store_home = tmp_path / "store"
     home = tmp_path / "home"
     home.mkdir()
+    return claude_dir, store_home, home
+
+
+def _start_server(project: Path, tmp_path: Path, idle_timeout: int = 30) -> tuple[subprocess.Popen, Path]:
+    """Build the fixture and launch the generated secrets-manager server
+    against it. Returns (proc, store_home)."""
+    claude_dir, store_home, home = build_fixture(project, tmp_path)
 
     server_py = project / "plugins" / "essentials" / "skills" / "secrets-manager" / "server.py"
     proc = subprocess.Popen(
