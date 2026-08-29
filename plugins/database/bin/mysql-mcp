@@ -12,4 +12,4 @@ export MYSQL_HOST="$MYSQL_MCP_HOST"
 export MYSQL_USER="$MYSQL_MCP_USER"
 export MYSQL_PASS="$MYSQL_MCP_PASS"
 export MYSQL_DB="$MYSQL_MCP_DB"
-exec docker run -i --rm -e MYSQL_HOST -e MYSQL_USER -e MYSQL_PASS -e MYSQL_DB -e ALLOW_INSERT_OPERATION=false -e ALLOW_UPDATE_OPERATION=false -e ALLOW_DELETE_OPERATION=false indie-marketplace-mysql-mcp:local
+exec docker run -i --rm -e MYSQL_HOST -e MYSQL_USER -e MYSQL_PASS -e MYSQL_DB -e ALLOW_INSERT_OPERATION=false -e ALLOW_UPDATE_OPERATION=false -e ALLOW_DELETE_OPERATION=false takfes/indie-marketplace-mysql-mcp:b9c714e

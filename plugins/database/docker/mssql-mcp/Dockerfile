@@ -10,12 +10,18 @@
 # Build once locally (works from any cwd):
 #   plugins/database/docker/mssql-mcp/build.sh
 #
-# Eventual Docker Hub home (NOT published yet — see VERIFIED.md):
+# PUBLISHED multi-arch (linux/amd64 + linux/arm64) as:
 #   takfes/indie-marketplace-mssql-mcp:ef13c17   <- immutable, named for the pinned
 #                                                   upstream commit below
-#   takfes/indie-marketplace-mssql-mcp:latest    <- moving convenience tag
-# Once pushed, bundles.yaml's `indie-marketplace-mssql-mcp:local` becomes that
-# first tag — a one-line diff, and the build step becomes dev-only.
+# bundles.yaml consumes that tag directly; docker pulls it on first use and
+# picks the right architecture. build.sh above is for development only.
+#
+# To republish after bumping the pinned commit below (one-time builder setup:
+#   docker buildx create --name multiarch --driver docker-container --use --bootstrap):
+#   docker buildx build --platform linux/amd64,linux/arm64 \
+#     -t takfes/indie-marketplace-mssql-mcp:<new-short-sha> \
+#     --push plugins/database/docker/mssql-mcp
+# Verify with: docker manifest inspect <that tag>  (expect both platforms)
 #
 # Connecting to a server with a self-signed cert (any dev/test SQL Server) also
 # needs `-e TrustServerCertificate=yes`: ODBC Driver 18 verifies by default and

@@ -12,4 +12,4 @@ export MSSQL_HOST="$MSSQL_MCP_HOST"
 export MSSQL_DATABASE="$MSSQL_MCP_DATABASE"
 export MSSQL_USER="$MSSQL_MCP_USER"
 export MSSQL_PASSWORD="$MSSQL_MCP_PASSWORD"
-exec docker run -i --rm -e MSSQL_HOST -e MSSQL_DATABASE -e MSSQL_USER -e MSSQL_PASSWORD indie-marketplace-mssql-mcp:local
+exec docker run -i --rm -e MSSQL_HOST -e MSSQL_DATABASE -e MSSQL_USER -e MSSQL_PASSWORD takfes/indie-marketplace-mssql-mcp:ef13c17

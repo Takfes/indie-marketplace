@@ -8,8 +8,17 @@
 # Build once locally:
 #   plugins/database/docker/mysql-mcp/build.sh
 #
-# Eventual Docker Hub name (not published yet — see VERIFIED.md):
+# PUBLISHED multi-arch (linux/amd64 + linux/arm64) as:
 #   takfes/indie-marketplace-mysql-mcp:b9c714e
+# bundles.yaml consumes that tag directly; docker pulls it on first use.
+# build.sh above builds a local :local tag for development only.
+#
+# To republish after bumping the pinned commit below (one-time builder setup:
+#   docker buildx create --name multiarch --driver docker-container --use --bootstrap):
+#   docker buildx build --platform linux/amd64,linux/arm64 \
+#     -t takfes/indie-marketplace-mysql-mcp:<new-short-sha> \
+#     --push plugins/database/docker/mysql-mcp
+# Verify with: docker manifest inspect <that tag>  (expect both platforms)
 
 FROM node:22-alpine AS source
 RUN apk add --no-cache git

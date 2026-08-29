@@ -440,12 +440,11 @@ plugins:
 
       # Dedicated MySQL (benborla/mcp-server-mysql, MIT) — an app-level
       # write gate independent of the DB grant, same pattern as pgquery's
-      # --access-mode. No published image; Dockerfile vendored at
-      # docker/mysql-mcp/ (pinned commit — see that file). Build once:
-      #   plugins/database/docker/mysql-mcp/build.sh
-      #
-      # Once pushed, swap the image below to
-      # takfes/indie-marketplace-mysql-mcp:b9c714e — one-line diff.
+      # --access-mode. Published multi-arch (linux/amd64 + linux/arm64);
+      # docker pulls it on first use and picks the right architecture, so no
+      # local build is required. Dockerfile vendored at docker/mysql-mcp/
+      # (pinned commit — see that file) for development and for republishing
+      # after a pin bump; the tag below is the pinned upstream short SHA.
       # Verified end-to-end in docker/mysql-mcp/VERIFIED.md.
       #
       # ALLOW_*_OPERATION flags are hardcoded false here, overriding the
@@ -471,7 +470,7 @@ plugins:
             "ALLOW_UPDATE_OPERATION=false",
             "-e",
             "ALLOW_DELETE_OPERATION=false",
-            "indie-marketplace-mysql-mcp:local",
+            "takfes/indie-marketplace-mysql-mcp:b9c714e",
           ]
         env:
           MYSQL_MCP_HOST:
@@ -481,12 +480,12 @@ plugins:
 
       # Dedicated MSSQL (JexinSam/mssql_mcp_server, MIT) — query_sql regex-
       # gates to SELECT/WITH/SHOW; execute_sql stays unrestricted upstream,
-      # so treat this as read-mostly, not read-only. No published image;
-      # Dockerfile vendored at docker/mssql-mcp/ (pinned commit, also fixes
-      # an upstream build bug). Build once:
-      #   plugins/database/docker/mssql-mcp/build.sh
-      # Eventual published tag: takfes/indie-marketplace-mssql-mcp:ef13c17 —
-      # swapping the image arg below to it is the whole migration diff.
+      # so treat this as read-mostly, not read-only. Published multi-arch
+      # (linux/amd64 + linux/arm64); docker pulls it on first use and picks
+      # the right architecture, so no local build is required. Dockerfile
+      # vendored at docker/mssql-mcp/ (pinned commit, also fixes an upstream
+      # build bug) for development and for republishing after a pin bump; the
+      # tag below is the pinned upstream short SHA.
       # Against a self-signed-cert server, add -e TrustServerCertificate=yes.
       # Build + smoke-test evidence: docker/mssql-mcp/VERIFIED.md
       - name: mssql-mcp
@@ -504,7 +503,7 @@ plugins:
             "MSSQL_USER=${MSSQL_MCP_USER}",
             "-e",
             "MSSQL_PASSWORD=${MSSQL_MCP_PASSWORD}",
-            "indie-marketplace-mssql-mcp:local",
+            "takfes/indie-marketplace-mssql-mcp:ef13c17",
           ]
         env:
           MSSQL_MCP_HOST:
