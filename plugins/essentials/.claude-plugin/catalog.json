@@ -10,7 +10,7 @@
     "env": []
   },
   {
-    "name": "secrets-manager",
+    "name": "plugin-setup",
     "type": "skill",
     "env": []
   },

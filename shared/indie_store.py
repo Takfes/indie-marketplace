@@ -1,6 +1,6 @@
 """Storage primitives for ~/.indie-marketplace: profiles.json and the active file.
 
-Used by tests and, later, by the secrets-manager web server. The resolver
+Used by tests and, later, by the plugin-setup web server. The resolver
 (shared/resolver.py) does NOT import this module — it is copied standalone
 into credential-bearing plugins and carries its own read-only copy of the
 parts of this contract it needs.

@@ -1,9 +1,9 @@
 ---
-name: secrets-manager
+name: plugin-setup
 description: Launch the local credential-editing UI for indie-marketplace profiles, or answer configuration questions without ever reading a value — which variables are unset, which profile a directory resolves to and why, a doctor check for stale bound paths, orphaned variables, and bad store permissions, and which CLI tools installed plugins need but are missing from PATH. Use when the user asks to open/launch the secrets manager, edit credentials or API keys, check what's configured or unconfigured, ask which profile applies to a project, wants a health check on their credential profiles, or asks what CLI tools/commands/binaries are missing or need installing (docker, npx, gh, playwright-cli and friends).
 ---
 
-# Secrets Manager
+# Plugin Setup
 
 Everything below except **Launch** answers questions from catalog variable
 names, profile state labels, project paths, and file permissions — never a
@@ -16,7 +16,7 @@ happens in the user's own browser, driven by their own clicks.
 Start the server bundled with this skill and hand the user its URL:
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/secrets-manager/server.py"
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-setup/server.py"
 ```
 
 Run it in the background (it stays up until the user clicks "Done" in the
@@ -30,7 +30,7 @@ passing it along.
 ## Unset variables
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/secrets-manager/status.py" unset [--profile NAME]
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-setup/status.py" unset [--profile NAME]
 ```
 
 Lists every catalog-declared variable that's unset for a profile (default:
@@ -40,7 +40,7 @@ required/optional. Use when the user asks what's missing or unconfigured.
 ## Which profile applies here
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/secrets-manager/status.py" resolve [PATH]
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-setup/status.py" resolve [PATH]
 ```
 
 Reports which profile a directory (default: cwd) resolves to and why:
@@ -50,7 +50,7 @@ fallback — in that precedence order.
 ## Doctor
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/secrets-manager/status.py" doctor
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-setup/status.py" doctor
 ```
 
 Reports three kinds of drift: profiles whose bound project paths no longer
@@ -61,7 +61,7 @@ declares anymore, and store files/directory whose permissions aren't
 ## Missing CLI tools
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/skills/secrets-manager/deps.py" doctor
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/plugin-setup/deps.py" doctor
 ```
 
 Reports every CLI binary each installed, enabled plugin declares —

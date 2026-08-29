@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-SKILL_SRC = Path(__file__).resolve().parent.parent / "skills" / "secrets-manager"
+SKILL_SRC = Path(__file__).resolve().parent.parent / "skills" / "plugin-setup"
 
 BUNDLES = """
 marketplace:
@@ -30,7 +30,7 @@ plugins:
           OTHER_VAR: { required: false }
   - name: essentials
     skills:
-      - name: secrets-manager
+      - name: plugin-setup
         source: local
 """
 
@@ -88,11 +88,11 @@ class LiveServer:
 def build_fixture(project: Path, tmp_path: Path) -> tuple[Path, Path, Path]:
     """Build the fixture project and fake an installed-and-enabled `alpha`
     plugin against it. Returns (claude_dir, store_home, home) — shared setup
-    for anything that needs the generated secrets-manager skill directory
+    for anything that needs the generated plugin-setup skill directory
     (the HTTP server, or the value-blind status.py CLI)."""
     (project / "bundles.yaml").write_text(BUNDLES)
     (project / "skills").mkdir(exist_ok=True)
-    shutil.copytree(SKILL_SRC, project / "skills" / "secrets-manager")
+    shutil.copytree(SKILL_SRC, project / "skills" / "plugin-setup")
 
     result = run_build(project)
     assert result.returncode == 0, result.stdout
@@ -121,11 +121,11 @@ def build_fixture(project: Path, tmp_path: Path) -> tuple[Path, Path, Path]:
 
 
 def _start_server(project: Path, tmp_path: Path, idle_timeout: int = 30) -> tuple[subprocess.Popen, Path]:
-    """Build the fixture and launch the generated secrets-manager server
+    """Build the fixture and launch the generated plugin-setup server
     against it. Returns (proc, store_home)."""
     claude_dir, store_home, home = build_fixture(project, tmp_path)
 
-    server_py = project / "plugins" / "essentials" / "skills" / "secrets-manager" / "server.py"
+    server_py = project / "plugins" / "essentials" / "skills" / "plugin-setup" / "server.py"
     proc = subprocess.Popen(
         [sys.executable, str(server_py), "--idle-timeout", str(idle_timeout)],
         env={

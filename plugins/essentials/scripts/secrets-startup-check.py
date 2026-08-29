@@ -6,7 +6,7 @@ Self-contained on purpose (see shared/resolver.py's own docstring for the
 same rationale) — this lives directly in plugins/essentials/scripts/, which
 build.py never regenerates for this plugin, so it carries its own read-only
 copy of the store/catalog-reading logic instead of importing across a
-plugin boundary into skills/secrets-manager/.
+plugin boundary into skills/plugin-setup/.
 
 Presence only: every check below is a truthy/falsy test on a resolved
 value, discarded immediately after the test. No value is ever held past
@@ -161,7 +161,7 @@ def main() -> int:
     for plugin_name, tool_name, missing in partial:
         lines.append(f"- {plugin_name}/{tool_name} missing: {', '.join(missing)}")
     lines.append(
-        "Run the secrets-manager skill (provided by the essentials plugin) to finish setting these up."
+        "Run the plugin-setup skill (provided by the essentials plugin) to finish setting these up."
     )
 
     output = {

@@ -118,7 +118,7 @@
 #   Committed; contains no secrets by construction; documentation only —
 #   real values are never read from or written to a file here. A user's
 #   actual credentials live in one place, ~/.indie-marketplace/profiles.json,
-#   edited through the secrets-manager skill's browser UI (essentials
+#   edited through the plugin-setup skill's browser UI (essentials
 #   plugin) rather than hand-copied from this file — see
 #   docs/secrets-architecture.md.
 #
@@ -862,7 +862,7 @@ plugins:
       - name: tldr
         source: local
 
-      - name: secrets-manager
+      - name: plugin-setup
         source: local
 
       # Community skills (git-cloned on make fetch / make fetch-build)

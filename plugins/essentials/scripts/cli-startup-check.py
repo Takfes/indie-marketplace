@@ -12,7 +12,7 @@ to suppress a CLI nudge or vice versa. Self-contained for the same reason
 that script is (see its docstring) — it lives in
 plugins/essentials/scripts/, which build.py never regenerates, so it
 carries its own read-only copy of the installed-plugin discovery rather
-than importing across a plugin boundary into skills/secrets-manager/.
+than importing across a plugin boundary into skills/plugin-setup/.
 
 Nothing here reads a credential value; catalog.json's `type: "cli"` entries
 carry command names and install hints only.
@@ -215,7 +215,7 @@ def _format_lines(missing: list[tuple[str, dict]]) -> list[str]:
         else:
             lines.append("    no declared install hint")
     lines.append(
-        "These are suggestions — nothing was installed. Ask the secrets-manager skill "
+        "These are suggestions — nothing was installed. Ask the plugin-setup skill "
         "(provided by the essentials plugin) for the full CLI report, including tools "
         "only needed on first use."
     )

@@ -79,7 +79,7 @@ def test_partial_tool_nudges_with_missing_var_named(fixture, tmp_path):
     assert "alpha/svc" in ctx
     assert "REQ_2" in ctx
     assert "REQ_1" not in ctx.split("missing:")[1].split("\n")[0]
-    assert "secrets-manager" in ctx
+    assert "plugin-setup" in ctx
     assert "essentials" in ctx
 
 

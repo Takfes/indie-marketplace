@@ -124,7 +124,7 @@ def main(argv: list[str]) -> int:
         for name in missing:
             print(
                 f"resolver: {name} is not set for profile '{profile_name}' "
-                "— run the secrets-manager skill to set it",
+                "— run the plugin-setup skill to set it",
                 file=sys.stderr,
             )
         return 1

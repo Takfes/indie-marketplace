@@ -23,11 +23,11 @@ def doctor(project, tmp_path):
     catalog entries they want; nothing here depends on the real machine."""
     (project / "bundles.yaml").write_text(BUNDLES)
     (project / "skills").mkdir(exist_ok=True)
-    shutil.copytree(SKILL_SRC, project / "skills" / "secrets-manager")
+    shutil.copytree(SKILL_SRC, project / "skills" / "plugin-setup")
     result = run_build(project)
     assert result.returncode == 0, result.stdout
 
-    deps_py = project / "plugins" / "essentials" / "skills" / "secrets-manager" / "deps.py"
+    deps_py = project / "plugins" / "essentials" / "skills" / "plugin-setup" / "deps.py"
     claude_dir = tmp_path / "claude_config"
     (claude_dir / "plugins").mkdir(parents=True)
     plugins_root = tmp_path / "installed"

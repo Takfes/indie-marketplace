@@ -6,7 +6,7 @@ server.build_profiles_view, itself value-blind — see #69), project PATHS,
 and file PERMISSIONS. None of that requires reading a credential value, and
 none of these commands do.
 
-This file is copied into the secrets-manager skill's installed plugin
+This file is copied into the plugin-setup skill's installed plugin
 directory alongside its runtime dependencies (server.py, indie_store.py) by
 build.py's build_local_skill — Python standard library only.
 

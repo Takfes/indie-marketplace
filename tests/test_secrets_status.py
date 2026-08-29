@@ -17,7 +17,7 @@ def status_env(project, tmp_path, monkeypatch):
     profiles.json directly, as test_resolver.py does) at store_home."""
     claude_dir, store_home, home = build_fixture(project, tmp_path)
     monkeypatch.setenv(indie_store.STORE_ENV_VAR, str(store_home))
-    status_py = project / "plugins" / "essentials" / "skills" / "secrets-manager" / "status.py"
+    status_py = project / "plugins" / "essentials" / "skills" / "plugin-setup" / "status.py"
     env = {
         "PATH": "/usr/bin:/bin",
         "HOME": str(home),

@@ -20,7 +20,7 @@ description of it.
   the profile bound to the longest matching project path → the machine-wide
   `active` file → `base`.
 - You edit values in a browser, never a terminal prompt. Ask the
-  **secrets-manager** skill (bundled with `essentials`) to open it. Claude
+  **plugin-setup** skill (bundled with `essentials`) to open it. Claude
   hands you a `127.0.0.1` URL and never sees a value.
 - Generated wrapper scripts sit between `.mcp.json` and the real command —
   they resolve the active profile's values and export them, so `${VAR}`
@@ -51,8 +51,8 @@ session?** See [Launch ergonomics](#launch-ergonomics) below.
 
 **Check what's still missing without opening a browser:** ask Claude
 *"what secrets are unset"* or *"which profile applies here"* — the
-secrets-manager skill answers both without ever reading a value (see
-[The secrets-manager skill](#the-skill)).
+plugin-setup skill answers both without ever reading a value (see
+[The plugin-setup skill](#the-skill)).
 
 ## Store layout
 
@@ -300,8 +300,8 @@ only one store, keyed by variable name, not by editor).
   would treat identically to "unset" anyway.
 - **Screen B — active profile.** A dropdown of profile names, writing the
   `active` file.
-- **How Claude reaches it.** The `secrets-manager` skill starts
-  `skills/secrets-manager/server.py` in the background and relays exactly
+- **How Claude reaches it.** The `plugin-setup` skill starts
+  `skills/plugin-setup/server.py` in the background and relays exactly
   one thing: the first line of its stdout, a `127.0.0.1` URL carrying a
   one-time token (`http://127.0.0.1:PORT/?token=...`). Every request must
   present that token and a matching `Host` header (defeats DNS rebinding);
@@ -328,7 +328,7 @@ only one store, keyed by variable name, not by editor).
   (an unknown key is rejected, not stored), `base` can't be renamed or
   deleted, and `projects` entries must be absolute paths.
 
-## <a id="the-skill"></a>The secrets-manager skill
+## <a id="the-skill"></a>The plugin-setup skill
 
 Bundled with `essentials`, this is what Claude actually runs on your
 behalf. Its only value-touching action is starting the server above and
@@ -438,7 +438,7 @@ environment.
   `profiles.json` and `active`) before the atomic rename into place —
   there's no create-then-`chmod` window where the file is briefly
   world-readable.
-- `doctor` (via the secrets-manager skill) checks the store root and both
+- `doctor` (via the plugin-setup skill) checks the store root and both
   files against these exact modes and reports drift with the path and the
   mode found — it does not fix permissions itself.
 - **"Claude never sees a value" is a boundary enforced by these scripts,

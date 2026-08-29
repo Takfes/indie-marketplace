@@ -6,7 +6,7 @@ prints is the only thing that stream ever carries, so no code path here may
 print anything else to stdout (logging, tracebacks, output of any kind all
 go to stderr instead).
 
-This file is copied into the secrets-manager skill's installed plugin
+This file is copied into the plugin-setup skill's installed plugin
 directory alongside its one runtime dependency, indie_store.py (see
 build.py's build_local_skill) — Python standard library only, no other file
 in this repository is reachable from here at runtime.

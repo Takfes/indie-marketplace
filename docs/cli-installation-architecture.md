@@ -29,7 +29,7 @@ servers (`mcp:`) and skills (`skills:`) that need **credentials**, and a
 `deps:` block for CLI tools a skill invokes **directly** (no MCP server in
 front of them, e.g. `playwright-cli`). Credentials already have a full,
 shipped, UX-friendly lifecycle: `~/.indie-marketplace/profiles.json`, the
-`secrets-manager` skill, and a `SessionStart` hook
+`plugin-setup` skill, and a `SessionStart` hook
 (`plugins/essentials/scripts/secrets-startup-check.py`) that quietly nudges
 about anything partially configured.
 
@@ -78,7 +78,7 @@ wherever the shape matches:
    nothing to read here has a value in the first place). Silent when
    everything declared is present, and silent when it cannot tell.
 2. **On-demand check.** A `deps.py doctor` sibling script in the
-   `secrets-manager` skill directory that a user can ask for directly —
+   `plugin-setup` skill directory that a user can ask for directly —
    *"what CLIs am I missing"* — and get a full per-plugin, per-tool
    present/missing report, with the `install` suggestion or `manual` link
    attached to each missing one.
@@ -152,7 +152,7 @@ reporting and installing stay two different, separately-confirmed actions.
   `plugins/essentials/scripts/`, which `build.py` never regenerates, so it
   isn't shared across a plugin boundary either).
   The **doctor** must *not* copy it. That same helper already exists a
-  second time in `skills/secrets-manager/server.py`, together with
+  second time in `skills/plugin-setup/server.py`, together with
   `build_catalog()`, which returns `[{plugin, name, type, env, …}]` across
   every installed, enabled plugin — exactly the doctor's input. `status.py`
   already imports `server` from its own directory for precisely this
@@ -372,9 +372,9 @@ plugins (`npx` is one line naming three plugins, not three lines).
 
 ### Naming and the doctor's surface
 
-Keep the existing `doctor` vocabulary (`secrets-manager/status.py doctor`)
+Keep the existing `doctor` vocabulary (`plugin-setup/status.py doctor`)
 rather than inventing a new term. **Decision: a new sibling script,
-`deps.py`, with a `doctor` subcommand, in `skills/secrets-manager/`** —
+`deps.py`, with a `doctor` subcommand, in `skills/plugin-setup/`** —
 not a fourth subcommand on `status.py`.
 
 `status.py`'s module docstring opens "Value-blind status reporting for
@@ -447,7 +447,7 @@ suppress a CLI nudge or vice versa.
     it. Add it alongside the new checks.
 - Doctor report: test only external behavior (the printed report and exit
   code for a given fixture catalog + fake `PATH`), not internal helper
-  functions — same bar `secrets-manager`'s own tests already hold to.
+  functions — same bar `plugin-setup`'s own tests already hold to.
   Include the cross-plugin dedup case: one `npx` line naming three plugins.
 
 ## Out of Scope

@@ -508,7 +508,7 @@ Before pushing, verify the build output and try the plugin locally:
 
 Any plugin whose `mcp:`/`skills:`/`deps:` entries declare `env:` needs credentials to work — a Postgres connection string, an API key. Nothing is exported by hand and nothing is written into a project folder: every credential lives in one file, `~/.indie-marketplace/profiles.json` (mode `0600`), edited through a local browser UI, never through terminal prompts and never through a value passed to Claude.
 
-**Open the editor.** Ask Claude to open the secrets manager (the skill ships with the `essentials` plugin) — it starts a local server and hands you a `127.0.0.1` link with a one-time token. Claude relays that link and nothing else; every value you type is read by your own browser, never by the model.
+**Open the editor.** Ask Claude to open the secrets manager (the `plugin-setup` skill, bundled with the `essentials` plugin) — it starts a local server and hands you a `127.0.0.1` link with a one-time token. Claude relays that link and nothing else; every value you type is read by your own browser, never by the model.
 
 **Global vs. per-project.** Credentials are grouped into named **profiles**. `base` holds your defaults and applies everywhere. A project-specific profile (e.g. `client-a`) overrides only the variables that differ for it — a database URI, say — and inherits everything else from `base`. Bind a profile to a project directory once, and opening Claude Code inside that directory selects it automatically; no per-session typing required. Working outside a bound directory, or need to override one for a single session? `INDIE_PROFILE=client-a claude` — or add a shell function once, `cc() { INDIE_PROFILE="$1" claude; }`, and run `cc client-a`.
 
