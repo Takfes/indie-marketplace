@@ -50,6 +50,8 @@ How it works:
   duplicate env names → the same var name declared by more than one plugin
                       fails the build, across every non-fetch build
                       (including scoped `--plugin` ones).
+  deps:/mcp: ⟹ catalog → a plugin declaring either without `catalog: true`
+                      fails the build, on the same whole-config pass.
   plugin `vendor:`  → whole-plugin vendoring: clones a third-party repo
                       and copies one of its plugin directories verbatim
                       into this plugin's root (manifest, LICENSE, NOTICE
@@ -494,6 +496,32 @@ def validate_no_duplicate_env_vars(config: dict) -> None:
         if len(plugin_names) > 1:
             where = ", ".join(f"{name} ({label})" for name, label in occurrences)
             err(f"env var '{var}' is declared by more than one plugin: {where}")
+            sys.exit(1)
+
+
+def validate_dependencies_are_cataloged(config: dict) -> None:
+    """
+    Fail the build if a plugin declares `deps:` or `mcp:` without
+    `catalog: true`. Both blocks name CLI binaries the dependency check
+    reports on, and catalog.json is the only file that check reads — a
+    declared dependency it cannot see is worse than no check at all.
+
+    Config-level (like validate_no_duplicate_env_vars, and unlike
+    validate_deps) on purpose: this runs on the whole config before the
+    --plugin filter, so `./build.py --plugin other` still fails on an
+    offending plugin it isn't building.
+    """
+    for plugin in config.get("plugins", []):
+        if plugin.get("catalog"):
+            continue
+        declared = [block for block in ("deps", "mcp") if plugin.get(block)]
+        if declared:
+            blocks = " and ".join(f"`{block}:`" for block in declared)
+            err(
+                f"{plugin['name']} — declares {blocks} but not `catalog: true`; "
+                "the CLI dependency check reads catalog.json only "
+                "(see docs/cli-installation-architecture.md)"
+            )
             sys.exit(1)
 
 
@@ -1352,6 +1380,7 @@ def main() -> None:
 
     config = load_config()
     validate_no_duplicate_env_vars(config)
+    validate_dependencies_are_cataloged(config)
     plugins = config.get("plugins", [])
 
     if args.plugin:

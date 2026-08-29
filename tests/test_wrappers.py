@@ -78,6 +78,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     mcp:
       - name: svc-cred
         command: probe
@@ -120,6 +121,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     mcp:
       - name: svc-plain
         command: echo
@@ -142,6 +144,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     mcp:
       - name: svc-cred
         command: probe
@@ -185,6 +188,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     mcp:
       - name: broken
         command: env
@@ -215,6 +219,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     mcp:
       - name: svc
         command: probe
@@ -253,6 +258,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     mcp:
       - name: svc
         command: probe
@@ -287,6 +293,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     deps:
       - command: probe
         env:

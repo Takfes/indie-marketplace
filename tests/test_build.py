@@ -406,3 +406,117 @@ plugins:
     entry = _cli_entries(project)[0]
     assert entry["source"] == "deps"
     assert entry["required_by"] == []
+
+
+# ---------------------------------------------------------------------------
+# deps:/mcp: ⟹ catalog: true
+# ---------------------------------------------------------------------------
+
+
+def test_deps_without_catalog_fails_the_build(project):
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    deps:
+      - command: yt-dlp
+""",
+    )
+    result = run_build(project)
+    assert result.returncode != 0
+    assert "alpha" in result.stdout
+    assert "`deps:`" in result.stdout
+    assert "catalog: true" in result.stdout
+
+
+def test_mcp_without_catalog_fails_the_build(project):
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    mcp:
+      - name: svc
+        command: docker
+""",
+    )
+    result = run_build(project)
+    assert result.returncode != 0
+    assert "alpha" in result.stdout
+    assert "`mcp:`" in result.stdout
+
+
+def test_catalog_invariant_runs_on_scoped_plugin_build(project):
+    """The whole reason this validator is config-level: a scoped build of a
+    different plugin must still fail on the offender."""
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    catalog: true
+    skills: []
+  - name: beta
+    deps:
+      - command: yt-dlp
+""",
+    )
+    result = run_build(project, "--plugin", "alpha")
+    assert result.returncode != 0
+    assert "beta" in result.stdout
+    assert "catalog: true" in result.stdout
+
+
+def test_plugin_with_catalog_and_both_blocks_passes(project):
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    catalog: true
+    deps:
+      - command: yt-dlp
+    mcp:
+      - name: svc
+        command: docker
+""",
+    )
+    result = run_build(project)
+    assert result.returncode == 0, result.stdout
+
+
+# ---------------------------------------------------------------------------
+# validate_deps — no prior coverage in this suite
+# ---------------------------------------------------------------------------
+
+
+def test_deps_entry_without_a_command_fails_the_build(project):
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    catalog: true
+    deps:
+      - install: brew install yt-dlp
+""",
+    )
+    result = run_build(project)
+    assert result.returncode != 0
+    assert "missing required `command`" in result.stdout
