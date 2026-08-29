@@ -1,5 +1,5 @@
 {
-  "description": "Session lifecycle hooks: sound alerts, plus a startup nudge for partially configured credentials",
+  "description": "Session lifecycle hooks: sound alerts, plus startup nudges for partially configured credentials and missing CLI tools",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,11 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/secrets-startup-check.py\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/cli-startup-check.py\"",
             "timeout": 5
           }
         ]
