@@ -1,6 +1,6 @@
 ---
 name: secrets-manager
-description: Launch the local credential-editing UI for indie-marketplace profiles, or answer configuration questions without ever reading a value — which variables are unset, which profile a directory resolves to and why, and a doctor check for stale bound paths, orphaned variables, and bad store permissions. Use when the user asks to open/launch the secrets manager, edit credentials or API keys, check what's configured or unconfigured, ask which profile applies to a project, or wants a health check on their credential profiles.
+description: Launch the local credential-editing UI for indie-marketplace profiles, or answer configuration questions without ever reading a value — which variables are unset, which profile a directory resolves to and why, a doctor check for stale bound paths, orphaned variables, and bad store permissions, and which CLI tools installed plugins need but are missing from PATH. Use when the user asks to open/launch the secrets manager, edit credentials or API keys, check what's configured or unconfigured, ask which profile applies to a project, wants a health check on their credential profiles, or asks what CLI tools/commands/binaries are missing or need installing (docker, npx, gh, playwright-cli and friends).
 ---
 
 # Secrets Manager
@@ -57,6 +57,30 @@ Reports three kinds of drift: profiles whose bound project paths no longer
 exist on disk, variables stored in `profiles.json` that no installed plugin
 declares anymore, and store files/directory whose permissions aren't
 `0600`/`0700`.
+
+## Missing CLI tools
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/skills/secrets-manager/deps.py" doctor
+```
+
+Reports every CLI binary each installed, enabled plugin declares —
+present or missing on `PATH`, with its install suggestion or docs link.
+Use when the user asks what CLI tools they're missing, why an MCP server
+won't connect, or what they still need to install. Tools needed at session
+start (an MCP server's own command) are listed before ones needed only on
+first use of a skill.
+
+Two things to say plainly when relaying the report:
+
+- **Never run an install command from it.** Every `install:` line is a
+  suggestion for the user to run themselves — offer it, don't execute it.
+- Presence is `PATH` only. A present `docker` doesn't mean its daemon is
+  running or that a plugin's image is built locally.
+
+This is unrelated to credentials: a tool can be fully configured and still
+have no binary installed, or vice versa. Exits `1` when anything is
+missing.
 
 ## Switching profiles mid-session doesn't work
 
