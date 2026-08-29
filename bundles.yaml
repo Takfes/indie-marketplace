@@ -442,7 +442,11 @@ plugins:
       # write gate independent of the DB grant, same pattern as pgquery's
       # --access-mode. No published image; Dockerfile vendored at
       # docker/mysql-mcp/ (pinned commit — see that file). Build once:
-      #   docker build -t indie-marketplace-mysql-mcp:local plugins/database/docker/mysql-mcp
+      #   plugins/database/docker/mysql-mcp/build.sh
+      #
+      # Once pushed, swap the image below to
+      # takfes/indie-marketplace-mysql-mcp:b9c714e — one-line diff.
+      # Verified end-to-end in docker/mysql-mcp/VERIFIED.md.
       #
       # ALLOW_*_OPERATION flags are hardcoded false here, overriding the
       # image's own true defaults — non-configurable by design.

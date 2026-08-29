@@ -6,7 +6,10 @@
 # Source: https://github.com/benborla/mcp-server-mysql/blob/main/Dockerfile
 #
 # Build once locally:
-#   docker build -t indie-marketplace-mysql-mcp:local plugins/database/docker/mysql-mcp
+#   plugins/database/docker/mysql-mcp/build.sh
+#
+# Eventual Docker Hub name (not published yet — see VERIFIED.md):
+#   takfes/indie-marketplace-mysql-mcp:b9c714e
 
 FROM node:22-alpine AS source
 RUN apk add --no-cache git
