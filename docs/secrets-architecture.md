@@ -257,17 +257,22 @@ it:
   path, so pointing their engine invocations at the wrapper is a local
   edit that a `--fetch` of this skill wipes out. Every build reapplies it
   — the patch table records each target string and exactly how many
-  occurrences to expect (25 invocation sites across the two files, plus
+  occurrences to expect (29 invocation sites across the two files, plus
   the one `export`), and a build where a count doesn't match **fails
   loudly**, naming the file, the expected text, and how many it found. It
   never skips quietly: a silent no-op would ship a generated wrapper that
   nothing calls and a credential that quietly keeps bypassing the store.
   When upstream moves the text, re-derive the table against the new
   `SKILL.md` — that is the maintenance cost this exception carries.
-  Prose *about* invocations (SKILL.md's LAW text, self-checks, degradation
-  rules) is deliberately left alone; every target string pins the engine
-  script path immediately after the interpreter, which no prose mention
-  does.
+  Prose *about* invocations (SKILL.md's LAW text, self-checks, the
+  `SKILL_DIR` existence guards) is deliberately left alone. Most targets
+  separate themselves from prose by pinning the engine script path
+  immediately after the interpreter, which no prose mention does; the
+  bare-form bullets ("invoke the engine with `python3
+  scripts/last30days.py --drill ...`") can't, since the LAW text quotes
+  that same string, so those two targets pin the *argument* that follows
+  instead (`--` and `queue `) — which is why there are two of them rather
+  than one.
 
 **VS Code gets the same wrapper.** `vscode-mcp.json` is generated from the
 same `mcp:` block and points `command` at the identical wrapper path — the

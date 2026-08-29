@@ -347,6 +347,8 @@ L30D_ENGINE_CALLS = [
     ('"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py"', 8),
     ('"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py"', 5),
     ('"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py', 10),
+    ("python3 scripts/last30days.py --", 2),
+    ("python3 scripts/last30days.py queue ", 2),
 ]
 L30D_BRIEF_CALLS = [('"${LAST30DAYS_PYTHON}" "${SKILL_ROOT}/scripts/last30days.py"', 2)]
 
@@ -354,6 +356,8 @@ L30D_BRIEF_CALLS = [('"${LAST30DAYS_PYTHON}" "${SKILL_ROOT}/scripts/last30days.p
 # has plenty of it and rewriting any of it would corrupt the skill's rules.
 L30D_PROSE = [
     "a bare `python3 scripts/last30days.py` path-discovery loop is a LAW violation",
+    'A bare `python3 scripts/last30days.py "$TOPIC" --emit=compact` is a LAW 7 violation.',
+    "direct CLI invocations (`python3 scripts/last30days.py ...`) without `--save-dir` still save",
     "Before running any `last30days.py` command in this skill, resolve a Python 3.12+ interpreter",
     "if [ ! -f \"$SKILL_DIR/scripts/last30days.py\" ]; then",
     "set LAST30DAYS_PYTHON to a supported interpreter",
@@ -440,7 +444,7 @@ def test_last30days_build_points_vendored_invocations_at_the_wrapper(project):
     for target, _ in L30D_BRIEF_CALLS:
         assert target not in brief
 
-    assert skill_md.count('"${SKILL_DIR}/../../bin/last30days"') == 13
+    assert skill_md.count('"${SKILL_DIR}/../../bin/last30days"') == 17
     assert skill_md.count("bin/last30days run-") == 10
     assert brief.count('"${SKILL_ROOT}/../../bin/last30days"') == 2
 
@@ -518,3 +522,40 @@ plugins:
     assert result.returncode == 0, result.stdout
     assert not (project / "plugins/alpha/bin").exists()
     assert (project / "plugins/alpha/.env.example").exists()
+
+
+def test_last30days_bare_form_invocations_are_patched_but_prose_is_not(project):
+    """The follow-up-intent bullets say "invoke the engine with `python3
+    scripts/last30days.py --drill ...`" — genuine commands, and --drill and
+    --verify-freshness refetch sources, so they need the key. The same bare
+    string also appears in LAW text and in a note about direct CLI use, which
+    must survive verbatim."""
+    skill = make_last30days_skill(project)
+    write_bundles(project, L30D_BUNDLES)
+    assert run_build(project).returncode == 0
+
+    skill_md = (skill / "SKILL.md").read_text()
+    assert "python3 scripts/last30days.py --" not in skill_md
+    assert "python3 scripts/last30days.py queue " not in skill_md
+    assert skill_md.count('"${SKILL_DIR}/../../bin/last30days" --') == 2
+    assert skill_md.count('"${SKILL_DIR}/../../bin/last30days" queue ') == 2
+
+    assert "a bare `python3 scripts/last30days.py` path-discovery loop" in skill_md
+    assert 'A bare `python3 scripts/last30days.py "$TOPIC" --emit=compact`' in skill_md
+    assert "(`python3 scripts/last30days.py ...`)" in skill_md
+
+
+def test_last30days_bare_form_patch_fails_loudly_when_a_site_disappears(project):
+    skill = make_last30days_skill(project)
+    skill_md = skill / "SKILL.md"
+    skill_md.write_text(
+        skill_md.read_text().replace("python3 scripts/last30days.py -- run-0", "moved-upstream", 1)
+    )
+    write_bundles(project, L30D_BUNDLES)
+
+    result = run_build(project)
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "python3 scripts/last30days.py --" in output
+    assert "found 1 unpatched" in output
+    assert "Traceback" not in output

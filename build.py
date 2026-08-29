@@ -747,6 +747,28 @@ _L30D_PATCHES = (
         "bin/last30days",
         10,
     ),
+    # Bare form, in the follow-up-intent bullets ("invoke the engine with
+    # `python3 scripts/last30days.py --drill ...`"). These are run-this
+    # instructions, and --drill/--verify-freshness both refetch sources, so
+    # they need the key like any other engine call. Split in two, and each
+    # pinned to the argument that follows, because the bare string alone also
+    # appears in prose that must not be rewritten — the LAW text at the top of
+    # SKILL.md ("a bare `python3 scripts/last30days.py`"), the LAW 7
+    # self-check, and the LAST30DAYS_MEMORY_DIR note ("direct CLI invocations
+    # (`python3 scripts/last30days.py ...`)"). Rewriting these to the
+    # SKILL_DIR-anchored form is also what that LAW asks for.
+    (
+        "SKILL.md",
+        "python3 scripts/last30days.py --",
+        '"${SKILL_DIR}/../../bin/last30days" --',
+        2,
+    ),
+    (
+        "SKILL.md",
+        "python3 scripts/last30days.py queue ",
+        '"${SKILL_DIR}/../../bin/last30days" queue ',
+        2,
+    ),
     (
         "references/save-html-brief.md",
         '"${LAST30DAYS_PYTHON}" "${SKILL_ROOT}/scripts/last30days.py"',
