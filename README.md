@@ -409,7 +409,7 @@ Nothing outside `bundles.yaml` needs to be hand-edited to add, remove, or move a
 
 1. Copies each `local` skill from `skills/<name>/` into the plugin
 2. Clones the repo for each `community` skill, locates the skill directory inside it, and copies it into the plugin (writing a `SOURCE.md` alongside it with the repo, path, and fetch date for provenance)
-3. Writes `.mcp.json`, `vscode-mcp.json`, and `.env.example` from `mcp:`/`env:`, `deps.json` from `deps:`, and `catalog.json` if `catalog: true`
+3. Writes `.mcp.json` and `vscode-mcp.json` from `mcp:`, `deps.json` from `deps:`, and `catalog.json` if `catalog: true`
 4. Regenerates the plugin's `plugin.json` manifest
 5. Regenerates the root `.claude-plugin/marketplace.json`, listing all plugins
 

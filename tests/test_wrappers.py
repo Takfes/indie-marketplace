@@ -515,6 +515,7 @@ marketplace:
   owner: { name: tester }
 plugins:
   - name: alpha
+    catalog: true
     skills:
       - name: some-cli-skill
         source: local
@@ -528,7 +529,14 @@ plugins:
     result = run_build(project)
     assert result.returncode == 0, result.stdout
     assert not (project / "plugins/alpha/bin").exists()
-    assert (project / "plugins/alpha/.env.example").exists()
+    catalog = json.loads((project / "plugins/alpha/.claude-plugin/catalog.json").read_text())
+    assert catalog == [
+        {
+            "name": "some-cli-skill",
+            "type": "skill",
+            "env": [{"name": "SOME_CLI_KEY", "required": True, "description": None}],
+        }
+    ]
 
 
 def test_last30days_bare_form_invocations_are_patched_but_prose_is_not(project):

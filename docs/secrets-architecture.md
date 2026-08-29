@@ -216,8 +216,8 @@ dependency any other plugin needs to function.
 
 **`skills:`-level `env:` is catalog-only, with one hardcoded exception.**
 A `skills:` entry (a skill that drives a CLI directly, with no MCP server
-behind it) can declare `env:` too — it reaches `.env.example` and
-`catalog.json` for visibility, and the `SessionStart` hook nudges on it
+behind it) can declare `env:` too — it reaches `catalog.json` for
+visibility, and the `SessionStart` hook nudges on it
 like anything else — but `build.py` generates no wrapper *by rule* for a
 `skills:`-level declaration; only `mcp:` and `deps:` entries get one that
 way. A skill that needs its declared variable has to resolve it itself.
