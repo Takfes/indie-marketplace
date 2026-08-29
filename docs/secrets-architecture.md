@@ -151,7 +151,9 @@ forwards the caller's own arguments to the real command instead of running
 a fixed argument list, since a `deps:` entry backs a CLI a skill drives
 directly rather than an MCP server with a fixed invocation. An entry
 declaring no `env:` is untouched — a wrapper on a credential-free server
-would buy nothing.
+would buy nothing. One `skills:` entry — `web-search`'s `last30days` —
+also gets a launcher, hardcoded rather than by rule; see
+[The one `skills:`-level exception](#last30days) below.
 
 **What a wrapper does, concretely** (`build.py`'s `write_bin`, one
 generated per entry):
@@ -212,17 +214,60 @@ resolves its own credentials correctly — `essentials` supplies only the UI
 skill and the `SessionStart` hook, both conveniences, never a runtime
 dependency any other plugin needs to function.
 
-**`skills:`-level `env:` is catalog-only.** A `skills:` entry (a skill that
-drives a CLI directly, with no MCP server behind it) can declare `env:` too
-— it reaches `.env.example` and `catalog.json` for visibility, and the
-`SessionStart` hook nudges on it like anything else — but `build.py`
-generates no wrapper for a `skills:`-level declaration; only `mcp:` and
-`deps:` entries get one. A skill that needs its declared variable has to
-resolve it itself. The one such case shipped today, `last30days`'s
-`SCRAPECREATORS_API_KEY`, manages its own credential entirely outside this
-design (its own `~/.config/last30days/.env`, its own signup flow) — that's
-a pre-existing, self-contained mechanism from the vendored upstream skill,
-not something this store drives.
+**`skills:`-level `env:` is catalog-only, with one hardcoded exception.**
+A `skills:` entry (a skill that drives a CLI directly, with no MCP server
+behind it) can declare `env:` too — it reaches `.env.example` and
+`catalog.json` for visibility, and the `SessionStart` hook nudges on it
+like anything else — but `build.py` generates no wrapper *by rule* for a
+`skills:`-level declaration; only `mcp:` and `deps:` entries get one that
+way. A skill that needs its declared variable has to resolve it itself.
+
+### <a id="last30days"></a>The one `skills:`-level exception — `last30days`
+
+`web-search`'s `last30days` declares `SCRAPECREATORS_API_KEY`, and it was
+the one credential in this repo that bypassed the store entirely: the
+vendored upstream skill resolves it from `os.environ` or its own
+`~/.config/last30days/.env`, never from `profiles.json`. `build.py` now
+generates `plugins/web-search/bin/last30days` for it anyway —
+**hardcoded**, on the skill name and the variable name, not as a general
+`skills:`-level mechanism. There is exactly one such skill; a rule
+generalized from one data point would guess wrong about the second. The
+constants and the patch table live together in `build.py`'s
+`last30days` section.
+
+Three things are specific to this case and worth knowing before touching
+it:
+
+- **The variable is declared `required: false`.** The engine runs fine
+  without the key (it gates Reddit backfill and a few paid sources), so
+  the wrapper resolves-or-skips instead of hard-failing the way a required
+  variable does. With nothing in the store, the skill's own `.env` remains
+  the fallback it always was — routing the key through the store adds a
+  source, it doesn't remove one. `os.environ` is the engine's
+  highest-priority config source, so a stored value wins over that `.env`.
+- **The wrapper launches a script, not an executable.** It execs
+  `"${LAST30DAYS_PYTHON:-python3}" .../scripts/last30days.py "$@"` —
+  `LAST30DAYS_PYTHON` being the interpreter SKILL.md's own Runtime
+  Preflight resolves (it may be a uv-managed CPython on a host with no
+  system 3.12). The preflight sets that variable but never exported it, so
+  the patch below adds one `export` line; a child process can't read a
+  plain shell variable.
+- **The invocation patch is drift, and the build reapplies it.** `SKILL.md`
+  and `references/save-html-brief.md` are vendored via the community fetch
+  path, so pointing their engine invocations at the wrapper is a local
+  edit that a `--fetch` of this skill wipes out. Every build reapplies it
+  — the patch table records each target string and exactly how many
+  occurrences to expect (25 invocation sites across the two files, plus
+  the one `export`), and a build where a count doesn't match **fails
+  loudly**, naming the file, the expected text, and how many it found. It
+  never skips quietly: a silent no-op would ship a generated wrapper that
+  nothing calls and a credential that quietly keeps bypassing the store.
+  When upstream moves the text, re-derive the table against the new
+  `SKILL.md` — that is the maintenance cost this exception carries.
+  Prose *about* invocations (SKILL.md's LAW text, self-checks, degradation
+  rules) is deliberately left alone; every target string pins the engine
+  script path immediately after the interpreter, which no prose mention
+  does.
 
 **VS Code gets the same wrapper.** `vscode-mcp.json` is generated from the
 same `mcp:` block and points `command` at the identical wrapper path — the
@@ -414,7 +459,8 @@ environment.
 - **Plaintext at `0600`.** No encryption at rest, no OS keychain
   integration — the same posture as an SSH private key. See `NEXTME.md`
   for what's deliberately deferred here.
-- **A `skills:`-level `env:` declaration gets no wrapper.** See
+- **A `skills:`-level `env:` declaration gets no wrapper**, apart from the
+  one hardcoded `last30days` exception. See
   [Wrappers and scoped launchers](#wrappers-and-scoped-launchers) above —
   it's visible in the catalog, the UI, and the nudge, but nothing exports
   its value automatically unless the skill resolves it itself.
