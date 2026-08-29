@@ -1,12 +1,26 @@
 # CLI installation architecture (spec)
 
-Status: agreed spec — no code shipped yet. Every claim below was checked
-against the source on 2026-08-29 and the open either/or choices the first
-draft carried are now decided (one deliberate exception, marked
-**Captain decision** in *Implementation Decisions*). This is the spec for a
-follow-up implementation issue, written the way
+Status: **shipped** (issue #86). Every claim below was checked against the
+source on 2026-08-29, and the design is implemented as written, with two
+notes:
+
+- The **Captain decision** below is resolved as **(b)**: the nudge covers
+  only `source: "mcp"`, the doctor covers both. The whole policy is
+  `_is_eagerly_required()` in
+  `plugins/essentials/scripts/cli-startup-check.py`.
+- The presence check's silence-on-uncertainty rule applies to a probe that
+  *cannot answer* — one that errors, times out, or does not run to
+  completion. A `$SHELL -lc` probe that runs to completion and reports a
+  command absent is an answer, and does nudge; otherwise the mechanism
+  could never fire at all. The residual false-positive case is real but
+  narrow: a binary reachable only through a `PATH` entry that `.zshrc`
+  alone adds (`~/.local/bin`, a conda prefix) is invisible to `-lc` and
+  will be reported missing. `INDIE_MARKETPLACE_SKIP_CLI_CHECK=1` is the
+  escape hatch; moving the `PATH` export to `.zprofile` is the fix.
+
+It documents this design the way
 [`docs/secrets-architecture.md`](secrets-architecture.md) documents the
-shipped design it mirrors.
+shipped one it mirrors.
 
 ## Problem Statement
 

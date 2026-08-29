@@ -333,8 +333,8 @@ only one store, keyed by variable name, not by editor).
 Bundled with `essentials`, this is what Claude actually runs on your
 behalf. Its only value-touching action is starting the server above and
 relaying its URL — everything else it does answers a question from
-variable *names*, profile *state labels*, project *paths*, or file
-*permission bits*, never a value:
+variable *names*, profile *state labels*, project *paths*, file
+*permission bits*, or CLI *command names*, never a value:
 
 | Ask for | Runs | Answers |
 |---|---|---|
@@ -342,6 +342,7 @@ variable *names*, profile *state labels*, project *paths*, or file
 | What's unset | `status.py unset [--profile NAME]` | every catalog variable unset for a profile (default: whichever profile the current directory resolves to), tagged required/optional |
 | Which profile applies here | `status.py resolve [PATH]` | the profile a directory resolves to, and which precedence rule decided it |
 | Health check | `status.py doctor` | stale bound project paths, variables no installed plugin declares anymore, and store files/directories whose permissions have drifted from `0600`/`0700` |
+| What CLI tools am I missing | `deps.py doctor` | every CLI binary an installed plugin declares, present or missing on `PATH`, with its install suggestion — a separate domain from credentials, hence a sibling script rather than a fourth `status.py` subcommand. See [`docs/cli-installation-architecture.md`](cli-installation-architecture.md) |
 
 Hard prohibitions, stated in the skill's own instructions regardless of
 what a user asks for: never read a value out of `profiles.json`; never
@@ -521,10 +522,14 @@ Recorded so a future session doesn't re-derive and re-propose these:
   `build.py` fails the build if the same variable name is declared by more
   than one plugin, naming both, so two tools can never silently share one
   credential.
-- `plugins/essentials/hooks/hooks.json` and
-  `plugins/essentials/scripts/secrets-startup-check.py` are hand-maintained,
+- `plugins/essentials/hooks/hooks.json` and the two scripts it registers on
+  `SessionStart` (`plugins/essentials/scripts/secrets-startup-check.py` and
+  its CLI-dependency sibling `cli-startup-check.py`) are hand-maintained,
   not `build.py`-generated — `essentials` has no `hooks:` block in
-  `bundles.yaml` because nothing there is fetched from upstream.
+  `bundles.yaml` because nothing there is fetched from upstream. The two
+  scripts stay separate on purpose: different domains, and a malformed
+  credential store must not be able to suppress a CLI nudge or vice versa.
+  See [`docs/cli-installation-architecture.md`](cli-installation-architecture.md).
 - `shared/resolver.py` and `shared/indie_store.py` are the only two
   first-party implementations of store access. `resolver.py` is
   deliberately self-contained (no imports beyond the standard library, no
