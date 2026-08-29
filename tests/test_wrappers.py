@@ -310,3 +310,211 @@ plugins:
 
     assert observed["argv"] == ["arg1", "--flag=x", "arg with spaces"]
     assert observed["env"]["DEP_VAR"] == "dep-secret"
+
+
+# ---------------------------------------------------------------------------
+# last30days — the one hardcoded skills:-level wrapper (issue #85)
+# ---------------------------------------------------------------------------
+
+L30D_BUNDLES = """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: web-search
+    skills:
+      - name: last30days
+        source: community
+        repo: "https://example.invalid/last30days-skill"
+        path: "skills/last30days"
+        env:
+          SCRAPECREATORS_API_KEY: { required: false }
+"""
+
+L30D_PYTHON_GATE = (
+    "\"${LAST30DAYS_PYTHON}\" -c 'import sys; raise SystemExit(0 if sys.version_info "
+    ">= (3, 12) else 1)' || {\n"
+    '  echo "ERROR: LAST30DAYS_PYTHON must point to Python 3.12+." >&2\n'
+    "  exit 1\n"
+    "}\n"
+)
+
+# The invocation shapes build.py rewrites, and how many of each the vendored
+# files carry. Mirrors build.py's own table on purpose: these counts are the
+# contract, and a build that silently patches a different number of sites is
+# the failure this whole feature guards against.
+L30D_ENGINE_CALLS = [
+    ('"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py"', 8),
+    ('"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py"', 5),
+    ('"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py', 10),
+]
+L30D_BRIEF_CALLS = [('"${LAST30DAYS_PYTHON}" "${SKILL_ROOT}/scripts/last30days.py"', 2)]
+
+# Prose *about* invocations, which must survive a build untouched — SKILL.md
+# has plenty of it and rewriting any of it would corrupt the skill's rules.
+L30D_PROSE = [
+    "a bare `python3 scripts/last30days.py` path-discovery loop is a LAW violation",
+    "Before running any `last30days.py` command in this skill, resolve a Python 3.12+ interpreter",
+    "if [ ! -f \"$SKILL_DIR/scripts/last30days.py\" ]; then",
+    "set LAST30DAYS_PYTHON to a supported interpreter",
+]
+
+
+def _l30d_file(calls: list, prose: list) -> str:
+    lines = ["# vendored fixture\n"]
+    lines += [f"{p}\n" for p in prose]
+    for target, count in calls:
+        for n in range(count):
+            lines.append(f"{target} run-{n} --flag\n")
+    return "".join(lines)
+
+
+def make_last30days_skill(project: Path) -> Path:
+    """A stand-in for the vendored upstream skill: the invocation shapes
+    build.py patches, the prose it must leave alone, and a stub engine at the
+    path the generated wrapper execs."""
+    skill = project / "plugins/web-search/skills/last30days"
+    (skill / "references").mkdir(parents=True)
+    (skill / "scripts").mkdir()
+    (skill / "SKILL.md").write_text(
+        L30D_PYTHON_GATE + _l30d_file(L30D_ENGINE_CALLS, L30D_PROSE)
+    )
+    (skill / "references/save-html-brief.md").write_text(_l30d_file(L30D_BRIEF_CALLS, []))
+    (skill / "scripts/last30days.py").write_text(STUB_DUMP)
+    return skill
+
+
+def test_last30days_wrapper_generated_and_exports_the_resolved_key(project, tmp_path):
+    make_last30days_skill(project)
+    write_bundles(project, L30D_BUNDLES)
+    result = run_build(project)
+    assert result.returncode == 0, result.stdout
+
+    wrapper = project / "plugins/web-search/bin/last30days"
+    assert wrapper.exists()
+    assert is_executable(wrapper)
+    assert (project / "plugins/web-search/bin/resolver.py").read_bytes() == RESOLVER_SRC.read_bytes()
+
+    store = make_store(tmp_path, {"SCRAPECREATORS_API_KEY": "sc-test-value"})
+    proc = subprocess.run(
+        [str(wrapper), "some topic", "--emit=compact"],
+        env=wrapper_env(make_stub_bin(tmp_path), tmp_path / "home", store),
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    observed = json.loads(proc.stdout)
+    assert observed["argv"] == ["some topic", "--emit=compact"]
+    assert observed["env"]["SCRAPECREATORS_API_KEY"] == "sc-test-value"
+
+
+def test_last30days_wrapper_still_runs_when_the_key_is_unset(project, tmp_path):
+    """The key is optional — the engine works without it, so an empty store
+    must reach the engine rather than failing the way a required var does."""
+    make_last30days_skill(project)
+    write_bundles(project, L30D_BUNDLES)
+    assert run_build(project).returncode == 0
+
+    proc = subprocess.run(
+        [str(project / "plugins/web-search/bin/last30days"), "topic"],
+        env=wrapper_env(
+            make_stub_bin(tmp_path), tmp_path / "home", tmp_path / "home/.indie-marketplace"
+        ),
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+    assert "SCRAPECREATORS_API_KEY" not in json.loads(proc.stdout)["env"]
+
+
+def test_last30days_build_points_vendored_invocations_at_the_wrapper(project):
+    skill = make_last30days_skill(project)
+    write_bundles(project, L30D_BUNDLES)
+    assert run_build(project).returncode == 0
+
+    skill_md = (skill / "SKILL.md").read_text()
+    brief = (skill / "references/save-html-brief.md").read_text()
+
+    for target, _ in L30D_ENGINE_CALLS:
+        assert target not in skill_md
+    for target, _ in L30D_BRIEF_CALLS:
+        assert target not in brief
+
+    assert skill_md.count('"${SKILL_DIR}/../../bin/last30days"') == 13
+    assert skill_md.count("bin/last30days run-") == 10
+    assert brief.count('"${SKILL_ROOT}/../../bin/last30days"') == 2
+
+    # The preflight's interpreter is exported so the wrapper — a child
+    # process — runs it instead of falling back to bare python3.
+    assert skill_md.count("export LAST30DAYS_PYTHON") == 1
+
+    for prose in L30D_PROSE:
+        assert prose in skill_md
+
+
+def test_last30days_patch_is_idempotent_across_builds(project):
+    skill = make_last30days_skill(project)
+    write_bundles(project, L30D_BUNDLES)
+    assert run_build(project).returncode == 0
+    once = (skill / "SKILL.md").read_text(), (skill / "references/save-html-brief.md").read_text()
+
+    assert run_build(project).returncode == 0
+    twice = (skill / "SKILL.md").read_text(), (skill / "references/save-html-brief.md").read_text()
+    assert once == twice
+
+
+def test_last30days_patch_fails_loudly_when_the_target_text_drifted(project):
+    """A --fetch restores upstream's text; if upstream moved, the build must
+    stop and say so rather than shipping a wrapper nothing calls."""
+    skill = make_last30days_skill(project)
+    skill_md = skill / "SKILL.md"
+    target = L30D_ENGINE_CALLS[0][0]
+    skill_md.write_text(skill_md.read_text().replace(f"{target} run-0", "python3 upstream-moved.py run-0", 1))
+    write_bundles(project, L30D_BUNDLES)
+
+    result = run_build(project)
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "SKILL.md" in output
+    assert target in output
+    assert "found 7 unpatched" in output
+    assert "Traceback" not in output
+
+
+def test_last30days_patch_fails_loudly_when_a_vendored_file_is_gone(project):
+    skill = make_last30days_skill(project)
+    (skill / "references/save-html-brief.md").unlink()
+    write_bundles(project, L30D_BUNDLES)
+
+    result = run_build(project)
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "save-html-brief.md" in output
+    assert "Traceback" not in output
+
+
+def test_other_skills_level_env_declarations_still_get_no_wrapper(project):
+    """No generic skills:-level mechanism was introduced: last30days is
+    hardcoded, and every other skill declaring env: stays catalog-only."""
+    write_bundles(
+        project,
+        """
+marketplace:
+  name: test
+  owner: { name: tester }
+plugins:
+  - name: alpha
+    skills:
+      - name: some-cli-skill
+        source: local
+        env:
+          SOME_CLI_KEY: null
+""",
+    )
+    (project / "skills/some-cli-skill").mkdir(parents=True)
+    (project / "skills/some-cli-skill/SKILL.md").write_text("# stub\n")
+
+    result = run_build(project)
+    assert result.returncode == 0, result.stdout
+    assert not (project / "plugins/alpha/bin").exists()
+    assert (project / "plugins/alpha/.env.example").exists()
