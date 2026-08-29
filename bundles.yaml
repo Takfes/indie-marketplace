@@ -484,7 +484,11 @@ plugins:
       # so treat this as read-mostly, not read-only. No published image;
       # Dockerfile vendored at docker/mssql-mcp/ (pinned commit, also fixes
       # an upstream build bug). Build once:
-      #   docker build -t indie-marketplace-mssql-mcp:local plugins/database/docker/mssql-mcp
+      #   plugins/database/docker/mssql-mcp/build.sh
+      # Eventual published tag: takfes/indie-marketplace-mssql-mcp:ef13c17 —
+      # swapping the image arg below to it is the whole migration diff.
+      # Against a self-signed-cert server, add -e TrustServerCertificate=yes.
+      # Build + smoke-test evidence: docker/mssql-mcp/VERIFIED.md
       - name: mssql-mcp
         command: docker
         args:

@@ -7,8 +7,19 @@
 # Pinned commit: ef13c17be6c270be9ebc07ebb621d0bc1901e4e9
 # Source: https://github.com/JexinSam/mssql_mcp_server/blob/main/Dockerfile
 #
-# Build once locally:
-#   docker build -t indie-marketplace-mssql-mcp:local plugins/database/docker/mssql-mcp
+# Build once locally (works from any cwd):
+#   plugins/database/docker/mssql-mcp/build.sh
+#
+# Eventual Docker Hub home (NOT published yet — see VERIFIED.md):
+#   takfes/indie-marketplace-mssql-mcp:ef13c17   <- immutable, named for the pinned
+#                                                   upstream commit below
+#   takfes/indie-marketplace-mssql-mcp:latest    <- moving convenience tag
+# Once pushed, bundles.yaml's `indie-marketplace-mssql-mcp:local` becomes that
+# first tag — a one-line diff, and the build step becomes dev-only.
+#
+# Connecting to a server with a self-signed cert (any dev/test SQL Server) also
+# needs `-e TrustServerCertificate=yes`: ODBC Driver 18 verifies by default and
+# upstream deliberately leaves that default alone. bundles.yaml does not pass it.
 
 FROM python:3.12-slim AS source
 RUN apt-get update && apt-get install -y --no-install-recommends git \
