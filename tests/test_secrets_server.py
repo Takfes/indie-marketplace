@@ -205,7 +205,18 @@ def test_catalog_lists_credential_bearing_entry(live_server):
                 {"name": "MY_VAR", "required": True, "description": None},
                 {"name": "OTHER_VAR", "required": False, "description": None},
             ],
-        }
+        },
+        {
+            "plugin": "alpha",
+            "name": "probe",
+            "type": "cli",
+            "command": "probe",
+            "install": None,
+            "manual": None,
+            "source": "mcp",
+            "required_by": ["svc"],
+            "env": [],
+        },
     ]
 
 

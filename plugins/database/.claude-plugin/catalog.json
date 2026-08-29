@@ -92,5 +92,20 @@
     "name": "profiling-tables",
     "type": "skill",
     "env": []
+  },
+  {
+    "name": "docker",
+    "type": "cli",
+    "command": "docker",
+    "install": "brew install --cask docker",
+    "manual": "https://docs.docker.com/get-docker/",
+    "source": "mcp",
+    "required_by": [
+      "pgquery",
+      "dbtools",
+      "mysql-mcp",
+      "mssql-mcp"
+    ],
+    "env": []
   }
 ]

@@ -78,10 +78,26 @@
 #
 # plugin.catalog (optional, top-level sibling of `skills:`, bool):
 #   Set true to have build.py write catalog.json: one {name, type, env}
-#   object per mcp:/skills:/deps: entry, env listing one
+#   object per mcp:/skills: entry, env listing one
 #   {name, required, description} object per variable (never values) —
 #   for later tooling (secrets status, install checks) to read without a
 #   YAML parser.
+#   It also carries one deduped `type: "cli"` entry per CLI binary the
+#   plugin needs, from both `deps:` and every `mcp:` entry's own command
+#   (so `database`'s four docker-backed servers yield one `docker` entry).
+#   A cli entry alone also carries:
+#     command     — the executable to look for on PATH
+#     install     — install suggestion, from the `deps:` entry or, for a
+#                   ubiquitous runtime reached only via `mcp:` (docker,
+#                   npx), build.py's own fallback table. Still a
+#                   suggestion: nothing is ever run automatically.
+#     manual      — install docs URL, same precedence
+#     source      — "mcp" (required eagerly: MCP servers launch at session
+#                   start) or "deps" (required lazily, on first use)
+#     required_by — the `mcp:` entry names that produced it
+#   Required: a plugin declaring `deps:` or `mcp:` must set `catalog: true`
+#   or the build fails — catalog.json is the only file the CLI dependency
+#   check reads. See docs/cli-installation-architecture.md.
 #
 # plugin.vendor (optional, top-level sibling of `skills:`):
 #   Whole-plugin vendoring: git-clones a third-party repo and copies one of

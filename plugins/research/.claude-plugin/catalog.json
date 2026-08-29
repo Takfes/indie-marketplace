@@ -24,5 +24,29 @@
     "name": "notebooklm",
     "type": "mcp",
     "env": []
+  },
+  {
+    "name": "zotero-mcp",
+    "type": "cli",
+    "command": "zotero-mcp",
+    "install": null,
+    "manual": null,
+    "source": "mcp",
+    "required_by": [
+      "zotero"
+    ],
+    "env": []
+  },
+  {
+    "name": "notebooklm-mcp",
+    "type": "cli",
+    "command": "notebooklm-mcp",
+    "install": null,
+    "manual": null,
+    "source": "mcp",
+    "required_by": [
+      "notebooklm"
+    ],
+    "env": []
   }
 ]

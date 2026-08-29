@@ -39,9 +39,14 @@ How it works:
                       An entry with no `env:` is unchanged and gets no
                       wrapper.
   plugin `catalog: true` → writes catalog.json: one {name, type, env}
-                      object per mcp:/skills:/deps: entry, env listing one
-                      {name, required, description} object per variable —
-                      for later tooling to consume.
+                      object per mcp:/skills: entry, env listing one
+                      {name, required, description} object per variable,
+                      plus one deduped `type: "cli"` entry per CLI binary
+                      the plugin's deps: and mcp: commands need. A cli
+                      entry alone carries {command, install, manual,
+                      source, required_by} too, so the dependency check
+                      can name the tool and its install hint from this one
+                      file — see docs/cli-installation-architecture.md.
   duplicate env names → the same var name declared by more than one plugin
                       fails the build, across every non-fetch build
                       (including scoped `--plugin` ones).
@@ -576,6 +581,37 @@ def _resolve_token(token: str, env_names: set[str]) -> str:
     return '"' + "".join(parts) + '"'
 
 
+def split_env_prefix(entry: dict) -> tuple[list[str], str, list[str]]:
+    """
+    Split `command: env NAME=VALUE ... realcmd args...` into its
+    (NAME=VALUE prefix args, real command, remaining args).
+
+    `command: env` is bundles.yaml's way of setting env vars .mcp.json's
+    own `env:` block can't express (see write_mcp_json). Anything else
+    passes straight through with an empty prefix.
+
+    Two callers need the real command behind that prefix: _wrapper_body,
+    which turns the prefix into shell exports, and write_catalog_json,
+    which records the binary an entry actually depends on (`env` itself is
+    coreutils and always present — see docs/cli-installation-architecture.md).
+    An `env` with nothing after its prefix has no command to run at all,
+    and fails the build here for either caller.
+    """
+    command = entry["command"]
+    args = list(entry.get("args") or [])
+    if command != "env":
+        return [], command, args
+
+    i = 0
+    while i < len(args) and _ENV_ASSIGN_RE.match(args[i]):
+        i += 1
+    if i >= len(args):
+        label = entry.get("name") or entry.get("command")
+        err(f"{label} — `command: env` has no real command after its NAME=VALUE prefix args")
+        sys.exit(1)
+    return args[:i], args[i], args[i + 1 :]
+
+
 def _wrapper_body(entry: dict) -> tuple[list[str], list[str]]:
     """
     Translate one credential-bearing entry's command+args into the exports
@@ -599,30 +635,17 @@ def _wrapper_body(entry: dict) -> tuple[list[str], list[str]]:
     """
     env_names = set(entry.get("env") or {})
     exports: list[str] = []
-    command = entry["command"]
-    args = list(entry.get("args") or [])
+    assignments, command, args = split_env_prefix(entry)
 
-    if command == "env":
-        i = 0
-        while i < len(args):
-            m = _ENV_ASSIGN_RE.match(args[i])
-            if not m:
-                break
-            name, value = m.groups()
-            placeholder = _PLACEHOLDER_RE.match(value)
-            if placeholder and placeholder.group(1) in env_names:
-                var = placeholder.group(1)
-                if var != name:
-                    exports.append(f'export {name}="${var}"')
-            else:
-                exports.append(f"export {name}={shlex.quote(value)}")
-            i += 1
-        if i >= len(args):
-            label = entry.get("name") or entry.get("command")
-            err(f"{label} — `command: env` has no real command after its NAME=VALUE prefix args")
-            sys.exit(1)
-        command = args[i]
-        args = args[i + 1 :]
+    for assignment in assignments:
+        name, value = _ENV_ASSIGN_RE.match(assignment).groups()
+        placeholder = _PLACEHOLDER_RE.match(value)
+        if placeholder and placeholder.group(1) in env_names:
+            var = placeholder.group(1)
+            if var != name:
+                exports.append(f'export {name}="${var}"')
+        else:
+            exports.append(f"export {name}={shlex.quote(value)}")
 
     argv = [_resolve_token(command, env_names)]
     i = 0
@@ -1051,12 +1074,108 @@ def _catalog_env(env: dict | None) -> list[dict]:
     return result
 
 
+def _mcp_cli_command(entry: dict) -> str | None:
+    """
+    The local binary one `mcp:` entry depends on, or None when there is
+    nothing checkable to name. Normalization rules, in order (see
+    docs/cli-installation-architecture.md, "Which mcp: commands become
+    type: cli entries"):
+
+      1. no `command` at all — a future remote/SSE server shape has no
+         local binary; skip it rather than crash the build.
+      2. `command: env NAME=VALUE ... realcmd` — the dependency is
+         `realcmd`, not coreutils' `env`.
+      3. a `${VAR}` placeholder (azdevops/azaks' `${AZAKS_BIN}`) — a
+         user-supplied path resolved from the credential store at launch.
+         There is no binary name to look for, and whether the variable is
+         set is already the secrets mechanism's job.
+      4/5. an absolute/relative path, or a bare binary name — kept as-is;
+         shutil.which() handles both.
+    """
+    if not entry.get("command"):
+        return None
+    _, command, _ = split_env_prefix(entry)
+    if _PLACEHOLDER_SEARCH_RE.search(command):
+        return None
+    return command
+
+
+# Install hints for commands that arrive via `mcp:`, which — unlike a
+# `deps:` entry — carry none of their own. Only ubiquitous runtimes shared
+# across many entries belong here; a `deps:` entry for the same command
+# always wins, and is the supported way to give any other command a hint.
+_MCP_CLI_INSTALL_HINTS = {
+    "docker": {
+        "install": "brew install --cask docker",
+        "manual": "https://docs.docker.com/get-docker/",
+    },
+    "npx": {
+        "install": "brew install node",
+        "manual": "https://nodejs.org/en/download",
+    },
+}
+
+
+def _cli_catalog_entries(plugin: dict) -> list[dict]:
+    """
+    catalog.json's `type: "cli"` entries: every CLI binary this plugin
+    needs, from its `deps:` block and from its `mcp:` entries' commands.
+
+    Deduped by command — `database`'s four `mcp:` entries all say `docker`,
+    which is one dependency, not four. `source` records *when* it is
+    needed: `"mcp"` eagerly (Claude Code launches every enabled plugin's
+    MCP servers at session start), `"deps"` lazily (on first use of the
+    skill that shells out to it). A command reached both ways is the
+    eager, stronger requirement, and keeps the `deps:` entry's own hints.
+    """
+    entries: dict[str, dict] = {}
+
+    for entry in plugin.get("deps") or []:
+        command = entry["command"]
+        entries[command] = {
+            "name": command,
+            "type": "cli",
+            "command": command,
+            "install": entry.get("install"),
+            "manual": entry.get("manual"),
+            "source": "deps",
+            "required_by": [],
+            "env": _catalog_env(entry.get("env")),
+        }
+
+    for entry in plugin.get("mcp") or []:
+        command = _mcp_cli_command(entry)
+        if command is None:
+            continue
+        hint = _MCP_CLI_INSTALL_HINTS.get(command, {})
+        existing = entries.get(command)
+        if existing is None:
+            existing = entries[command] = {
+                "name": command,
+                "type": "cli",
+                "command": command,
+                "install": hint.get("install"),
+                "manual": hint.get("manual"),
+                "source": "mcp",
+                "required_by": [],
+                "env": [],
+            }
+        else:
+            existing["source"] = "mcp"
+            existing["install"] = existing["install"] or hint.get("install")
+            existing["manual"] = existing["manual"] or hint.get("manual")
+        existing["required_by"].append(entry["name"])
+
+    return list(entries.values())
+
+
 def write_catalog_json(plugin: dict, plugin_dir: Path) -> None:
     """
-    Generate a plugin's catalog.json — one entry per `mcp:`/`skills:`/`deps:`
-    item, naming it, its type, and its env vars as {name, required,
-    description} objects (never values). Only written for a plugin
-    declaring `catalog: true` in bundles.yaml.
+    Generate a plugin's catalog.json — one entry per `mcp:`/`skills:` item
+    plus one deduped `type: "cli"` entry per CLI binary the plugin's
+    `deps:` and `mcp:` commands need, naming it, its type, and its env
+    vars as {name, required, description} objects (never values). Only
+    written for a plugin declaring `catalog: true` in bundles.yaml.
     """
     catalog = [
         {"name": entry["name"], "type": "mcp", "env": _catalog_env(entry.get("env"))}
@@ -1066,14 +1185,7 @@ def write_catalog_json(plugin: dict, plugin_dir: Path) -> None:
         {"name": entry["name"], "type": "skill", "env": _catalog_env(entry.get("env"))}
         for entry in plugin.get("skills") or []
     ]
-    catalog += [
-        {
-            "name": entry["command"],
-            "type": "cli",
-            "env": _catalog_env(entry.get("env")),
-        }
-        for entry in plugin.get("deps") or []
-    ]
+    catalog += _cli_catalog_entries(plugin)
 
     (plugin_dir / ".claude-plugin" / "catalog.json").write_text(
         json.dumps(catalog, indent=2) + "\n", encoding="utf-8"

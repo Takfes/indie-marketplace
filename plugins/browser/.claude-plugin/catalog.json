@@ -7,6 +7,11 @@
   {
     "name": "playwright-cli",
     "type": "cli",
+    "command": "playwright-cli",
+    "install": "npm install -g @playwright/cli@latest",
+    "manual": "https://github.com/microsoft/playwright-cli",
+    "source": "deps",
+    "required_by": [],
     "env": []
   }
 ]

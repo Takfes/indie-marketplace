@@ -34,11 +34,33 @@
   {
     "name": "yt-dlp",
     "type": "cli",
+    "command": "yt-dlp",
+    "install": "brew install yt-dlp",
+    "manual": "https://github.com/yt-dlp/yt-dlp#installation",
+    "source": "deps",
+    "required_by": [],
     "env": []
   },
   {
     "name": "firecrawl",
     "type": "cli",
+    "command": "firecrawl",
+    "install": "npm install -g firecrawl-cli@latest",
+    "manual": "https://docs.firecrawl.dev/sdks/cli",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
+    "name": "npx",
+    "type": "cli",
+    "command": "npx",
+    "install": "brew install node",
+    "manual": "https://nodejs.org/en/download",
+    "source": "mcp",
+    "required_by": [
+      "exa"
+    ],
     "env": []
   }
 ]

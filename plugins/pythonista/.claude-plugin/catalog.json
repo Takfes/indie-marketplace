@@ -63,5 +63,17 @@
     "name": "uv-package-manager",
     "type": "skill",
     "env": []
+  },
+  {
+    "name": "npx",
+    "type": "cli",
+    "command": "npx",
+    "install": "brew install node",
+    "manual": "https://nodejs.org/en/download",
+    "source": "mcp",
+    "required_by": [
+      "context7"
+    ],
+    "env": []
   }
 ]
