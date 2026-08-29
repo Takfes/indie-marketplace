@@ -248,7 +248,7 @@ End of OUTPUT CONTRACT. The laws above are the contract; everything below is imp
 
 ```bash
 LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"
-"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py" library search "${LIBRARY_QUERY}" --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" library search "${LIBRARY_QUERY}" --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
 Relay the dated, topic-grouped matches. This is deterministic offline FTS over the existing saved-brief scanner plus per-run SQLite store sightings; it does not call a model or the network. If SQLite lacks FTS5, relay the engine's capability error rather than falling through to fresh research.
@@ -257,7 +257,7 @@ Relay the dated, topic-grouped matches. This is deterministic offline FTS over t
 
 ```bash
 LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"
-"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py" library feed --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" library feed --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
 Relay the generated local `index.html` and `feed.xml` paths. If the user explicitly asks to publish/share the whole library, explain that `ht-ml.app` pages are public by default and may be crawled or indexed, then follow the existing public-vs-password publishing choice. After consent, add `--publish`; for password protection, supply their unique shared password through `LAST30DAYS_PUBLISH_PASSWORD`, never as a visible command-line flag. Relay the printed library URL and local Atom path, and explain that `feed.xml` becomes subscribable when the output directory is hosted on a static host such as GitHub Pages. Never describe the `ht-ml.app` library URL as an Atom subscription URL, and never add `--publish` merely because the user asked to generate or open a local feed.
@@ -266,14 +266,14 @@ Relay the generated local `index.html` and `feed.xml` paths. If the user explici
 
 ```bash
 LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"
-"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py" queue list --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" queue list --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
 or the cover form, for "mark X as covered" phrasing:
 
 ```bash
 LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"
-"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py" queue cover "<topic name>" --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" queue cover "<topic name>" --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
 Relay the rendered list (uncovered surfaced topics with domain, surface count, and last-surfaced date) or the cover confirmation. This is deterministic offline SQLite over that save-dir's `research.db`; it does not call a model or the network. Covering requires the exact queued topic name; on an unknown name the engine exits 2 and points at `queue list` - relay that, run `queue list`, and offer the queued names instead of retrying with guesses. An empty queue is a valid answer - suggest a `/last30days trending` or domain discovery run to populate it. Do not treat the topic name or phrase as a fresh research topic and do not fall through to the "user provided a topic" branch in the Step 1 branching rule below.
@@ -322,7 +322,7 @@ Branching rule:
 ```bash
 LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"
 # Global trending: --discover with NO domain. Domain trending: --discover "${DISCOVERY_DOMAIN}".
-"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" --discover --nominate-only --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" --discover --nominate-only --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
   Relay nothing yet. Stdout is a judging digest - one line per nomination id (`n1`, `n2`, ...) plus the absolute path of the nominations bundle file it names (`discover-nominations.json` in the save dir). **READ that bundle file with your file-reading tool before judging**: its per-nomination evidence (full seed items with titles, snippets, URLs, engagement) is the judgment surface - the digest alone is not enough. If the sweep nominates nothing, leg 1 prints the "Nothing solid this window" brief directly: relay it verbatim and STOP - there are no legs 2-3.
@@ -357,7 +357,7 @@ trap 'rm -f "$JUDGMENTS_FILE"' EXIT
 cat >| "$JUDGMENTS_FILE" <<'JUDGE_EOF'
 {JUDGMENTS_JSON}
 JUDGE_EOF
-"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" --discover --judgments "$JUDGMENTS_FILE" --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" --discover --judgments "$JUDGMENTS_FILE" --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
   This is the protocol's deep research pass: every judged survivor gets a full per-topic research run (Reddit with comments, X, YouTube, Techmeme, arXiv, HN, Polymarket, web). Expect several minutes of wall clock - that is the point, not a hang. `LAST30DAYS_ENRICH_BUDGET_SECONDS` (default 450) widens the deep-tier research budget; keep it under ~500 so the 600000ms Bash timeout outlives the post-budget bookkeeping. Its stdout ends with per-topic angle inputs: a JSON object keyed by surviving nomination id, each entry carrying the applied topic `name`, evidence `titles`, the `top_comment`, and an `engagement` phrase. If zero topics clear the confidence floor, leg 2 prints the nothing-solid brief instead: relay it verbatim and STOP - no leg 3.
@@ -388,7 +388,7 @@ trap 'rm -f "$ANGLES_FILE"' EXIT
 cat >| "$ANGLES_FILE" <<'ANGLE_EOF'
 {ANGLES_JSON}
 ANGLE_EOF
-"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" --discover --finalize --angles "$ANGLES_FILE" --emit=compact --save-dir="${LAST30DAYS_MEMORY_DIR}"
+"${SKILL_DIR}/../../bin/last30days" --discover --finalize --angles "$ANGLES_FILE" --emit=compact --save-dir="${LAST30DAYS_MEMORY_DIR}"
 ```
 
   It applies your angles, renders the final topic-per-section brief, saves artifacts, and records the topic queue - offline, no network. **Relay its stdout verbatim** per the DISCOVERY bullet in the OUTPUT CONTRACT - including a **"Nothing solid this window"** result, which is a valid, honest outcome (the confidence floor found no topic with enough cross-source confirmation or engagement; do NOT retry, work around it, or fabricate topics - relay it and suggest a narrower domain or a direct topic run).
@@ -397,7 +397,7 @@ ANGLE_EOF
   - ONE identical `--save-dir="${LAST30DAYS_MEMORY_DIR}"` threaded through all three commands. The handoff files (`discover-nominations.json`, `discover-pending.json`) live in that directory; a different or missing save dir on a later leg means the leg cannot find them.
   - Handoff files expire after one hour (TTL 3600s) - judge and finalize promptly, in the same session as the sweep.
   - Contract failures (missing/stale bundle or pending report, judgments/angles not bound to the current `bundle_id`, malformed file) exit 2 with the remedy named on stderr. Fix exactly what it names and re-run THAT leg.
-  - **Degradation rule:** if any leg fails twice (exit 2, invalid file, timeout), fall back to the one-shot `"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" --discover [domain] --emit=compact --save-dir="${LAST30DAYS_MEMORY_DIR}"` (Bash timeout 600000) and relay its brief - never leave the user with no output. Its one-shot heuristics note is expected on this path.
+  - **Degradation rule:** if any leg fails twice (exit 2, invalid file, timeout), fall back to the one-shot `"${SKILL_DIR}/../../bin/last30days" --discover [domain] --emit=compact --save-dir="${LAST30DAYS_MEMORY_DIR}"` (Bash timeout 600000) and relay its brief - never leave the user with no output. Its one-shot heuristics note is expected on this path.
   - **Hosts with shell-command time caps below ~8 minutes**, and users who ask for a fast/rough sweep: run the SAME protocol but add `--discover-shallow` to leg 1. That marks the bundle quick-tier, so leg 2 uses the faster shallow research pass (thinner cards, still quality-floored). Bare `--discover-shallow` outside the protocol keeps its existing one-shot meaning (listing evidence only) and belongs only on the fallback path.
 - **If the user provided a topic** (e.g. `/last30days Kanye West`, `/last30days nvidia earnings`): confirm the first-run gate above passed (output `1`), then proceed to `## Step 0: First-Run Setup Wizard` (or skip it if already confirmed complete), then continue to Step 0.45 / Step 0.5 / Step 0.55 / Step 0.75 / Research Execution below. Do not skip straight to WebSearch. WebSearch is a **supplement after** the Python engine runs (see Step 2). It is **not a substitute**.
 - **If the user provided no topic**: ask the user for a topic with a single short question. Do not run research. Do not run WebSearch. Wait.
@@ -495,6 +495,7 @@ fi
   echo "ERROR: LAST30DAYS_PYTHON must point to Python 3.12+." >&2
   exit 1
 }
+export LAST30DAYS_PYTHON  # indie-marketplace: read by the generated bin/last30days
 
 LAST30DAYS_MEMORY_DIR="${LAST30DAYS_MEMORY_DIR:-$HOME/Documents/Last30Days}"
 ```
@@ -580,9 +581,9 @@ Options:
 Get cookie consent first. Check if `BROWSER_CONSENT=true` already exists in `~/.config/last30days/.env`; if so, skip the consent prompt and run `setup --allow-browser-cookies` directly. Otherwise **call AskUserQuestion:**
 Question: "Auto setup installs the free CLIs either way - yt-dlp (YouTube), Digg, arXiv, and Techmeme. The only thing that needs your OK is reading your browser's x.com cookies to authenticate X/Twitter search: I check Chrome first (a one-time macOS Keychain prompt may appear; click Always Allow), then Firefox and Safari. Cookies are read live, never saved to disk. Include X?"
 Options (give each option the description shown):
-- "Yes - X cookies + all CLIs" - description: "Read x.com cookies for X/Twitter search AND install yt-dlp (YouTube), Digg, arXiv, and Techmeme." Run `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup --allow-browser-cookies` (relative to the skill root). Append `BROWSER_CONSENT=true` to `.env` after setup completes.
-- "Skip X - just the CLIs" - description: "No cookie reads. Still installs yt-dlp (YouTube), Digg, arXiv, and Techmeme." Run `FROM_BROWSER=off "${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup`.
-- "xAI API key for X instead" - description: "Use an api.x.ai key for X search (no cookie read), plus install yt-dlp (YouTube), Digg, arXiv, and Techmeme." Ask them to paste it, write `XAI_API_KEY` to `.env`, then run `FROM_BROWSER=off "${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup`.
+- "Yes - X cookies + all CLIs" - description: "Read x.com cookies for X/Twitter search AND install yt-dlp (YouTube), Digg, arXiv, and Techmeme." Run `bin/last30days setup --allow-browser-cookies` (relative to the skill root). Append `BROWSER_CONSENT=true` to `.env` after setup completes.
+- "Skip X - just the CLIs" - description: "No cookie reads. Still installs yt-dlp (YouTube), Digg, arXiv, and Techmeme." Run `FROM_BROWSER=off bin/last30days setup`.
+- "xAI API key for X instead" - description: "Use an api.x.ai key for X search (no cookie read), plus install yt-dlp (YouTube), Digg, arXiv, and Techmeme." Ask them to paste it, write `XAI_API_KEY` to `.env`, then run `FROM_BROWSER=off bin/last30days setup`.
 
 **Grok CLI is an opt-in backup, not a setup-time recommendation.** Do NOT check for grok first or offer it as a primary option during setup. A leftover `~/.grok/auth.json` must never steal the X lane. If the user mentions having a Grok account, tell them: "You can use the Grok CLI by pinning `LAST30DAYS_X_BACKEND=grok` in your `.env` after running `grok login`. This is opt-in because a leftover grok login should not take over X automatically." Do not call it free — it needs a Grok plan.
 
@@ -600,11 +601,11 @@ Before the modal, run `which gh` via Bash silently; store as gh_available.
 Question: "Want to add TikTok and Instagram? Your key also backfills empty Reddit search and backs up YouTube when yt-dlp is throttled. (We don't get a cut.)"
 Options:
 - "ScrapeCreators via GitHub (recommended - most free calls)" - description: "Opens GitHub - we copy your code to your clipboard automatically, so you just paste it (Cmd+V), ~20-30s. Grants the full 10,000 free calls - more than the web signup." (Recommend this over the web option because the GitHub path grants more free calls.) This is a **two-command flow** - `--github-start` returns the code fast (foreground), then `--github-poll` waits for you to authorize. The code comes back in the command output, so it can't be missed:
-   1. **Run `--github-start` in the FOREGROUND** (it returns in ~1-2s, it does NOT block-poll): `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup --github-start`. It submits the device flow, copies the code to the clipboard, opens the browser, and returns a JSON blob plus a plain `Your GitHub code: XXXX-XXXX` line on stdout.
+   1. **Run `--github-start` in the FOREGROUND** (it returns in ~1-2s, it does NOT block-poll): `bin/last30days setup --github-start`. It submits the device flow, copies the code to the clipboard, opens the browser, and returns a JSON blob plus a plain `Your GitHub code: XXXX-XXXX` line on stdout.
       - If the returned `status == "already_registered"` (a key was already saved): tell the user "You're already set up - your existing ScrapeCreators key is active" and STOP (do not run poll).
       - If `status == "error"`: show the message and offer the web option below.
    2. **SHOW THE CODE.** Read the `user_code` from the output and output ONE chat message: "Enter this code on the GitHub page: **XXXX-XXXX** - it's already on your clipboard, so just paste (Cmd+V) and click Continue." (If the output said the clipboard copy failed, tell them to type it instead.) The code is right there in step 1's output - surfacing it is the whole point.
-   3. **Run `--github-poll`** (background with a 5-minute timeout, or foreground): `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup --github-poll`. Parse the **LAST** JSON line of its stdout for the final status:
+   3. **Run `--github-poll`** (background with a 5-minute timeout, or foreground): `bin/last30days setup --github-poll`. Parse the **LAST** JSON line of its stdout for the final status:
       - `status == "success"`: the engine persisted the key (`"persisted": true`, MASKED `api_key` - never ask for or echo the raw key); confirm "You're in! 10,000 free calls. TikTok, Instagram, empty-path Reddit search backup, and YouTube transcript fallback are now active."
       - `status == "success"` but `"persisted": false` (key write failed): do NOT claim sources are active - tell the user signup worked but saving the key failed, and have them add `SCRAPECREATORS_API_KEY=<key>` to `~/.config/last30days/.env` manually.
       - `status == "error"` **with `message == "Authorized but failed to fetch API key"`**: GitHub authorized fine - do NOT say auth failed. This usually means your GitHub is **already linked** to a ScrapeCreators account. Tell the user: "GitHub authorized, but I couldn't auto-grab your ScrapeCreators key - your GitHub is probably already linked to an account. Get your key at scrapecreators.com and paste it here, or Skip." Then accept a pasted key (write `SCRAPECREATORS_API_KEY` to `.env`) or offer the web/skip options.
@@ -645,18 +646,18 @@ If the user picks an example, run research with it. If "Type my own", ask what t
 
 For hosts without interactive modal prompts (OpenClaw, Codex, Cursor, Gemini CLI, raw CLI). Same work, done conversationally. Run in order; wait where it says to wait.
 
-**1. Welcome.** Run `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py --welcome` and show its stdout to the user VERBATIM (do not summarize or reformat). The welcome is engine-owned so it renders the same everywhere.
+**1. Welcome.** Run `bin/last30days --welcome` and show its stdout to the user VERBATIM (do not summarize or reformat). The welcome is engine-owned so it renders the same everywhere.
 
-**2. Permission preflight.** Run `"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py" --preflight` using the directory of the `SKILL.md` you loaded, then summarize the human-readable result before setup: config source, project config trust/ignore state, planned browser-cookie mode, planned writes, optional commands, and active/ignored endpoint overrides. This is safe: it does not read browser-cookie values, does not write setup/config/report files, and does not run research. For Codex desktop and other folder-mode hosts, if hidden `.claude/last30days.env` project config is shown as ignored, tell the user it remains ignored unless `LAST30DAYS_TRUST_PROJECT_CONFIG=1` is set from the process environment or global config. Do not block normal research on missing optional commands; describe them as optional coverage.
+**2. Permission preflight.** Run `"${SKILL_DIR}/../../bin/last30days" --preflight` using the directory of the `SKILL.md` you loaded, then summarize the human-readable result before setup: config source, project config trust/ignore state, planned browser-cookie mode, planned writes, optional commands, and active/ignored endpoint overrides. This is safe: it does not read browser-cookie values, does not write setup/config/report files, and does not run research. For Codex desktop and other folder-mode hosts, if hidden `.claude/last30days.env` project config is shown as ignored, tell the user it remains ignored unless `LAST30DAYS_TRUST_PROJECT_CONFIG=1` is set from the process environment or global config. Do not block normal research on missing optional commands; describe them as optional coverage.
 
 **3. Cookie consent (ask BEFORE reading anything).** First check if `BROWSER_CONSENT=true` already exists in `~/.config/last30days/.env` (e.g. granted in a prior Claude Code session); if so, skip this prompt and run `setup --allow-browser-cookies` directly. Otherwise ask. Example: `I can read your browser cookies to unlock X/Twitter and other logged-in sources - I check Chrome first (a one-time macOS Keychain prompt may appear; click Always Allow), then Firefox and Safari. Want me to? (yes / no)` **Wait for the answer.**
-   - On **yes** → run `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup --allow-browser-cookies` (and append `BROWSER_CONSENT=true` to `.env` after it completes). Extracts cookies (Chrome/Chromium family first via the Keychain with no Full Disk Access, then Firefox and Safari; only a Firefox/Safari winner is pinned for later runs, so Chrome never re-prompts) and best-effort installs yt-dlp (YouTube), the free keyless Digg CLI (`digg-pp-cli` via `@mvanhorn/printing-press-library install digg --cli-only`; activates only when on the agent subprocess PATH, typically `$HOME/.local/bin`; reports honestly if off-PATH; recommend-only if `npx` is unavailable), plus the free keyless arXiv and Techmeme CLIs.
-   - On **no** → run `FROM_BROWSER=off "${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup`. Skips all cookie reads; still installs yt-dlp (YouTube), Digg, arXiv, and Techmeme, still writes `SETUP_COMPLETE`.
+   - On **yes** → run `bin/last30days setup --allow-browser-cookies` (and append `BROWSER_CONSENT=true` to `.env` after it completes). Extracts cookies (Chrome/Chromium family first via the Keychain with no Full Disk Access, then Firefox and Safari; only a Firefox/Safari winner is pinned for later runs, so Chrome never re-prompts) and best-effort installs yt-dlp (YouTube), the free keyless Digg CLI (`digg-pp-cli` via `@mvanhorn/printing-press-library install digg --cli-only`; activates only when on the agent subprocess PATH, typically `$HOME/.local/bin`; reports honestly if off-PATH; recommend-only if `npx` is unavailable), plus the free keyless arXiv and Techmeme CLIs.
+   - On **no** → run `FROM_BROWSER=off bin/last30days setup`. Skips all cookie reads; still installs yt-dlp (YouTube), Digg, arXiv, and Techmeme, still writes `SETUP_COMPLETE`.
 
 **4. Full Disk Access remediation (macOS only).** After `setup`, inspect stderr. If it contains `Permission denied reading Cookies.binarycookies` on macOS, surface: `macOS blocked the cookie read. To enable X/Twitter: System Settings > Privacy & Security > Full Disk Access > enable your terminal (or the Claude app), then I can retry.` Offer ONE retry. If skipped, continue.
 
 **5. ScrapeCreators signup offer (every first run, consent BEFORE launching the browser).** Explain it grants 10,000 free calls that add TikTok and Instagram, plus optional backups: Reddit search backfill when the free path returns no items (empty-only by default; thin-run / SC-primary are opt-in env knobs — see Reddit backend pin below), and a YouTube transcript fallback when yt-dlp is rate-limited or bot-gated. GitHub signup grants the full 10,000 free calls (more than the web form), and it opens a GitHub authorization page where you enter a short code. Ask, e.g.: `Want to unlock TikTok, Instagram, and more? I can sign you up for ScrapeCreators with GitHub (10,000 free calls, ~20-30s) - it opens a browser and you enter a short code. (yes / no)` **Wait for the answer.**
-   - On **yes** → two commands. FIRST run `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup --github-start` in the FOREGROUND - it returns in ~1-2s with a `Your GitHub code: XXXX-XXXX` line plus a JSON blob, copies the code to the clipboard, and opens the browser. Read the `user_code` from that output and immediately tell the user: the code, that it's on their clipboard so they can just paste it (Cmd+V) on the GitHub page - do not make them hunt for it. (If `status == "already_registered"`, stop here - their existing key is active. If the output said the clipboard copy failed, tell them to type the code.) THEN run `"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py setup --github-poll` (background with a 5-min timeout, or foreground) and parse the **LAST** JSON line of its stdout for the final status. On success the engine persists the key automatically and returns `"persisted": true` with a MASKED `api_key` (never ask for or echo the raw key). Confirm the paid sources are active.
+   - On **yes** → two commands. FIRST run `bin/last30days setup --github-start` in the FOREGROUND - it returns in ~1-2s with a `Your GitHub code: XXXX-XXXX` line plus a JSON blob, copies the code to the clipboard, and opens the browser. Read the `user_code` from that output and immediately tell the user: the code, that it's on their clipboard so they can just paste it (Cmd+V) on the GitHub page - do not make them hunt for it. (If `status == "already_registered"`, stop here - their existing key is active. If the output said the clipboard copy failed, tell them to type the code.) THEN run `bin/last30days setup --github-poll` (background with a 5-min timeout, or foreground) and parse the **LAST** JSON line of its stdout for the final status. On success the engine persists the key automatically and returns `"persisted": true` with a MASKED `api_key` (never ask for or echo the raw key). Confirm the paid sources are active.
    - On **success but `"persisted": false`** (auth completed yet the key write failed) → do NOT claim sources are active. Tell the user signup worked but saving failed, and have them add `SCRAPECREATORS_API_KEY=<key>` to `~/.config/last30days/.env` manually (the raw key is masked in output, so re-run `setup --github` or retrieve it from scrapecreators.com to get the value).
    - On **`status == "error"` with `message == "Authorized but failed to fetch API key"`** → GitHub authorized fine, so do NOT say auth failed. This usually means the GitHub account is already linked to a ScrapeCreators account. Tell the user: "GitHub authorized, but I couldn't auto-grab your ScrapeCreators key - your GitHub is probably already linked to an account. Get your key at scrapecreators.com and paste it, or Skip." Accept a pasted key or offer web/skip.
    - On **timeout, or any other error** → tell the user it didn't complete and offer to retry or the web signup at scrapecreators.com.
@@ -759,7 +760,7 @@ Common patterns:
 
 ```bash
 SKILL_DIR="<absolute path of the directory containing the SKILL.md you just Read>"
-"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" --diagnose
+"${SKILL_DIR}/../../bin/last30days" --diagnose
 ```
 
 `--diagnose` prints JSON. `ACTIVE_SOURCES_LIST` is its `available_sources` array — the engine's authoritative source set, computed after credential resolution. Map the tokens to display names: `reddit`→Reddit, `hackernews`→Hacker News, `polymarket`→Polymarket, `github`→GitHub, `digg`→Digg, `x`→X, `youtube`→YouTube, `tiktok`→TikTok, `instagram`→Instagram, `threads`→Threads, `pinterest`→Pinterest, `linkedin`→LinkedIn, `bluesky`→Bluesky, `perplexity`→Perplexity, `grounding`→Web, `jobs`→Jobs, `corpus`→Your files, `dripstack`→DripStack.
@@ -772,7 +773,7 @@ SKILL_DIR="<absolute path of the directory containing the SKILL.md you just Read
 
 **Reddit backend pin:** Reddit defaults to the free keyless backend. When `SCRAPECREATORS_API_KEY` is available, ScrapeCreators Reddit **search** backfills only if that free path returns **no items** (empty-only — a thin but non-empty free scrape does not spend credits). If the user wants paid coverage on thin free runs, tell them to set `LAST30DAYS_REDDIT_SC_MIN_ITEMS=<N>` (backfill when free yield is below N). If they say public Reddit is shallow, bot-gated, or missing nested comments, tell them they can set `LAST30DAYS_REDDIT_BACKEND=scrapecreators` alongside `SCRAPECREATORS_API_KEY` to make ScrapeCreators primary and keep the free path as fallback. Do not set either automatically for normal runs.
 
-**Doctor health check:** When the user asks for a health check ("is X working?", "why is a source missing?", "what's broken?", "did setup work?"), run `"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" doctor` (append `--json` for the machine contract) and relay the audit and fix prescriptions. `doctor` renders a **four-state audit** - **WORKING** (verified this run/last run or keyless-always-on), **TURNED ON - UNVERIFIED** (configured/opted-in but no run evidence), **NOT WORKING** (configured but failing, or the last run errored), **COULD BE ON** (available, not yet configured) - one line per source, plus a **CLI-health** block for sources that need a downloaded binary and indented **backup/comment** sub-lanes. Two on-demand modes: `doctor --postmortem` reads the last run's `last-report.json` and reports what actually broke per source (Failed/Partial/Succeeded with fix hints) - reach for it right after a run that returned less than expected; `doctor --probe` runs a **bounded** live test (free HTTP + keyless CLI sources only; credit-gated sources are never probed) to verify WORKING instead of guessing, and the same bounded probe auto-fires on a plain `doctor` when there is no fresh run. Per-source probe deadline is `LAST30DAYS_DOCTOR_PROBE_TIMEOUT` (default 10s). **MANDATORY standing rule.** Before research that depends on login-backed sources (X via cookies, Reddit's ScrapeCreators backfill), consult `doctor --cached --json` — it serves the report cached at `~/.config/last30days/doctor-cache.json` within its TTL (`LAST30DAYS_DOCTOR_TTL` seconds, default 900) for the cost of one file read. Re-run live `doctor` only when the cache is stale or the previous run reported a degraded login-backed source. When X is in ACTIVE_SOURCES_LIST, announce its predicted backend from the report's `sources.x.active_backend` (e.g. "X will use: bird") in the pre-research status line.
+**Doctor health check:** When the user asks for a health check ("is X working?", "why is a source missing?", "what's broken?", "did setup work?"), run `"${SKILL_DIR}/../../bin/last30days" doctor` (append `--json` for the machine contract) and relay the audit and fix prescriptions. `doctor` renders a **four-state audit** - **WORKING** (verified this run/last run or keyless-always-on), **TURNED ON - UNVERIFIED** (configured/opted-in but no run evidence), **NOT WORKING** (configured but failing, or the last run errored), **COULD BE ON** (available, not yet configured) - one line per source, plus a **CLI-health** block for sources that need a downloaded binary and indented **backup/comment** sub-lanes. Two on-demand modes: `doctor --postmortem` reads the last run's `last-report.json` and reports what actually broke per source (Failed/Partial/Succeeded with fix hints) - reach for it right after a run that returned less than expected; `doctor --probe` runs a **bounded** live test (free HTTP + keyless CLI sources only; credit-gated sources are never probed) to verify WORKING instead of guessing, and the same bounded probe auto-fires on a plain `doctor` when there is no fresh run. Per-source probe deadline is `LAST30DAYS_DOCTOR_PROBE_TIMEOUT` (default 10s). **MANDATORY standing rule.** Before research that depends on login-backed sources (X via cookies, Reddit's ScrapeCreators backfill), consult `doctor --cached --json` — it serves the report cached at `~/.config/last30days/doctor-cache.json` within its TTL (`LAST30DAYS_DOCTOR_TTL` seconds, default 900) for the cost of one file read. Re-run live `doctor` only when the cache is stale or the previous run reported a degraded login-backed source. When X is in ACTIVE_SOURCES_LIST, announce its predicted backend from the report's `sources.x.active_backend` (e.g. "X will use: bird") in the pre-research status line.
 
 **Grok session expiry handling:** The grok CLI backend for X reports three auth states: `ok` (non-expired credentials), `expired` (access_token `expires_at` is past), and `missing` (never signed in). When doctor reports grok as **degraded** with an expiry timestamp, say "Grok session expired at {timestamp}; will attempt refresh at run time. If refresh fails, run `grok login --device-auth`" — not "Grok CLI is not signed in" (which misrepresents the history). The refresh attempt happens automatically at research time: an expired access_token does not prove the refresh_token is dead. If the run then fails with `auth_revoked` or `invalid_grant`, the user truly needs to re-login. **Host-facing copy:** when `sources.x.run_outcome.state` is `auth-failed` and the prior run's outcome was `ok`, say "X used {fallback} after the Grok session expired — run `grok login --device-auth` to restore first-party X." Avoid "Grok CLI is not signed in" when `run_outcome` history shows it worked recently. Avoid proactively installing grok or prompting about grok unless the user asks for first-party X search; the cookie and XAI_API_KEY paths work without a Grok subscription.
 
@@ -1135,7 +1136,7 @@ cat >| "$COMPETITORS_PLAN_FILE" <<'PLAN_EOF'
 }
 PLAN_EOF
 
-"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" "{TOPIC_A} vs {TOPIC_B} vs {TOPIC_C}" \
+"${SKILL_DIR}/../../bin/last30days" "{TOPIC_A} vs {TOPIC_B} vs {TOPIC_C}" \
   --emit=compact \
   --save-dir="${LAST30DAYS_MEMORY_DIR}" \
   --save-suffix=v3 \
@@ -1465,7 +1466,7 @@ if [ ! -f "$SKILL_DIR/scripts/last30days.py" ]; then
   exit 1
 fi
 
-"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py" $ARGUMENTS --emit=compact --save-dir="${LAST30DAYS_MEMORY_DIR}" --save-suffix=v3
+"${SKILL_DIR}/../../bin/last30days" $ARGUMENTS --emit=compact --save-dir="${LAST30DAYS_MEMORY_DIR}" --save-suffix=v3
 ```
 
 **If you ran Steps 0.55 and 0.75 (agent planning), pass the plan via a tmpfile and add the targeting flags:**

@@ -721,12 +721,21 @@ plugins:
       # substitution, which only applies to mcp: entries) — the name below
       # must match exactly, no prefix. SKILL.md documents 13 more optional
       # provider keys beyond this primary one; add one here only if needed.
+      #
+      # The one skills:-level env: declaration that gets a generated wrapper
+      # (bin/last30days) rather than catalog-only treatment — hardcoded in
+      # build.py, see docs/secrets-architecture.md. required: false on
+      # purpose: the engine runs without this key (it gates Reddit backfill
+      # and a few paid sources), so the wrapper must resolve-or-skip rather
+      # than hard-fail, leaving the skill's own ~/.config/last30days/.env as
+      # the fallback it has always been.
       - name: last30days
         source: community
         repo: "https://github.com/mvanhorn/last30days-skill"
         path: "skills/last30days"
         env:
           SCRAPECREATORS_API_KEY:
+            required: false
 
       # Generic YouTube search/channel-fetch primitive via the yt-dlp CLI —
       # see deps: below for the CLI itself.

@@ -21,7 +21,7 @@
     "env": [
       {
         "name": "SCRAPECREATORS_API_KEY",
-        "required": true,
+        "required": false,
         "description": null
       }
     ]

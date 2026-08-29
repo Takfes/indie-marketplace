@@ -671,6 +671,180 @@ def _scoped_launcher_script(entry: dict) -> str:
     return "".join(parts)
 
 
+# ---------------------------------------------------------------------------
+# last30days — the one skills:-level env: entry that gets a wrapper
+# ---------------------------------------------------------------------------
+#
+# A skills:-level `env:` declaration is catalog-only by design (see
+# docs/secrets-architecture.md): only mcp:/deps: entries get a generated
+# wrapper, and a skill that needs its variable resolves it itself.
+# web-search's last30days is the single hardcoded exception — its
+# SCRAPECREATORS_API_KEY was the one credential in this repo that bypassed
+# profiles.json entirely (issue #85).
+#
+# Deliberately not a generic mechanism. There is exactly one such skill, and
+# the shape of the patch below (which invocation sites exist, how the engine
+# is reached, which interpreter runs it) is specific to this skill's own
+# SKILL.md. Generalize if and when a second one appears.
+
+L30D_PLUGIN = "web-search"
+L30D_SKILL = "last30days"
+L30D_VAR = "SCRAPECREATORS_API_KEY"
+
+# Vendored-file patches, applied by every build. Each is
+# (path relative to the skill dir, target text, replacement, expected count).
+#
+# SKILL.md and references/save-html-brief.md are fetched from upstream, so
+# these patches are local drift: a `--fetch` of this skill overwrites them and
+# the next build reapplies them. That only works while the target text still
+# matches — when upstream moves, the build fails loudly (see
+# _apply_l30d_patch) rather than shipping a wrapper nothing calls.
+#
+# Only real invocation sites are patched. SKILL.md also *talks about*
+# invocations in prose (LAW text, self-checks, degradation rules, the
+# "never write a bare `python3 scripts/last30days.py`" rule at the top);
+# rewriting those would be wrong, and none of them match these targets —
+# every target here pins the engine script path right after the interpreter.
+_L30D_WRAPPER_EXPORT = (
+    "export LAST30DAYS_PYTHON  # indie-marketplace: read by the generated bin/last30days\n"
+)
+_L30D_PYTHON_GATE = (
+    "\"${LAST30DAYS_PYTHON}\" -c 'import sys; raise SystemExit(0 if sys.version_info "
+    ">= (3, 12) else 1)' || {\n"
+    '  echo "ERROR: LAST30DAYS_PYTHON must point to Python 3.12+." >&2\n'
+    "  exit 1\n"
+    "}\n"
+)
+
+_L30D_PATCHES = (
+    # The Runtime Preflight resolves an interpreter into LAST30DAYS_PYTHON but
+    # never exports it. The wrapper is a child process, so it has to be
+    # exported for the wrapper to run the interpreter the preflight chose
+    # (uv-managed CPython on hosts with no system 3.12) instead of bare python3.
+    (
+        "SKILL.md",
+        _L30D_PYTHON_GATE,
+        _L30D_PYTHON_GATE + _L30D_WRAPPER_EXPORT,
+        1,
+    ),
+    (
+        "SKILL.md",
+        '"${LAST30DAYS_PYTHON}" "${SKILL_DIR}/scripts/last30days.py"',
+        '"${SKILL_DIR}/../../bin/last30days"',
+        8,
+    ),
+    (
+        "SKILL.md",
+        '"${LAST30DAYS_PYTHON:-python3}" "${SKILL_DIR}/scripts/last30days.py"',
+        '"${SKILL_DIR}/../../bin/last30days"',
+        5,
+    ),
+    # Skill-root-relative form: `skills/last30days/scripts/last30days.py` is
+    # relative to the plugin root, and bin/ is its sibling there.
+    (
+        "SKILL.md",
+        '"${LAST30DAYS_PYTHON:-python3}" skills/last30days/scripts/last30days.py',
+        "bin/last30days",
+        10,
+    ),
+    (
+        "references/save-html-brief.md",
+        '"${LAST30DAYS_PYTHON}" "${SKILL_ROOT}/scripts/last30days.py"',
+        '"${SKILL_ROOT}/../../bin/last30days"',
+        2,
+    ),
+)
+
+
+def last30days_skill_entry(plugin: dict) -> dict | None:
+    """The last30days skills: entry, when this plugin is the one that has it."""
+    if plugin["name"] != L30D_PLUGIN:
+        return None
+    for skill in plugin.get("skills") or []:
+        if skill.get("name") == L30D_SKILL and L30D_VAR in (skill.get("env") or {}):
+            return skill
+    return None
+
+
+def _last30days_wrapper_script(skill: dict) -> str:
+    """
+    Render bin/last30days — same credential resolution as every other
+    generated wrapper, forwarding the caller's own arguments like a deps:
+    scoped launcher. One difference: the thing being launched is a Python
+    script rather than an executable, so it runs under the interpreter
+    SKILL.md's Runtime Preflight resolved and exported, falling back to
+    python3 when the wrapper is invoked outside that preflight.
+    """
+    resolver_args = " ".join(shlex.quote(a) for a in _resolver_args(skill.get("env")))
+    engine = f"$DIR/../skills/{L30D_SKILL}/scripts/{L30D_SKILL}.py"
+    return "".join(
+        [
+            _WRAPPER_HEADER,
+            _WRAPPER_RESOLVE.format(resolver_args=resolver_args),
+            f'exec "${{LAST30DAYS_PYTHON:-python3}}" "{engine}" "$@"\n',
+        ]
+    )
+
+
+def _apply_l30d_patch(path: Path, target: str, replacement: str, expected: int) -> bool:
+    """
+    Apply one vendored-file patch, or fail the build saying exactly what it
+    expected and did not find.
+
+    Three outcomes, no fourth: the target is present exactly `expected` times
+    and is rewritten; the file is already fully patched and is left alone
+    (builds are re-run constantly, and only `--fetch` restores the original
+    text); or the vendored file drifted, and the build stops. Never a silent
+    no-op — a skipped patch would leave a generated wrapper that nothing
+    calls and a credential that quietly keeps bypassing the store.
+    """
+    if not path.exists():
+        err(
+            f"{L30D_PLUGIN}/{L30D_SKILL} — expected vendored file is missing: {path}\n"
+            f"  build.py patches it to route {L30D_VAR} through bin/{L30D_SKILL}.\n"
+            "  Re-derive build.py's _L30D_PATCHES against the current upstream skill "
+            "— see docs/secrets-architecture.md."
+        )
+        sys.exit(1)
+
+    text = path.read_text(encoding="utf-8")
+    # Blank out already-patched regions before counting targets, so a target
+    # that is a substring of its own replacement counts as done, not pending.
+    remaining = text.replace(replacement, "\x00").count(target)
+    applied = text.count(replacement)
+
+    if remaining == 0 and applied >= expected:
+        return False
+    if remaining != expected:
+        err(
+            f"{L30D_PLUGIN}/{L30D_SKILL} — patch target not found as expected in "
+            f"{path.name}:\n"
+            f"    expected {expected} unpatched occurrence(s) of: {target!r}\n"
+            f"    found {remaining} unpatched, {applied} already patched\n"
+            f"  This vendored file drifted from what build.py patches (a --fetch of "
+            f"this skill restores upstream's text, and upstream may have moved).\n"
+            f"  Re-derive build.py's _L30D_PATCHES against the new text — see "
+            f"docs/secrets-architecture.md."
+        )
+        sys.exit(1)
+
+    path.write_text(text.replace(target, replacement), encoding="utf-8")
+    return True
+
+
+def patch_last30days_skill(plugin: dict, plugin_dir: Path) -> None:
+    """Point the vendored skill's engine invocations at the generated wrapper."""
+    if last30days_skill_entry(plugin) is None:
+        return
+    skill_dir = plugin_dir / "skills" / L30D_SKILL
+    changed = [
+        _apply_l30d_patch(skill_dir / rel, target, replacement, expected)
+        for rel, target, replacement, expected in _L30D_PATCHES
+    ]
+    if any(changed):
+        ok(f"skills/{L30D_SKILL}/ patched → bin/{L30D_SKILL}")
+
+
 def _write_executable(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
     path.chmod(0o755)
@@ -679,14 +853,17 @@ def _write_executable(path: Path, content: str) -> None:
 def write_bin(plugin: dict, plugin_dir: Path) -> None:
     """
     Generate a plugin's bin/: a copy of shared/resolver.py plus one wrapper
-    per credential-bearing mcp: entry and one scoped launcher per
-    credential-bearing deps: entry. A plugin with neither gets no bin/ at
-    all — the resolver travels only with the wrappers that need it, so a
-    plugin installed alone still resolves its own credentials.
+    per credential-bearing mcp: entry, one scoped launcher per
+    credential-bearing deps: entry, and — for web-search alone — the
+    hardcoded last30days wrapper (see that section above). A plugin with
+    none of these gets no bin/ at all — the resolver travels only with the
+    wrappers that need it, so a plugin installed alone still resolves its
+    own credentials.
     """
     mcp_entries = credential_bearing_mcp_entries(plugin)
     dep_entries = credential_bearing_dep_entries(plugin)
-    if not mcp_entries and not dep_entries:
+    l30d_skill = last30days_skill_entry(plugin)
+    if not mcp_entries and not dep_entries and not l30d_skill:
         return
 
     bin_dir = plugin_dir / "bin"
@@ -698,6 +875,8 @@ def write_bin(plugin: dict, plugin_dir: Path) -> None:
         _write_executable(bin_dir / entry["name"], _wrapper_script(entry))
     for entry in dep_entries:
         _write_executable(bin_dir / entry["command"], _scoped_launcher_script(entry))
+    if l30d_skill:
+        _write_executable(bin_dir / L30D_SKILL, _last30days_wrapper_script(l30d_skill))
 
     ok("bin/")
 
@@ -945,6 +1124,7 @@ def build_plugin(plugin: dict, owner: dict, fetch: bool, fetch_only: bool = Fals
         write_env_example(plugin, plugin_dir)
 
     write_bin(plugin, plugin_dir)
+    patch_last30days_skill(plugin, plugin_dir)
 
     if plugin.get("mcp"):
         write_mcp_json(plugin, plugin_dir)
