@@ -94,6 +94,16 @@
     "env": []
   },
   {
+    "name": "az",
+    "type": "cli",
+    "command": "az",
+    "install": "brew install azure-cli",
+    "manual": "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
     "name": "docker",
     "type": "cli",
     "command": "docker",

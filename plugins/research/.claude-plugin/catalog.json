@@ -26,6 +26,16 @@
     "env": []
   },
   {
+    "name": "nlm",
+    "type": "cli",
+    "command": "nlm",
+    "install": "uv tool install notebooklm-mcp-cli",
+    "manual": "https://github.com/oleandersong/notebooklm-mcp-cli",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
     "name": "zotero-mcp",
     "type": "cli",
     "command": "zotero-mcp",

@@ -280,6 +280,30 @@ plugins:
         source: community
         repo: "https://github.com/wshobson/agents"
         path: "plugins/python-development/skills/uv-package-manager"
+    deps:
+      # uv bootstraps python-quality-tools' whole tool loop (ruff/mypy/etc.
+      # all run via uvx); ruff/complexipy/radon/wily are the analyzers
+      # python-scan, python-quality-tools, and python-workflow shell out to
+      # directly.
+      - command: uv
+        install: curl -LsSf https://astral.sh/uv/install.sh | sh
+        manual: "https://docs.astral.sh/uv/getting-started/installation/"
+
+      - command: ruff
+        install: uv tool install ruff
+        manual: "https://docs.astral.sh/ruff/installation/"
+
+      - command: complexipy
+        install: uv tool install complexipy
+        manual: "https://github.com/rohaquinlop/complexipy"
+
+      - command: radon
+        install: uv tool install radon
+        manual: "https://radon.readthedocs.io/en/latest/intro.html"
+
+      - command: wily
+        install: uv tool install wily
+        manual: "https://wily.readthedocs.io/en/latest/"
 
   # ---------------------------------------------------------------------------
   # thinktank — thinking, planning, and ideation skills
@@ -544,6 +568,16 @@ plugins:
         source: community
         repo: "https://github.com/astronomer/agents"
         path: "skills/profiling-tables"
+    deps:
+      # azure-kusto's own fallback path shells out to `az` directly when the
+      # Azure MCP Kusto tools fail or are unavailable — see its SKILL.md
+      # "Fallback Strategy: Azure CLI Commands". Declared separately from
+      # azdevops's az entry so the doctor attributes this requirement to the
+      # plugin that actually needs it.
+      - command: az
+        label: Azure CLI
+        install: brew install azure-cli
+        manual: "https://learn.microsoft.com/en-us/cli/azure/install-azure-cli"
 
   # ---------------------------------------------------------------------------
   # azdevops — containers, Kubernetes, CI/CD, and Azure DevOps skills.
@@ -662,6 +696,14 @@ plugins:
         install: brew install azure-cli
         manual: "https://learn.microsoft.com/cli/azure/install-azure-cli"
 
+      # kubernetes-specialist shells out to kubectl directly.
+      - command: kubectl
+        install: brew install kubectl
+
+      # helm-chart-scaffolding shells out to helm directly.
+      - command: helm
+        install: brew install helm
+
   # ---------------------------------------------------------------------------
   # research — reference-library and notebook MCP servers: Zotero library
   # search and Google's NotebookLM.
@@ -700,6 +742,13 @@ plugins:
       # by the CLI itself); re-run if cookies expire (~2-4 weeks).
       - name: notebooklm
         command: notebooklm-mcp
+    deps:
+      # `nlm` is the CLI half of notebooklm-mcp-cli (see notebooklm above,
+      # which is the MCP server half of the same package) — used for the
+      # one-time/renewal `nlm login` browser session.
+      - command: nlm
+        install: uv tool install notebooklm-mcp-cli
+        manual: "https://github.com/oleandersong/notebooklm-mcp-cli"
 
   # ---------------------------------------------------------------------------
   # web-search — semantic web search and page fetch, scraping, recent
@@ -818,6 +867,7 @@ plugins:
   - name: superpowers
     description: obra's methodology skills (TDD, debugging, brainstorming, code review, plans) with session-start skill-enforcement hook
     version: "0.1.0"
+    catalog: true
     hooks:
       source: community
       repo: "https://github.com/obra/superpowers"
@@ -827,6 +877,16 @@ plugins:
         source: community
         repo: "https://github.com/obra/superpowers"
         path: "skills/*"
+    deps:
+      # finishing-a-development-branch's "Push and Create PR" option uses
+      # "the forge's tooling — its CLI if one is available" — gh, for a
+      # GitHub remote. Declared separately from essentials' gh entry so the
+      # doctor attributes this requirement to the plugin that actually
+      # needs it.
+      - command: gh
+        label: GitHub CLI
+        install: brew install gh
+        manual: "https://cli.github.com/manual/installation"
 
   # ---------------------------------------------------------------------------
   # codex — OpenAI's Codex CLI integration, vendored whole (not cherry-picked

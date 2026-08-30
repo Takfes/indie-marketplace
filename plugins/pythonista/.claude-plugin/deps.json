@@ -1,0 +1,27 @@
+[
+  {
+    "command": "uv",
+    "install": "curl -LsSf https://astral.sh/uv/install.sh | sh",
+    "manual": "https://docs.astral.sh/uv/getting-started/installation/"
+  },
+  {
+    "command": "ruff",
+    "install": "uv tool install ruff",
+    "manual": "https://docs.astral.sh/ruff/installation/"
+  },
+  {
+    "command": "complexipy",
+    "install": "uv tool install complexipy",
+    "manual": "https://github.com/rohaquinlop/complexipy"
+  },
+  {
+    "command": "radon",
+    "install": "uv tool install radon",
+    "manual": "https://radon.readthedocs.io/en/latest/intro.html"
+  },
+  {
+    "command": "wily",
+    "install": "uv tool install wily",
+    "manual": "https://wily.readthedocs.io/en/latest/"
+  }
+]

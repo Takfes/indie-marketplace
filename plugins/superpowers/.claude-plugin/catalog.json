@@ -1,0 +1,17 @@
+[
+  {
+    "name": "obra-superpowers",
+    "type": "skill",
+    "env": []
+  },
+  {
+    "name": "gh",
+    "type": "cli",
+    "command": "gh",
+    "install": "brew install gh",
+    "manual": "https://cli.github.com/manual/installation",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  }
+]

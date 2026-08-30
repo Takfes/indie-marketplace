@@ -65,6 +65,56 @@
     "env": []
   },
   {
+    "name": "uv",
+    "type": "cli",
+    "command": "uv",
+    "install": "curl -LsSf https://astral.sh/uv/install.sh | sh",
+    "manual": "https://docs.astral.sh/uv/getting-started/installation/",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
+    "name": "ruff",
+    "type": "cli",
+    "command": "ruff",
+    "install": "uv tool install ruff",
+    "manual": "https://docs.astral.sh/ruff/installation/",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
+    "name": "complexipy",
+    "type": "cli",
+    "command": "complexipy",
+    "install": "uv tool install complexipy",
+    "manual": "https://github.com/rohaquinlop/complexipy",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
+    "name": "radon",
+    "type": "cli",
+    "command": "radon",
+    "install": "uv tool install radon",
+    "manual": "https://radon.readthedocs.io/en/latest/intro.html",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
+    "name": "wily",
+    "type": "cli",
+    "command": "wily",
+    "install": "uv tool install wily",
+    "manual": "https://wily.readthedocs.io/en/latest/",
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
     "name": "npx",
     "type": "cli",
     "command": "npx",

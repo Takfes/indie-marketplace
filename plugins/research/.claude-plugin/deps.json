@@ -1,0 +1,7 @@
+[
+  {
+    "command": "nlm",
+    "install": "uv tool install notebooklm-mcp-cli",
+    "manual": "https://github.com/oleandersong/notebooklm-mcp-cli"
+  }
+]

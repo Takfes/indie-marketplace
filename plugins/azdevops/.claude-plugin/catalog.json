@@ -98,6 +98,26 @@
     "env": []
   },
   {
+    "name": "kubectl",
+    "type": "cli",
+    "command": "kubectl",
+    "install": "brew install kubectl",
+    "manual": null,
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
+    "name": "helm",
+    "type": "cli",
+    "command": "helm",
+    "install": "brew install helm",
+    "manual": null,
+    "source": "deps",
+    "required_by": [],
+    "env": []
+  },
+  {
     "name": "npx",
     "type": "cli",
     "command": "npx",

@@ -2,4 +2,4 @@
 
 - **Repo:** https://github.com/obra/superpowers
 - **Path:** `skills/using-git-worktrees`
-- **Fetched:** 2026-08-20
+- **Fetched:** 2026-08-30
