@@ -211,3 +211,57 @@ tier above is insufficient.
 | `profile_report.py` | Runs a target script under cProfile + tracemalloc, produces a Markdown report of top CPU/memory hotspots with a rule-based explanation and proposal for each |
 | `live_dashboard.py` | Spawns a command, samples its RSS memory and CPU% via `ps`, redraws a live terminal dashboard with a memory sparkline, prints a summary on exit |
 | `compare_benchmarks.py` | Workflow step 8: times matching functions in a baseline file and an optimized file via a companion bench-data module, reports before/after and flags a regression past a threshold. Ported from `python-refactor`'s `benchmark_changes.py` |
+
+## Self-check
+
+`fixtures/` holds a small, deliberately inefficient script plus a before/after
+function pair, so you can run all three scripts end to end and see for
+yourself what a real hotspot report, live dashboard, and benchmark comparison
+look like — before pointing them at real code. Run these from this skill's
+directory (`plugins/pythonista/skills/python-performance-optimization/`).
+
+**1. `profile_report.py` — hotspot attribution**
+
+```bash
+python3 scripts/profile_report.py --top 5 --output report.md fixtures/hotspot_demo.py
+```
+
+(Flags must come before the target — see the script's own usage note.)
+
+Expect a Markdown report (`report.md`) whose "Top CPU hotspots" table ranks
+`find_duplicates_slow` first, attributing roughly 70-80% of self time to it
+(its `O(n^2)` nested loop dominates), with `time.sleep` correctly flagged as a
+wall-clock wait rather than CPU cost. The "Top memory allocation sites" table
+should list a line inside `build_dataset_slow` (the list-of-dicts
+comprehension) as the largest allocation site. Exact percentages vary by
+machine — the ranking and the wall-clock-wait callout should not.
+
+**2. `live_dashboard.py` — live CPU/memory dashboard**
+
+```bash
+python3 scripts/live_dashboard.py --interval 0.3 -- python3 fixtures/hotspot_demo.py
+```
+
+Run this one in an actual terminal (not piped/captured) to see the
+in-place-redrawing ANSI dashboard and memory sparkline; piped output falls
+back to one plain sample line per interval instead. Expect CPU to climb
+toward ~85-99% while `find_duplicates_slow` runs (the first 1.5-2s), then
+drop off as it finishes. `build_dataset_slow`'s allocation is real (tens of
+MB) but completes in well under 100ms, so whether the 0.3s sampler catches a
+visible RSS jump in the last sample or two is timing-dependent — on a fast
+machine it's common to see peak RSS stay in the 10-50MB range across
+identical runs rather than a single, reliable jump. Treat a clear CPU-high
+phase followed by process exit as the pass condition; a caught memory spike
+is a bonus, not a requirement. Pass `--log samples.json` to get the exact
+per-sample RSS/CPU trace if the live view is inconclusive.
+
+**3. `compare_benchmarks.py` — before/after verdict**
+
+```bash
+python3 scripts/compare_benchmarks.py fixtures/baseline_funcs.py fixtures/optimized_funcs.py fixtures/bench_data.py --number 50 --repeat 3
+```
+
+Expect `find_duplicates` (the `O(n^2)` -> `set`-based rewrite) to report as
+dramatically faster, typically 95%+ faster / >10x, and `join_lines` (repeated
+string concatenation -> `str.join`) as modestly faster, typically 10-20%.
+Summary should read "Faster: 2", "Regressions: 0".
