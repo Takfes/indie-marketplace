@@ -83,3 +83,19 @@ never something this skill decides how to fix; it only ever reports one.
   always reported, never mutated.
 - Never proposed as skippable by `python-workflow`'s plan checkpoint -- there is no scan evidence
   that proves ruff/mypy have nothing to do (see `python-scan`'s own boundary note on this).
+
+## Self-check
+
+```
+scripts/quality_loop.py ../../fixtures/smelly_module.py
+```
+
+Expect a format pass, `ruff check --fix` auto-fixing the two unused imports (`json`, `os`), and
+~7 remaining issues the loop reports but can't fix itself: four nested-if findings, one unused
+variable, a bare `except`, and a `try`/`except`/`pass`.
+
+This mutates `smelly_module.py` in place -- reset it afterward from the untouched pristine copy:
+
+```
+cp ../../fixtures/smelly_module.orig.py ../../fixtures/smelly_module.py
+```

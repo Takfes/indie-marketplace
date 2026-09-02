@@ -201,3 +201,12 @@ Standards/Contract.
 Context-Sensitive Rules, per-issue-type verification recipes, and Severity Calibration. Both
 dispatched subagents read this themselves (see Dispatch, above); you don't need to unless you're
 tuning the skill.
+
+## Self-check
+
+Prompt: "review `fixtures/smelly_module.py`" (module mode — no fixed point to diff against).
+
+Expect the Standards axis to flag `OrderProcessor` as a God class (validation, pricing,
+persistence, and notification all in one), `validate()`'s reach into
+`order.customer.address.zip` as Feature Envy, and `notify()`'s
+`self.db.session.connection.execute(...)` as a Message Chain.

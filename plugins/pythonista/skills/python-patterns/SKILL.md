@@ -60,3 +60,11 @@ domain model -- stop and hand off rather than forcing it through this skill's be
 - Never proposed as skippable by `python-workflow`'s plan checkpoint unless `python-scan`'s
   `find_dead_code`, `find_duplicates`, `find_unpythonic`, and `find_overengineering` are all
   empty.
+
+## Self-check
+
+Prompt: "apply idiomatic patterns to `fixtures/smelly_module.py`".
+
+Expect `range(len(order["items"]))` loops flagged for `enumerate`, `order.get("valid") == True`
+flagged for direct truthiness (`order.get("valid")`), and the manual `lines += ... + "\n"`
+string-concatenation loop in `build_receipt` flagged for `"\n".join(...)`.

@@ -67,3 +67,12 @@ docstring convention the target project already uses.
 - Never proposed as skippable by `python-workflow`'s plan checkpoint below the tuned bands
   (docstring coverage ≥80% **and** type-hint coverage ≥90%, from `check_documentation.py`) — both
   must clear the bar, not either.
+
+## Self-check
+
+Prompt: "document `fixtures/smelly_module.py`".
+
+Expect docstrings and type hints proposed for the many undocumented functions and methods —
+`unused_helper`, the whole `OrderProcessor` class and its methods, `PricingStrategy`,
+`StandardPricingStrategy`, `apply_pricing`, `compute_total_v1`/`v2`, and `unreachable_example` —
+additive only, since the module docstring at the top is already present and must not be reworded.

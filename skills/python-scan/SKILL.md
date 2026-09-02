@@ -60,3 +60,13 @@ Pass/warn/fail bands, tuned by `python-refactor` and shared here as the marketpl
 Every issue carries at least `file`, `line`, `severity`, and a type field (`issue_type`, `smell_type`, or `pattern_type` depending on which analyzer produced it) — code consuming the report should fall back across those keys rather than assume one name. Running `analyze_multi_metrics.py` or `check_documentation.py` standalone (not through `analyze_all.py`) additionally returns the full per-file metrics (`files`/`coverage`, thresholds) behind the flattened issue list.
 
 Read-only, always. Never mutates a file and never proposes a fix — that judgment belongs to every other skill downstream of this one.
+
+## Self-check
+
+```
+scripts/analyze_all.py ../../fixtures/smelly_module.py --format json
+```
+
+Expect ~48 findings, mostly in `documentation`, `dead_code`, `unpythonic`, `code_smells`,
+`coupling`, and `duplicates`. `complexity` and `overengineering` may read 0 depending on whether
+`complexipy`/`radon` are installed locally — that's expected, not a failure.
